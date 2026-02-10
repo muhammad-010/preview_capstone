@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+    --font-sans: 'Public Sans', system-ui, sans-serif;
+    --container-8xl: 90rem;
+    --container-9xl: 100rem;
+}
+
+@theme static {
+  --color-brand-50: var(--color-slate-50);
+  --color-brand-100: #E9EBF3;
+  --color-brand-200: #BCC4DC;
+  --color-brand-300: #9AA6CA;
+  --color-brand-400: #6D7FB3;
+  --color-brand-500: #1E3A8A;
+  --color-brand-600: #14265A;
+  --color-brand-700: #0F1D45;
+  --color-brand-800: #0B1430;
+  --color-brand-900: #0B1430;
+  --color-brand-950: var(--color-slate-950);
+}
+
+:root {
+    --ui-container: var(--container-9xl);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
