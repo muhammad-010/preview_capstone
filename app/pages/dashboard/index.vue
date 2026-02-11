@@ -105,9 +105,7 @@ onMounted(() => {
             <UCard>
                 <template #header>
                     <div class="flex justify-between items-center">
-                        <h2 class="text-lg font-semibold">
-                            Tenant Management
-                        </h2>
+                        <h3>Tenant Management</h3>
                         <UButton
                             color="primary"
                             icon="lucide:plus"

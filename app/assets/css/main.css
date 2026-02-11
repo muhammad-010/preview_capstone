@@ -21,6 +21,50 @@
   --color-brand-950: var(--color-slate-950);
 }
 
+@layer base {
+    h1 {
+        @apply text-3xl font-bold
+    }
+
+    h2 {
+        @apply text-2xl font-semibold
+    }
+
+    h3 {
+        @apply text-lg font-semibold
+    }
+
+    h4 {
+        @apply text-lg
+    }
+
+    h5 {
+        @apply font-semibold
+    }
+}
+
+@layer components {
+    .scrollbar {
+        @apply  [&::-webkit-scrollbar]:w-2
+                [&::-webkit-scrollbar-track]:rounded-none
+                [&::-webkit-scrollbar-thumb]:rounded-none
+                [&::-webkit-scrollbar-track]:bg-brand-100
+                [&::-webkit-scrollbar-thumb]:bg-brand-300
+                dark:[&::-webkit-scrollbar-track]:bg-brand-700
+                dark:[&::-webkit-scrollbar-thumb]:bg-brand-500/50
+    }
+
+    .navbar-ghost-button {
+        @apply  max-lg:text-secondary-300!
+                max-lg:hover:bg-primary/50!
+                max-lg:dark:hover:bg-primary/25!
+                max-lg:active:bg-primary/50!
+                max-lg:dark:active:bg-primary/25!
+                cursor-pointer
+                transition-colors
+    }
+}
+
 :root {
     --ui-container: var(--container-9xl);
 }

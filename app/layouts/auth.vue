@@ -7,9 +7,7 @@
             class="mb-2"
         />
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-semibold">
-                EnterpriseEvent
-            </h1>
+            <h2>EnterpriseEvent</h2>
             <small>Enterprise Event Management Platform</small>
         </div>
 

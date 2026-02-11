@@ -38,9 +38,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         <UCard class="mb-8">
             <template #header>
                 <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-semibold">
-                        Detailed Information
-                    </h2>
+                    <h3>Detailed Information</h3>
 
                     <UButton
                         color="primary"
@@ -110,9 +108,9 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         >
             <template #header>
                 <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-semibold text-error">
+                    <h3 class="text-error">
                         Danger Zone
-                    </h2>
+                    </h3>
                 </div>
             </template>
 

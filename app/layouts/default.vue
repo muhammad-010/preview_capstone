@@ -11,6 +11,7 @@ const user = ref({
 setNavigationState(SUPER_ADMIN_NAVIGATIONS)
 const navigation = getNavigationState()
 const isCollapsed = ref(false)
+const refNavbar = ref<HTMLElement | null>(null)
 </script>
 
 <template>
@@ -74,17 +75,12 @@ const isCollapsed = ref(false)
 
         <div class="w-full">
             <UDashboardNavbar
+                ref="refNavbar"
                 toggle-side="right"
                 class="sticky top-0 z-50 py-3 px-2! lg:px-4! lg:py-4!"
             >
                 <template #leading>
                     <UDashboardSidebarCollapse class="cursor-pointer" />
-                    <!-- <MiscCompanyLogo
-                        :name="company.name"
-                        :logo="company.logo"
-                        :collapsed="false"
-                        class="ml-4 lg:hidden"
-                    /> -->
                     <UBreadcrumb
                         :items="pageBreadCrumb"
                         class="ml-4 lg:ml-2 transition-all"
@@ -92,37 +88,24 @@ const isCollapsed = ref(false)
                 </template>
 
                 <template #right>
-                    <UColorModeButton class="max-lg:text-secondary-300! max-lg:hover:bg-primary/50 max-lg:dark:hover:bg-primary/25 cursor-pointer" />
+                    <UColorModeButton class="navbar-ghost-button" />
                 </template>
             </UDashboardNavbar>
 
             <UContainer
-                class="flex-1 py-4 lg:pt-0! h-full overflow-auto!"
-                :class="{ 'lg:px-12': !isCollapsed }"
+                class="py-4 lg:pt-0! h-[94vh] overflow-y-auto scrollbar"
+                :class="`h-[calc(100dvh - ${refNavbar?.clientHeight || 0}px)] ${!isCollapsed ? 'lg:px-12': ''}`"
             >
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <!-- <UBreadcrumb
-                        :items="layoutProps.pageBreadCrumb"
-                        class="mb-2"
-                    /> -->
-                        <Transition name="fade">
-                            <h1
-                                v-if="pageTitle"
-                                class="text-2xl font-semibold"
-                            >
-                                {{ pageTitle }}
-                            </h1>
-                        </Transition>
-                        <Transition name="fade">
-                            <small v-if="pageSubtitle">{{ pageSubtitle }}</small>
-                        </Transition>
+                        <h2 v-if="pageTitle">
+                            {{ pageTitle }}
+                        </h2>
+                        <small v-if="pageSubtitle">{{ pageSubtitle }}</small>
                     </div>
                 </div>
 
-                <UContainer class="mx-0! px-0!">
-                    <slot />
-                </UContainer>
+                <slot />
             </UContainer>
         </div>
     </UDashboardGroup>

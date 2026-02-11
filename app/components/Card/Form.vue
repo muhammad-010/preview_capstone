@@ -11,9 +11,7 @@ const emit = defineEmits([EMIT_FORM_CANCEL, EMIT_FORM_SAVE])
 <template>
     <UCard>
         <template #header>
-            <h2 class="text-lg font-semibold">
-                {{ title }}
-            </h2>
+            <h3>{{ title }}</h3>
             <small>{{ subtitle }}</small>
         </template>
 

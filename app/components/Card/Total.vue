@@ -13,13 +13,9 @@ defineProps<{
 <template>
     <UCard class="col-span-4 sm:col-span-3 md:col-span-1">
         <div class="flex justify-between">
-            <div>
-                <h2 class="text-md mb-2">
-                    {{ title }}
-                </h2>
-                <p class="text-3xl font-bold">
-                    {{ useNumberSuffix(total || 0) }}
-                </p>
+            <div class="mb-2">
+                <p>{{ title }}</p>
+                <h1>{{ useNumberSuffix(total || 0) }}</h1>
             </div>
             <div v-if="icon">
                 <UIcon

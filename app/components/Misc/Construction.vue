@@ -4,7 +4,7 @@
             name="lucide:construction"
             class="size-40 mb-4"
         />
-        <h1 class="text-4xl font-semibold">
+        <h1>
             This page is still under construction
         </h1>
     </div>

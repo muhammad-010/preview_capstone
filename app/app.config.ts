@@ -27,7 +27,7 @@ export default defineAppConfig({
         dashboardNavbar: {
             slots: {
                 root: 'h-fit bg-primary-900 dark:bg-primary-900 lg:border-none lg:bg-transparent lg:dark:bg-transparent',
-                toggle: 'max-lg:text-secondary-300! max-lg:hover:bg-primary/50 max-lg:dark:hover:bg-primary/25 cursor-pointer',
+                toggle: 'navbar-ghost-button', // app/assets/css/main.css
             },
         },
         dashboardSidebar: {

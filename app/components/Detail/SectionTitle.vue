@@ -7,12 +7,12 @@ defineProps<{
 
 <template>
     <div>
-        <h3
-            class="text-lg text-highlighted"
+        <h4
+            class="text-highlighted"
             :class="{ 'mb-6': !withSeparator }"
         >
             {{ title }}
-        </h3>
+        </h4>
         <USeparator
             v-if="withSeparator"
             size="lg"

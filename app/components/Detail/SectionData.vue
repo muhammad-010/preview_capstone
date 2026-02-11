@@ -8,9 +8,9 @@ defineProps<{
 
 <template>
     <div>
-        <h4 class="font-semibold mb-1">
+        <h5 class="mb-1">
             {{ title }}
-        </h4>
+        </h5>
         <div class="flex items-center">
             <slot>
                 <UIcon
