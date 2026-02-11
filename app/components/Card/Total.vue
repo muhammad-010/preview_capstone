@@ -15,7 +15,7 @@ defineProps<{
         <div class="flex justify-between">
             <div class="mb-2">
                 <p>{{ title }}</p>
-                <h1>{{ useNumberSuffix(total || 0) }}</h1>
+                <h1>{{ formatNumberSuffix(total || 0) }}</h1>
             </div>
             <div v-if="icon">
                 <UIcon

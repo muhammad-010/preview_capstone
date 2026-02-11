@@ -1,3 +1,7 @@
+export type Status = 'active' | 'inactive'
+
+export type RoleSlug = 'superadmin' | 'tenant.admin' | 'tenant.poc'
+
 export interface Tenant {
     id?: number
     tenantName: string

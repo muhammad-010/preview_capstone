@@ -1,12 +1,5 @@
 import type { BreadcrumbItem } from '@nuxt/ui'
 
-export interface Reference {
-    id: number
-    label: string
-}
-
-export type Status = 'active' | 'inactive'
-
 export interface AppRoute {
     title: string
     description?: string

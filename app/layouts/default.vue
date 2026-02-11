@@ -4,14 +4,29 @@ const company = ref({
     name: 'EnterpriseEvent',
     logo: '/logo.png',
 })
-const user = ref({
-    name: 'John Doe',
-    role: 'Administrator',
-})
-setNavigationState(SUPER_ADMIN_NAVIGATIONS)
+const { user } = useUserSession()
+const role = user.value?.role_slug
+if (!role) {
+    throw createError('Invalid role')
+}
+setNavigationState(shallowNavigationPerRole(role))
 const navigation = getNavigationState()
 const isCollapsed = ref(false)
 const refNavbar = ref<HTMLElement | null>(null)
+
+const { clear: clearSession } = useUserSession()
+async function onLogout() {
+    try {
+        await $fetch('/api/auth/logout', {
+            method: 'POST',
+        })
+        await clearSession()
+        await navigateTo('/auth/login')
+    }
+    catch (error) {
+        console.error('Login error:', error)
+    }
+}
 </script>
 
 <template>
@@ -47,17 +62,17 @@ const refNavbar = ref<HTMLElement | null>(null)
                     <Transition name="fade">
                         <UAvatar
                             v-if="!collapsed"
-                            :name="user.name"
+                            :name="user?.name || ''"
                             size="lg"
                         />
                     </Transition>
                     <Transition name="fade">
                         <div v-if="!collapsed">
                             <p class="text-secondary-50 font-semibold">
-                                {{ user.name }}
+                                {{ user?.name || '' }}
                             </p>
                             <small class="text-sm text-secondary-400">
-                                {{ user.role }}
+                                {{ user?.role_slug || '' }}
                             </small>
                         </div>
                     </Transition>
@@ -67,7 +82,7 @@ const refNavbar = ref<HTMLElement | null>(null)
                         size="lg"
                         class="text-secondary-300! hover:bg-primary/50 dark:hover:bg-primary/25 cursor-pointer"
                         :class="{ 'ml-auto': !collapsed }"
-                        @click="navigateTo('/auth/login')"
+                        @click="onLogout"
                     />
                 </div>
             </template>

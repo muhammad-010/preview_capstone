@@ -37,7 +37,10 @@ const schema = z.object({
 )
 type Schema = z.output<typeof schema>
 
-const plans = ref<Reference[]>([
+const plans = ref<{
+    id: number
+    label: string
+}[]>([
     {
         id: 1,
         label: 'starter',

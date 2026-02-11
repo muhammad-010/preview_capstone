@@ -11,7 +11,7 @@ definePageMeta({
 
 const fields = ref<AuthFormField[]>([
     {
-        name: 'email',
+        name: 'identity',
         type: 'text',
         label: 'Email',
         required: true,
@@ -27,12 +27,28 @@ const fields = ref<AuthFormField[]>([
 ])
 
 const schema = z.object({
-    email: z.email('Invalid email'),
+    identity: z.email('Invalid email'),
     password: z.string('Password is required'),
 })
 type Schema = z.output<typeof schema>
-function onLogin(payload: FormSubmitEvent<Schema>) {
-    console.log('Submitted', payload)
+const { fetch: refreshSession } = useUserSession()
+async function onLogin(payload: FormSubmitEvent<Schema>) {
+    try {
+        const data = await $fetch('/api/auth/login', {
+            method: 'POST',
+            body: payload.data,
+        })
+        await refreshSession()
+        if (data.redirect) {
+            await navigateTo(data.redirect)
+        }
+        else {
+            await navigateTo('/')
+        }
+    }
+    catch (error) {
+        console.error('Login error:', error)
+    }
 }
 </script>
 
@@ -41,7 +57,7 @@ function onLogin(payload: FormSubmitEvent<Schema>) {
         <UAuthForm
             :schema="schema"
             :fields="fields"
-            @submit="onLogin"
+            @submit.prevent="onLogin"
         >
             <template #submit>
                 <div class="flex justify-between items-center mb-5">
@@ -57,16 +73,8 @@ function onLogin(payload: FormSubmitEvent<Schema>) {
                     </ULink>
                 </div>
 
-                <!-- <UButton
-                    type="submit"
-                    color="primary"
-                    icon="lucide:log-in"
-                    class="w-full"
-                >
-                    Sign In
-                </UButton> -->
                 <UButton
-                    to="/dashboard"
+                    type="submit"
                     color="primary"
                     icon="lucide:log-in"
                     class="w-full"

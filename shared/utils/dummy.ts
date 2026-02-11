@@ -1,4 +1,4 @@
-import type { Tenant } from '../types/tenant'
+import type { Tenant } from '../types/data'
 
 export const t1 = {
     id: 1,
