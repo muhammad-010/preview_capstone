@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const router = useRouter()
 const route = useRoute()
 const id = Number(route.params.id)
 
@@ -17,6 +18,20 @@ async function useDetail(id: number) {
         statusColors,
         deleteConfirmation,
         tenant,
+    }
+}
+
+async function deleteData(id: number) {
+    try {
+        const data = await $fetch(`/api/tenant/${id}`, {
+            method: 'DELETE',
+        })
+        if (data.success) {
+            router.go(-1)
+        }
+    }
+    catch (error) {
+        console.error('Delete tenant error', error)
     }
 }
 
@@ -177,6 +192,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                 <UButton
                     label="Submit"
                     color="error"
+                    @click="deleteData(id)"
                 />
             </template>
         </UModal>
