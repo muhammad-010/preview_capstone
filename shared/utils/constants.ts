@@ -1,8 +1,8 @@
 import type { RoleSlug, Status } from '../types/data'
 
 // STATUS
-export const STATUS_ACTIVE: Status = 'active'
-export const STATUS_INACTIVE: Status = 'inactive'
+export const STATUS_ACTIVE: Status = 'Active'
+export const STATUS_INACTIVE: Status = 'Inactive'
 
 export const STATUS_DROPDOWN: Status[] = [
     STATUS_ACTIVE,

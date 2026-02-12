@@ -8,83 +8,134 @@ useHead({
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
-const UBadge = resolveComponent('UBadge')
-const UButton = resolveComponent('UButton')
-const columns: TableColumn<DummyTenant>[] = [
-    {
-        accessorKey: 'tenantName',
-        header: 'Tenant Name',
-        cell: ({ row }) => {
-            return h('div', {}, [
-                h('span', { class: 'font-semibold' }, row.original.tenantName),
-                h('br'),
-                h('span', { class: 'text-sm' }, row.original.adminName),
-            ])
+function useColumns() {
+    const UBadge = resolveComponent('UBadge')
+    const UButton = resolveComponent('UButton')
+    const columns: TableColumn<Tenant>[] = [
+        {
+            accessorKey: 'name',
+            header: 'Tenant Name',
+            cell: ({ row }) => {
+                return h('div', {}, [
+                    h('span', { class: 'font-semibold' }, row.original.name),
+                    h('br'),
+                    h('span', { class: 'text-sm' }, row.original.owner?.name || ''),
+                ])
+            },
         },
-    },
-    {
-        accessorKey: 'adminEmail',
-        header: 'Admin Email',
-        cell: ({ row }) => {
-            return h('div', {}, [
-                h('span', {}, row.original.adminEmail),
-                h('br'),
-                h('span', { class: 'text-sm' }, row.original.adminPhone),
-            ])
+        {
+            accessorKey: 'owner.email',
+            header: 'Admin Email',
+            cell: ({ row }) => {
+                return h('div', {}, [
+                    h('span', {}, row.original.owner?.email || ''),
+                    h('br'),
+                    h('span', { class: 'text-sm' }, row.original.owner?.phone?.number || ''),
+                ])
+            },
         },
-    },
-    {
-        accessorKey: 'plan',
-        header: 'Plan',
-        cell: ({ row }) => {
-            return h(UBadge, {
-                color: 'secondary',
-                variant: 'subtle',
-                label: row.original.plan,
-            })
-        },
-    },
-    {
-        accessorKey: 'events',
-        header: 'Events',
-    },
-    {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: ({ row }) => {
-            return h(UBadge, {
-                color: STATUS_COLORS[row.getValue('status') as 'active' | 'inactive'],
-                variant: 'subtle',
-                label: row.original.status,
-            })
-        },
-    },
-    {
-        accessorKey: 'id',
-        header: 'Action',
-        cell: ({ row }) => {
-            return h('div', { class: 'flex gap-2' }, [
-                h(UButton, {
+        {
+            accessorKey: 'plan',
+            header: 'Plan',
+            cell: ({ row }) => {
+                return h(UBadge, {
                     color: 'secondary',
-                    variant: 'ghost',
-                    icon: 'lucide:pencil',
-                    to: `tenants/${row.original.id}/edit`,
-                }),
-                h(UButton, {
-                    color: 'secondary',
-                    variant: 'ghost',
-                    icon: 'lucide:info',
-                    to: `tenants/${row.original.id}`,
-                }),
-            ])
+                    variant: 'subtle',
+                    label: row.original.plan,
+                })
+            },
         },
-    },
-]
+        {
+            accessorKey: 'total_event',
+            header: 'Events',
+        },
+        {
+            accessorKey: 'status',
+            header: 'Status',
+            cell: ({ row }) => {
+                return h(UBadge, {
+                    color: STATUS_COLORS[row.getValue('status') as Status],
+                    variant: 'subtle',
+                    label: row.original.status,
+                })
+            },
+        },
+        {
+            accessorKey: 'tenant_id',
+            header: 'Action',
+            cell: ({ row }) => {
+                return h('div', { class: 'flex gap-2' }, [
+                    h(UButton, {
+                        color: 'secondary',
+                        variant: 'ghost',
+                        icon: 'lucide:pencil',
+                        to: `tenants/${row.original.tenant_id}/edit`,
+                    }),
+                    h(UButton, {
+                        color: 'secondary',
+                        variant: 'ghost',
+                        icon: 'lucide:info',
+                        to: `tenants/${row.original.tenant_id}`,
+                    }),
+                ])
+            },
+        },
+    ]
+    return columns
+}
 
-const data = ref<DummyTenant[]>(DUMMY_TENANTS as DummyTenant[])
-onMounted(() => {
-    data.value = DUMMY_TENANTS as DummyTenant[]
-})
+async function useList() {
+    const columns = useColumns()
+    const search = ref('')
+    const query = ref('')
+    const page = ref(1)
+    const limit = ref(5)
+    const { data, pending, refresh } = await useFetch('/api/tenant', {
+        key: KEY_LIST_TENANT,
+        transform: res => res.data,
+        query: { query, page, limit },
+        watch: [page, limit],
+    })
+    const tenants = computed<Tenant[]>(() => data.value?.tenants ?? [])
+    const total = computed(() => data.value?.total_data ?? 0)
+
+    function searchTenant() {
+        page.value = 1
+        query.value = search.value
+        refresh()
+    }
+
+    function clearSearch() {
+        page.value = 1
+        search.value = ''
+        query.value = search.value
+        refresh()
+    }
+
+    return {
+        columns,
+        search,
+        page,
+        limit,
+        tenants,
+        total,
+        pending,
+        searchTenant,
+        clearSearch,
+    }
+}
+
+const {
+    columns,
+    search,
+    page,
+    limit,
+    tenants,
+    total,
+    pending,
+    searchTenant,
+    clearSearch,
+} = await useList()
 </script>
 
 <template>
@@ -92,11 +143,12 @@ onMounted(() => {
         <UCard>
             <template #header>
                 <div class="flex justify-between items-center">
-                    <UInput
-                        icon="lucide:search"
-                        type="text"
-                        placeholder="Search"
+                    <InputSearch
+                        v-model="search"
+                        @search="searchTenant"
+                        @clear="clearSearch"
                     />
+
                     <div class="flex gap-2">
                         <UButton
                             color="secondary"
@@ -119,9 +171,20 @@ onMounted(() => {
             </template>
             <div>
                 <UTable
-                    :data="data"
+                    :data="tenants"
                     :columns="columns"
+                    :loading="pending"
                 />
+
+                <div class="flex justify-end border-t border-default pt-4 px-4">
+                    <UPagination
+                        :page="page"
+                        :items-per-page="limit"
+                        :total="total"
+                        :sibling-count="1"
+                        @update:page="(p) => page = p"
+                    />
+                </div>
             </div>
         </UCard>
     </div>

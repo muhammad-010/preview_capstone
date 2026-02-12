@@ -9,7 +9,7 @@ export const t1 = {
     billingAddress: '123 Innovation Dr, Tech City, CA',
     createdAt: '2026-01-01',
     events: 12,
-    status: 'active',
+    status: 'Active',
     registeredUsers: 45,
     plan: 'enterprise',
 } as DummyTenant
@@ -22,7 +22,7 @@ export const t2 = {
     adminPhone: '+1 (555) 987-6543',
     billingAddress: '456 Innovation Dr, Tech City, CA',
     createdAt: '2026-02-02',
-    status: 'active',
+    status: 'Active',
     events: 9,
     registeredUsers: 50,
     plan: 'professional',
@@ -36,7 +36,7 @@ export const t3 = {
     adminPhone: '+1 (555) 111-2222',
     billingAddress: '789 Innovation Dr, Tech City, CA',
     createdAt: '2026-03-03',
-    status: 'inactive',
+    status: 'Inactive',
     events: 15,
     registeredUsers: 75,
     plan: 'starter',
@@ -47,5 +47,5 @@ export const DUMMY_TENANTS: DummyTenant[] = [t1, t2, t3]
 export const DUMMY_EMPTY_TENANT: DummyTenant = {
     id: 0,
     tenantName: '',
-    status: 'inactive',
+    status: 'Inactive',
 }

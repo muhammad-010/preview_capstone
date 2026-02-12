@@ -1,9 +1,20 @@
+export type FetchOptions = RequetInit & {
+    query?: QueryObject
+}
+
 export interface FetchResult {
     message?: string
+    success?: boolean
     redirect?: string
 }
 
-export interface LoginResult {
+export interface Pagination {
+    current_page: number
+    last_page: number
+    total_data: number
+}
+
+export type LoginResult = FetchResult & {
     data: {
         access_token: string
         expired_in_sec: number
@@ -14,11 +25,24 @@ export interface LoginResult {
             role_slug: RoleSlug
         }
     }
-    message: string
-    success: boolean
 }
 
-export interface LogoutResult {
-    message: string
-    success: boolean
+export type LogoutResult = FetchResult
+
+export type PaginatedData<T, K extends string> = Pagination & {
+    [P in K]: T[]
 }
+
+export type ListResult<T> = FetchResult & {
+    data: T
+}
+
+export type DetailResult<T> = FetchResult & {
+    data: T
+}
+
+export type TenantListResult = ListResult<
+    PaginatedData<Tenant, 'tenants'>
+>
+
+export type TenantDetailResult = DetailResult<Tenant>

@@ -1,7 +1,9 @@
 export default defineEventHandler(async (event): Promise<FetchResult> => {
+    const method = 'POST'
+    const path = '/auth/login'
     const body = await readBody(event)
 
-    const res: LoginResult = await externalApi(event, 'POST', '/auth/login', {
+    const res: LoginResult = await externalApi(event, method, path, {
         body,
     })
     if (res.success) {
@@ -17,7 +19,7 @@ export default defineEventHandler(async (event): Promise<FetchResult> => {
         }
     }
     else {
-        console.error('Login failed:', res)
-        return { message: 'Login failed' }
+        console.error(`${method} ${path} failed`, res)
+        return res
     }
 })

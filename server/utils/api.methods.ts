@@ -1,7 +1,12 @@
 import { $fetch } from 'ofetch'
 import type { H3Event } from 'h3'
 
-export async function externalApi<T>(event: H3Event, method: string, path: string, options: RequestInit = {}): Promise<T> {
+export async function externalApi<T>(
+    event: H3Event,
+    method: string,
+    path: string,
+    options: FetchOptions = {},
+): Promise<T> {
     const externalApi = process.env.EXTERNAL_API_URL
     if (!externalApi) {
         throw createError({

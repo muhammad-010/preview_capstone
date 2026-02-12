@@ -21,3 +21,10 @@ export interface LayoutProp {
     pageSubtitle: string
     pageBreadCrumb: BreadcrumbItem[]
 }
+
+export interface TablePagination {
+    /** page */
+    pageIndex: number
+    /** items per page */
+    pageSize: number
+}

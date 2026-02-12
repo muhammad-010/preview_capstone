@@ -15,7 +15,7 @@ const state = reactive<DummyTenant>(props.fields ?? {
     adminPhone: '',
     adminPassword: '',
     confirmPassword: '',
-    status: 'active',
+    status: 'Active',
     planId: 3,
     billingAddress: '',
 })
