@@ -1,10 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     modules: [
-      '@nuxt/eslint',
-      '@nuxt/ui',
-      '@nuxt/image',
-      'nuxt-auth-utils',
+        '@nuxt/eslint',
+        '@nuxt/ui',
+        '@nuxt/image',
+        'nuxt-auth-utils',
     ],
     imports: {
         dirs: ['shared/types', 'shared/utils'],

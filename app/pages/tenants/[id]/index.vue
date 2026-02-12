@@ -7,7 +7,7 @@ const tenant = DUMMY_TENANTS.filter(e => e.id === id)[0] ?? {
     id: 0,
     tenantName: '',
     status: 'inactive' as Status,
-} as Tenant
+} as DummyTenant
 useHead({
     title: `Tenant - ${tenant.tenantName}`,
 })

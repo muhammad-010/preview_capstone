@@ -4,11 +4,11 @@ import * as z from 'zod'
 
 const router = useRouter()
 const props = defineProps<{
-    fields?: Tenant
+    fields?: DummyTenant
 }>()
 const validPlans = [1, 2, 3]
 const statuses = STATUS_DROPDOWN
-const state = reactive<Tenant>(props.fields ?? {
+const state = reactive<DummyTenant>(props.fields ?? {
     tenantName: '',
     adminEmail: '',
     adminName: '',
@@ -22,7 +22,7 @@ const state = reactive<Tenant>(props.fields ?? {
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
-const formRef = ref<Form<Tenant> | null>(null)
+const formRef = ref<Form<DummyTenant> | null>(null)
 const schema = z.object({
     tenantName: z.string().min(1, 'Tenant name is required'),
     adminEmail: z.email('Invalid admin email'),

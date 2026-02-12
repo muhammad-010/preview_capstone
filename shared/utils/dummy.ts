@@ -1,4 +1,4 @@
-import type { Tenant } from '../types/data'
+import type { DummyTenant } from '../types/data'
 
 export const t1 = {
     id: 1,
@@ -12,7 +12,7 @@ export const t1 = {
     status: 'active',
     registeredUsers: 45,
     plan: 'enterprise',
-} as Tenant
+} as DummyTenant
 
 export const t2 = {
     id: 2,
@@ -26,7 +26,7 @@ export const t2 = {
     events: 9,
     registeredUsers: 50,
     plan: 'professional',
-} as Tenant
+} as DummyTenant
 
 export const t3 = {
     id: 3,
@@ -40,11 +40,11 @@ export const t3 = {
     events: 15,
     registeredUsers: 75,
     plan: 'starter',
-} as Tenant
+} as DummyTenant
 
-export const DUMMY_TENANTS: Tenant[] = [t1, t2, t3]
+export const DUMMY_TENANTS: DummyTenant[] = [t1, t2, t3]
 
-export const DUMMY_EMPTY_TENANT: Tenant = {
+export const DUMMY_EMPTY_TENANT: DummyTenant = {
     id: 0,
     tenantName: '',
     status: 'inactive',

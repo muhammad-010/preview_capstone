@@ -10,7 +10,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
 const UBadge = resolveComponent('UBadge')
 const UButton = resolveComponent('UButton')
-const columns: TableColumn<Tenant>[] = [
+const columns: TableColumn<DummyTenant>[] = [
     {
         accessorKey: 'tenantName',
         header: 'Tenant Name',
@@ -81,9 +81,9 @@ const columns: TableColumn<Tenant>[] = [
     },
 ]
 
-const data = ref<Tenant[]>(DUMMY_TENANTS as Tenant[])
+const data = ref<DummyTenant[]>(DUMMY_TENANTS as DummyTenant[])
 onMounted(() => {
-    data.value = DUMMY_TENANTS as Tenant[]
+    data.value = DUMMY_TENANTS as DummyTenant[]
 })
 </script>
 
