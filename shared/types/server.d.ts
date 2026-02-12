@@ -33,6 +33,10 @@ export type PaginatedData<T, K extends string> = Pagination & {
     [P in K]: T[]
 }
 
+export type AddedData<T, K extends string> = {
+    [P in K]: T[]
+}
+
 export type ListResult<T> = FetchResult & {
     data: T
 }
@@ -41,8 +45,16 @@ export type DetailResult<T> = FetchResult & {
     data: T
 }
 
+export type AddResult<T> = FetchResult & {
+    data: T
+}
+
 export type TenantListResult = ListResult<
     PaginatedData<Tenant, 'tenants'>
 >
 
 export type TenantDetailResult = DetailResult<Tenant>
+
+export type TenantAddResult = AddResult<
+    AddedData<number, 'tenant_id'>
+>

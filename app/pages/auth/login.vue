@@ -2,36 +2,36 @@
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 
-useHead({
-    title: 'Login',
-})
-definePageMeta({
-    layout: 'auth',
-})
+function useLogin() {
+    const fields = ref<AuthFormField[]>([
+        {
+            name: 'identity',
+            type: 'text',
+            label: 'Email',
+            required: true,
+            placeholder: 'Enter your email',
+        },
+        {
+            name: 'password',
+            type: 'password',
+            label: 'Password',
+            required: true,
+            placeholder: 'Enter your password',
+        },
+    ])
 
-const fields = ref<AuthFormField[]>([
-    {
-        name: 'identity',
-        type: 'text',
-        label: 'Email',
-        required: true,
-        placeholder: 'Enter your email',
-    },
-    {
-        name: 'password',
-        type: 'password',
-        label: 'Password',
-        required: true,
-        placeholder: 'Enter your password',
-    },
-])
+    const schema = z.object({
+        identity: z.email('Invalid email'),
+        password: z.string('Password is required'),
+    })
+    const { fetch: refreshSession } = useUserSession()
+    return {
+        fields,
+        schema,
+        refreshSession,
+    }
+}
 
-const schema = z.object({
-    identity: z.email('Invalid email'),
-    password: z.string('Password is required'),
-})
-type Schema = z.output<typeof schema>
-const { fetch: refreshSession } = useUserSession()
 async function onLogin(payload: FormSubmitEvent<Schema>) {
     try {
         const data = await $fetch('/api/auth/login', {
@@ -50,6 +50,20 @@ async function onLogin(payload: FormSubmitEvent<Schema>) {
         console.error('Login error:', error)
     }
 }
+
+const {
+    fields,
+    schema,
+    refreshSession,
+} = useLogin()
+type Schema = z.output<typeof schema>
+
+useHead({
+    title: 'Login',
+})
+definePageMeta({
+    layout: 'auth',
+})
 </script>
 
 <template>

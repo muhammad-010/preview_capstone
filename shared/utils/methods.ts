@@ -17,3 +17,11 @@ export function formatNumberSuffix(value: number, decimals = 1): string {
 
     return value.toString()
 }
+
+/** format date into YYYY-MM-DD */
+export function formatShortDate(datestring: string): string {
+    if (!datestring) {
+        return 'Invalid Date'
+    }
+    return new Date(datestring).toISOString().split('T')[0] || 'Invalid Date'
+}

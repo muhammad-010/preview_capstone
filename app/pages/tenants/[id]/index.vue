@@ -1,20 +1,38 @@
 <script setup lang="ts">
 const route = useRoute()
 const id = Number(route.params.id)
-const statusColors = STATUS_COLORS
 
-const tenant = DUMMY_TENANTS.filter(e => e.id === id)[0] ?? {
-    id: 0,
-    tenantName: '',
-    status: 'inactive' as Status,
-} as DummyTenant
+async function useDetail(id: number) {
+    const statusColors = STATUS_COLORS
+    const deleteConfirmation = ref(false)
+    const { data } = await useFetch(`/api/tenant/${id}/detail`, {
+        transform: res => ({
+            ...res.data,
+            joined_at: formatShortDate(res.data.joined_at || ''),
+        }),
+    })
+    const tenant = computed<Tenant>(() => data.value ?? {} as Tenant)
+
+    return {
+        statusColors,
+        deleteConfirmation,
+        tenant,
+    }
+}
+
+const {
+    statusColors,
+    deleteConfirmation,
+    tenant,
+} = await useDetail(id)
+
 useHead({
-    title: `Tenant - ${tenant.tenantName}`,
+    title: `Tenant - ${tenant.value.name}`,
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
     [':id']: {
         param: route.params.id as string,
-        label: tenant.tenantName,
+        label: tenant.value.name,
     },
 }))
 </script>
@@ -24,13 +42,13 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         <div class="grid grid-cols-2 gap-4 mb-8">
             <CardTotal
                 title="Total Events"
-                :total="tenant.events ?? 0"
+                :total="tenant.total_event ?? 0"
                 icon="lucide:calendar"
             />
 
             <CardTotal
                 title="Registered Users"
-                :total="tenant.registeredUsers ?? 0"
+                :total="tenant.total_registered_user ?? 0"
                 icon="lucide:users"
             />
         </div>
@@ -44,7 +62,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                         color="primary"
                         icon="lucide:pencil"
                         class="cursor-pointer"
-                        :to="`/tenants/${tenant.id}/edit`"
+                        :to="`/tenants/${tenant.tenant_id}/edit`"
                     >
                         Edit Tenant
                     </UButton>
@@ -56,25 +74,25 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     <DetailSectionData
                         title="Name"
                         icon="lucide:user"
-                        :subtitle="tenant.adminName || ''"
+                        :subtitle="tenant.owner?.name || ''"
                     />
 
                     <DetailSectionData
                         title="Email"
                         icon="lucide:mail"
-                        :subtitle="tenant.adminEmail || ''"
+                        :subtitle="tenant.owner?.email || ''"
                     />
 
                     <DetailSectionData
                         title="Phone"
                         icon="lucide:phone"
-                        :subtitle="tenant.adminPhone || ''"
+                        :subtitle="tenant.owner?.phone.number || ''"
                     />
 
                     <DetailSectionData
                         title="Join Date"
                         icon="lucide:calendar"
-                        :subtitle="tenant.createdAt || ''"
+                        :subtitle="tenant.joined_at || ''"
                     />
 
                     <DetailSectionData
@@ -90,12 +108,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                             :label="tenant.status"
                         />
                     </DetailSectionData>
-
-                    <DetailSectionData
-                        title="Billing Address"
-                        icon="lucide:map-pin"
-                        :subtitle="tenant.billingAddress || ''"
-                    />
                 </section>
             </div>
         </UCard>
@@ -138,12 +150,35 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                         color="error"
                         icon="lucide:trash"
                         class="cursor-pointer"
-                        :to="`tenants/${tenant.id}/edit`"
+                        @click="deleteConfirmation = true"
                     >
                         Delete Tenant
                     </UButton>
                 </div>
             </section>
         </UCard>
+
+        <UModal
+            v-model:open="deleteConfirmation"
+            title="Delete Confirmation"
+            :ui="{ title: 'text-error', footer: 'justify-end' }"
+        >
+            <template #body>
+                {{ `Are you sure you want to delete ${tenant.name}? This action cannot be undone` }}
+            </template>
+
+            <template #footer="{ close }">
+                <UButton
+                    label="Cancel"
+                    color="neutral"
+                    variant="outline"
+                    @click="close"
+                />
+                <UButton
+                    label="Submit"
+                    color="error"
+                />
+            </template>
+        </UModal>
     </div>
 </template>

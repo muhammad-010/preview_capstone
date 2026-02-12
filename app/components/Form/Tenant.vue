@@ -4,64 +4,120 @@ import * as z from 'zod'
 
 const router = useRouter()
 const props = defineProps<{
-    fields?: DummyTenant
+    id?: number
+    fields?: TenantForm
 }>()
-const validPlans = [1, 2, 3]
-const statuses = STATUS_DROPDOWN
-const state = reactive<DummyTenant>(props.fields ?? {
-    tenantName: '',
-    adminEmail: '',
-    adminName: '',
-    adminPhone: '',
-    adminPassword: '',
-    confirmPassword: '',
-    status: 'Active',
-    planId: 3,
-    billingAddress: '',
-})
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
 
-const formRef = ref<Form<DummyTenant> | null>(null)
-const schema = z.object({
-    tenantName: z.string().min(1, 'Tenant name is required'),
-    adminEmail: z.email('Invalid admin email'),
-    adminName: z.string().min(1, 'Admin name is required'),
-    adminPassword: z.string().min(8, 'Minimum 8 characters'),
-    confirmPassword: z.string().min(8, 'Minimum 8 characters'),
-    status: z.literal(STATUS_DROPDOWN),
-    planId: z.literal(validPlans),
-}).refine(
-    data => data.adminPassword === data.confirmPassword,
-    { message: 'Password mismatch', path: ['confirmPassowrd'] },
-)
-type Schema = z.output<typeof schema>
-
-const plans = ref<{
-    id: number
-    label: string
-}[]>([
-    {
+function useTenantForm() {
+    const statuses = STATUS_DROPDOWN
+    const validPlans = [1]
+    const plans = ref<{
+        id: number
+        label: string
+    }[]>([{
         id: 1,
-        label: 'starter',
-    },
-    {
-        id: 2,
-        label: 'professional',
-    },
-    {
-        id: 3,
-        label: 'enterprise',
-    },
+        label: 'Enterprise',
+    }])
+    const state = reactive<TenantForm>(props.fields ?? {
+        name: '',
+        owner_name: '',
+        owner_email: '',
+        owner_phone_number: '',
+        owner_password: '',
+        owner_password_confirm: '',
+        plan_id: 1,
+        status: 'Active',
+    })
+    const showPassword = ref(false)
+    const showConfirmPassword = ref(false)
 
-])
+    const formRef = ref<Form<TenantForm> | null>(null)
+    const schema = z.object({
+        name: z.string()
+            .min(1, 'Tenant name is required'),
+        owner_name: z.string()
+            .min(1, 'Owner name is required'),
+        owner_email: z.email('Invalid owner email'),
+        owner_phone_number: z.string()
+            .regex(/^\+?[0-9]{8,15}$/, 'Invalid phone number')
+            .optional(),
+        owner_password: props.id
+            ? z.string().min(8, 'Minimum 8 characters').optional()
+            : z.string().min(8, 'Minimum 8 characters'),
+        owner_password_confirm: props.id
+            ? z.string().min(8, 'Minimum 8 characters').optional()
+            : z.string().min(8, 'Minimum 8 characters'),
+        status: z.literal(STATUS_DROPDOWN),
+        plan_id: z.literal(validPlans),
+    }).refine(
+        data => data.owner_password === data.owner_password_confirm,
+        { message: 'Password mismatch', path: ['owner_password_confirm'] },
+    )
+
+    return {
+        statuses,
+        plans,
+        state,
+        showPassword,
+        showConfirmPassword,
+        formRef,
+        schema,
+    }
+}
 
 function onSave() {
     formRef.value?.submit()
 }
-function onSubmit(payload: FormSubmitEvent<Schema>) {
-    console.log('Submitted', payload)
+
+async function addData(payload: FormSubmitEvent<Schema>) {
+    try {
+        const data = await $fetch('/api/tenant', {
+            method: 'POST',
+            body: payload.data,
+        })
+        if (data.success) {
+            router.go(-1)
+        }
+    }
+    catch (error) {
+        console.error('Add tenant error', error)
+    }
 }
+
+async function editData(payload: FormSubmitEvent<Schema>, id: number) {
+    try {
+        const data = await $fetch(`/api/tenant/${id}`, {
+            method: 'PUT',
+            body: payload.data,
+        })
+        if (data.success) {
+            router.go(-1)
+        }
+    }
+    catch (error) {
+        console.error('Edit tenant error', error)
+    }
+}
+
+async function onSubmit(payload: FormSubmitEvent<Schema>) {
+    if (props.id && props.id > 0) {
+        await editData(payload, props.id)
+    }
+    else {
+        await addData(payload)
+    }
+}
+
+const {
+    statuses,
+    plans,
+    state,
+    showPassword,
+    showConfirmPassword,
+    formRef,
+    schema,
+} = useTenantForm()
+type Schema = z.output<typeof schema>
 </script>
 
 <template>
@@ -86,7 +142,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
                         class="my-2 w-full"
                     >
                         <UInput
-                            v-model="state.tenantName"
+                            v-model="state.name"
                             type="text"
                             class="w-full"
                         />
@@ -99,7 +155,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
                         class="my-2 w-full"
                     >
                         <UInput
-                            v-model="state.adminName"
+                            v-model="state.owner_name"
                             type="text"
                             class="w-full"
                         />
@@ -112,7 +168,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
                         class="my-2 w-full"
                     >
                         <UInput
-                            v-model="state.adminEmail"
+                            v-model="state.owner_email"
                             type="text"
                             class="w-full"
                         />
@@ -124,7 +180,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
                         class="my-2 w-full"
                     >
                         <UInput
-                            v-model="state.adminPhone"
+                            v-model="state.owner_phone_number"
                             type="text"
                             class="w-full"
                         />
@@ -137,7 +193,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
                         class="my-2 w-full"
                     >
                         <UInput
-                            v-model="state.adminPassword"
+                            v-model="state.owner_password"
                             :type="showPassword ? 'text' : 'password'"
                             class="w-full"
                         >
@@ -163,7 +219,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
                         class="my-2 w-full"
                     >
                         <UInput
-                            v-model="state.confirmPassword"
+                            v-model="state.owner_password_confirm"
                             :type="showConfirmPassword ? 'text' : 'password'"
                             class="w-full"
                         >
@@ -186,10 +242,11 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
                         label="Select Plan"
                         name="plan"
                         required
+                        readonly
                         class="my-2 w-full"
                     >
                         <UInputMenu
-                            v-model="state.planId"
+                            v-model="state.plan_id"
                             value-key="id"
                             :items="plans"
                             class="w-full"
@@ -209,7 +266,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
                         />
                     </UFormField>
 
-                    <UFormField
+                    <!-- <UFormField
                         label="Billing Address"
                         name="billingAddress"
                         class="my-2 w-full"
@@ -219,7 +276,7 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
                             type="text"
                             class="w-full"
                         />
-                    </UFormField>
+                    </UFormField> -->
                 </div>
             </UForm>
         </CardForm>

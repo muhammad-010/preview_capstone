@@ -3,10 +3,6 @@ import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 
 const route = useRoute()
-useHead({
-    title: 'Tenant',
-})
-setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
 function useColumns() {
     const UBadge = resolveComponent('UBadge')
@@ -91,7 +87,6 @@ async function useList() {
     const page = ref(1)
     const limit = ref(5)
     const { data, pending, refresh } = await useFetch('/api/tenant', {
-        key: KEY_LIST_TENANT,
         transform: res => res.data,
         query: { query, page, limit },
         watch: [page, limit],
@@ -136,6 +131,11 @@ const {
     searchTenant,
     clearSearch,
 } = await useList()
+
+useHead({
+    title: 'Tenant',
+})
+setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 </script>
 
 <template>
