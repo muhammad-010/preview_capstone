@@ -28,19 +28,31 @@ function useTenantForm(id: number) {
     const showConfirmPassword = ref(false)
 
     const schema = z.object({
-        name: z.string()
+        name: z
+            .string()
             .min(1, 'Tenant name is required'),
-        owner_name: z.string()
+        owner_name: z
+            .string()
             .min(1, 'Owner name is required'),
-        owner_email: z.email('Invalid owner email'),
-        owner_phone_number: z.string()
+        owner_email: z
+            .email('Invalid owner email'),
+        owner_phone_number: z
+            .string()
             .regex(/^\+?[0-9]{8,15}$/, 'Invalid phone number')
             .optional()
             .or(z.literal('')),
-        owner_password: z.string().min(8, 'Minimum 8 characters').optional(),
-        owner_password_confirm: z.string().min(8, 'Minimum 8 characters').optional(),
-        status: z.enum(STATUS_DROPDOWN),
-        plan_id: z.literal(validPlans),
+        owner_password: z
+            .string()
+            .min(8, 'Minimum 8 characters')
+            .optional(),
+        owner_password_confirm: z
+            .string()
+            .min(8, 'Minimum 8 characters')
+            .optional(),
+        status: z
+            .enum(STATUS_DROPDOWN),
+        plan_id: z
+            .literal(validPlans),
     }).superRefine((data, ctx) => {
         if (isCreate) {
             if (!data.owner_password) {
