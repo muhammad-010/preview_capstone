@@ -1,5 +1,9 @@
 export type Status = 'Active' | 'Inactive'
 
+export interface ActivateDeactivate {
+    status: Status
+}
+
 /** Represents YYYY-MM-DDTHH:mm:ssZ */
 export type ISOString = string
 
