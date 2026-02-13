@@ -177,15 +177,11 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     :loading="pending"
                 />
 
-                <div class="flex justify-end border-t border-default pt-4 px-4">
-                    <UPagination
-                        :page="page"
-                        :items-per-page="limit"
-                        :total="total"
-                        :sibling-count="1"
-                        @update:page="(p) => page = p"
-                    />
-                </div>
+                <MiscPagination
+                    v-model:limit="limit"
+                    v-model:page="page"
+                    :total="total"
+                />
             </div>
         </UCard>
     </div>
