@@ -3,7 +3,7 @@ export default defineEventHandler(async (event): Promise<FetchResult> => {
     const id = getRouterParam(event, 'id')
     const path = `/tenant/${id}`
     const rawbody = await readBody(event)
-    const body = formatTenantForm(rawbody)
+    const body = tenantFormToTenant(rawbody)
 
     const res: FetchResult = await externalApi(event, method, path, {
         body,

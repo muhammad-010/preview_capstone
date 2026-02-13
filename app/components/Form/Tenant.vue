@@ -8,9 +8,15 @@ const props = defineProps<{
     fields?: TenantForm
 }>()
 
-function useTenantForm() {
+const formRef = useTemplateRef<Form<TenantForm>>('formRef')
+async function saveData() {
+    await formRef.value?.submit()
+}
+
+function useTenantForm(id: number) {
+    const isCreate = !id
     const statuses = STATUS_DROPDOWN
-    const validPlans = [1]
+    const validPlans = 1 as number
     const plans = ref<{
         id: number
         label: string
@@ -18,7 +24,53 @@ function useTenantForm() {
         id: 1,
         label: 'Enterprise',
     }])
-    const state = reactive<TenantForm>(props.fields ?? {
+
+    const schema = z.object({
+        name: z.string()
+            .min(1, 'Tenant name is required'),
+        owner_name: z.string()
+            .min(1, 'Owner name is required'),
+        owner_email: z.email('Invalid owner email'),
+        owner_phone_number: z.string()
+            .regex(/^\+?[0-9]{8,15}$/, 'Invalid phone number')
+            .optional()
+            .or(z.literal('')),
+        owner_password: z.string().min(8, 'Minimum 8 characters').optional(),
+        owner_password_confirm: z.string().min(8, 'Minimum 8 characters').optional(),
+        status: z.enum(STATUS_DROPDOWN),
+        plan_id: z.literal(validPlans),
+    }).superRefine((data, ctx) => {
+        if (isCreate) {
+            if (!data.owner_password) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'Password is required',
+                    path: ['owner_password'],
+                })
+            }
+
+            if (!data.owner_password_confirm) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'Confirm password is required',
+                    path: ['owner_password_confirm'],
+                })
+            }
+        }
+
+        if (data.owner_password || data.owner_password_confirm) {
+            if (data.owner_password !== data.owner_password_confirm) {
+                ctx.addIssue({
+                    code: 'custom',
+                    message: 'Password mismatch',
+                    path: ['owner_password_confirm'],
+                })
+            }
+        }
+    })
+    type Schema = z.output<typeof schema>
+
+    const state = reactive<Partial<TenantForm>>(props.fields ?? {
         name: '',
         owner_name: '',
         owner_email: '',
@@ -31,28 +83,45 @@ function useTenantForm() {
     const showPassword = ref(false)
     const showConfirmPassword = ref(false)
 
-    const formRef = ref<Form<TenantForm> | null>(null)
-    const schema = z.object({
-        name: z.string()
-            .min(1, 'Tenant name is required'),
-        owner_name: z.string()
-            .min(1, 'Owner name is required'),
-        owner_email: z.email('Invalid owner email'),
-        owner_phone_number: z.string()
-            .regex(/^\+?[0-9]{8,15}$/, 'Invalid phone number')
-            .optional(),
-        owner_password: props.id
-            ? z.string().min(8, 'Minimum 8 characters').optional()
-            : z.string().min(8, 'Minimum 8 characters'),
-        owner_password_confirm: props.id
-            ? z.string().min(8, 'Minimum 8 characters').optional()
-            : z.string().min(8, 'Minimum 8 characters'),
-        status: z.literal(STATUS_DROPDOWN),
-        plan_id: z.literal(validPlans),
-    }).refine(
-        data => data.owner_password === data.owner_password_confirm,
-        { message: 'Password mismatch', path: ['owner_password_confirm'] },
-    )
+    async function addData(payload: FormSubmitEvent<Schema>) {
+        try {
+            const data = await $fetch('/api/tenant', {
+                method: 'POST',
+                body: payload.data,
+            })
+            if (data.success) {
+                router.go(-1)
+            }
+        }
+        catch (error) {
+            console.error('Add tenant error', error)
+        }
+    }
+
+    async function editData(payload: FormSubmitEvent<Schema>, id: number) {
+        try {
+            const data = await $fetch(`/api/tenant/${id}`, {
+                method: 'PUT',
+                body: payload.data,
+            })
+            if (data.success) {
+                router.go(-1)
+            }
+        }
+        catch (error) {
+            console.error('Edit tenant error', error)
+        }
+    }
+
+    async function submitData(payload: FormSubmitEvent<Schema>) {
+        alert(payload.data)
+        if (isCreate) {
+            await addData(payload)
+        }
+        else {
+            await editData(payload, id)
+        }
+    }
 
     return {
         statuses,
@@ -60,51 +129,8 @@ function useTenantForm() {
         state,
         showPassword,
         showConfirmPassword,
-        formRef,
         schema,
-    }
-}
-
-function onSave() {
-    formRef.value?.submit()
-}
-
-async function addData(payload: FormSubmitEvent<Schema>) {
-    try {
-        const data = await $fetch('/api/tenant', {
-            method: 'POST',
-            body: payload.data,
-        })
-        if (data.success) {
-            router.go(-1)
-        }
-    }
-    catch (error) {
-        console.error('Add tenant error', error)
-    }
-}
-
-async function editData(payload: FormSubmitEvent<Schema>, id: number) {
-    try {
-        const data = await $fetch(`/api/tenant/${id}`, {
-            method: 'PUT',
-            body: payload.data,
-        })
-        if (data.success) {
-            router.go(-1)
-        }
-    }
-    catch (error) {
-        console.error('Edit tenant error', error)
-    }
-}
-
-async function onSubmit(payload: FormSubmitEvent<Schema>) {
-    if (props.id && props.id > 0) {
-        await editData(payload, props.id)
-    }
-    else {
-        await addData(payload)
+        submitData,
     }
 }
 
@@ -114,10 +140,9 @@ const {
     state,
     showPassword,
     showConfirmPassword,
-    formRef,
     schema,
-} = useTenantForm()
-type Schema = z.output<typeof schema>
+    submitData,
+} = useTenantForm(props.id || 0)
 </script>
 
 <template>
@@ -126,18 +151,18 @@ type Schema = z.output<typeof schema>
             title="Tenant Information"
             subtitle="Enter the details for the new tenant organization"
             @cancel="router.back()"
-            @save="onSave"
+            @save="saveData"
         >
             <UForm
                 ref="formRef"
                 :schema="schema"
                 :state="state"
-                @submit="onSubmit"
+                @submit.prevent="submitData"
             >
                 <div class="grid md:grid-cols-2 gap-6">
                     <UFormField
                         label="Company Name"
-                        name="tenantName"
+                        name="name"
                         required
                         class="my-2 w-full"
                     >
@@ -150,7 +175,7 @@ type Schema = z.output<typeof schema>
 
                     <UFormField
                         label="Admin Name"
-                        name="adminName"
+                        name="owner_name"
                         required
                         class="my-2 w-full"
                     >
@@ -163,7 +188,7 @@ type Schema = z.output<typeof schema>
 
                     <UFormField
                         label="Admin Email"
-                        name="adminEmail"
+                        name="owner_email"
                         required
                         class="my-2 w-full"
                     >
@@ -176,7 +201,7 @@ type Schema = z.output<typeof schema>
 
                     <UFormField
                         label="Phone Number"
-                        name="adminPhone"
+                        name="owner_phone_number"
                         class="my-2 w-full"
                     >
                         <UInput
@@ -188,7 +213,7 @@ type Schema = z.output<typeof schema>
 
                     <UFormField
                         label="Admin Password"
-                        name="adminPassword"
+                        name="owner_password"
                         required
                         class="my-2 w-full"
                     >
@@ -214,7 +239,7 @@ type Schema = z.output<typeof schema>
 
                     <UFormField
                         label="Confirm Password"
-                        name="confirmPassword"
+                        name="owner_password_confirm"
                         required
                         class="my-2 w-full"
                     >

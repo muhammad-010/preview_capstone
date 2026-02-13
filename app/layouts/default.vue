@@ -96,10 +96,12 @@ async function onLogout() {
             >
                 <template #leading>
                     <UDashboardSidebarCollapse class="cursor-pointer" />
-                    <UBreadcrumb
-                        :items="pageBreadCrumb"
-                        class="ml-4 lg:ml-2 transition-all"
-                    />
+                    <ClientOnly>
+                        <UBreadcrumb
+                            :items="pageBreadCrumb"
+                            class="ml-4 lg:ml-2 transition-all"
+                        />
+                    </ClientOnly>
                 </template>
 
                 <template #right>
@@ -113,10 +115,12 @@ async function onLogout() {
             >
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h2 v-if="pageTitle">
-                            {{ pageTitle }}
-                        </h2>
-                        <small v-if="pageSubtitle">{{ pageSubtitle }}</small>
+                        <ClientOnly>
+                            <h2 v-if="pageTitle">
+                                {{ pageTitle }}
+                            </h2>
+                            <small v-if="pageSubtitle">{{ pageSubtitle }}</small>
+                        </ClientOnly>
                     </div>
                 </div>
 

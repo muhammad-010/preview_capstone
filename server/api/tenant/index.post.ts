@@ -2,7 +2,7 @@ export default defineEventHandler(async (event): Promise<TenantAddResult> => {
     const method = 'POST'
     const path = '/tenant'
     const rawbody = await readBody(event)
-    const body = formatTenantForm(rawbody)
+    const body = tenantFormToTenant(rawbody)
 
     console.log(body)
     const res: TenantAddResult = await externalApi(event, method, path, {

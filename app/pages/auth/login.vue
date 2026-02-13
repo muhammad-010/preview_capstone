@@ -19,11 +19,11 @@ function useLogin() {
             placeholder: 'Enter your password',
         },
     ])
-
     const schema = z.object({
         identity: z.email('Invalid email'),
         password: z.string('Password is required'),
     })
+
     const { fetch: refreshSession } = useUserSession()
     return {
         fields,
