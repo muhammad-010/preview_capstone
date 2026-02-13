@@ -29,6 +29,10 @@ export type LoginResult = FetchResult & {
 
 export type LogoutResult = FetchResult
 
+export interface DashboardCard {
+    count: number
+}
+
 export type PaginatedData<T, K extends string> = Pagination & {
     [P in K]: T[]
 }
@@ -37,28 +41,22 @@ export type AddedData<T, K extends string> = {
     [P in K]: T[]
 }
 
-export type ListResult<T> = FetchResult & {
+export type Result<T> = FetchResult & {
     data: T
 }
 
-export type DetailResult<T> = FetchResult & {
-    data: T
-}
-
-export type AddResult<T> = FetchResult & {
-    data: T
-}
-
-export type DashboardTenantListResult = ListResult<{
+export type DashboardTenantListResult = Result<{
     tenants: Tenant[]
 }>
 
-export type TenantListResult = ListResult<
+export type DashboardCardTotalTenantResult = Result<DashboardCard>
+
+export type TenantListResult = Result<
     PaginatedData<Tenant, 'tenants'>
 >
 
-export type TenantDetailResult = DetailResult<Tenant>
+export type TenantDetailResult = Result<Tenant>
 
-export type TenantAddResult = AddResult<
+export type TenantAddResult = Result<
     AddedData<number, 'tenant_id'>
 >

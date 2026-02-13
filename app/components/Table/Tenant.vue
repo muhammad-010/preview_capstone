@@ -5,7 +5,7 @@ import type { TableColumn } from '@nuxt/ui'
 defineProps<{
     data: Tenant[]
     total: number
-    pending: boolean
+    pending?: boolean
     withPagination?: boolean
 }>()
 const limit = defineModel<number>('limit', { default: 0 })
@@ -29,7 +29,7 @@ function useColumns() {
         },
         {
             accessorKey: 'owner.email',
-            header: 'Owner Email',
+            header: 'Admin Email',
             cell: ({ row }) => {
                 return h('div', {}, [
                     h('span', {}, row.original.owner?.email || ''),

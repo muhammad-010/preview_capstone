@@ -1,26 +1,27 @@
 <script setup lang="ts">
 const route = useRoute()
 
-async function useDashbaordListTenant() {
-    const { data, pending } = await useFetch('/api/dashboard/tenant', {
+async function useDashbaordCardTotalTenant() {
+    const { data } = await useFetch('/api/dashboard/total-tenant', {
         transform: res => res.data,
-        query: { page: 1, limit: 5 },
+    })
+    const totalTenant = computed<number>(() => data.value?.count || 0)
+
+    return { totalTenant }
+}
+
+async function useDashbaordListTenant() {
+    const { data } = await useFetch('/api/dashboard/tenant', {
+        transform: res => res.data,
     })
     const tenants = computed<Tenant[]>(() => data.value?.tenants ?? [])
     const total = 5
 
-    return {
-        tenants,
-        total,
-        pending,
-    }
+    return { tenants, total }
 }
 
-const {
-    tenants,
-    total,
-    pending,
-} = await useDashbaordListTenant()
+const { totalTenant } = await useDashbaordCardTotalTenant()
+const { tenants, total } = await useDashbaordListTenant()
 
 useHead({
     title: 'Dashboard',
@@ -33,32 +34,20 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
         <div class="grid grid-cols-3 gap-4 mb-8">
             <CardTotal
                 title="Total Tenants"
-                :total="142"
+                :total="totalTenant"
                 icon="lucide:building"
-                with-stats
-                stats="12%"
-                stats-status="up"
-                stats-text="vs last month"
             />
 
             <CardTotal
                 title="Active Events"
                 :total="84"
                 icon="lucide:calendar"
-                with-stats
-                stats="5%"
-                stats-status="equal"
-                stats-text="vs last month"
             />
 
             <CardTotal
                 title="Total Check-ins"
                 :total="12500"
                 icon="lucide:users"
-                with-stats
-                stats="25%"
-                stats-status="down"
-                stats-text="vs last month"
             />
         </div>
 
@@ -81,7 +70,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 <TableTenant
                     :data="tenants"
                     :total="total"
-                    :pending="pending"
                 />
             </UCard>
         </div>
