@@ -86,6 +86,7 @@ async function useList() {
     const query = ref('')
     const page = ref(1)
     const limit = ref(5)
+
     const { data, pending, refresh } = await useFetch('/api/tenant', {
         transform: res => res.data,
         query: { query, page, limit },

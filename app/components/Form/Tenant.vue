@@ -24,6 +24,8 @@ function useTenantForm(id: number) {
         id: 1,
         label: 'Enterprise',
     }])
+    const showPassword = ref(false)
+    const showConfirmPassword = ref(false)
 
     const schema = z.object({
         name: z.string()
@@ -48,7 +50,6 @@ function useTenantForm(id: number) {
                     path: ['owner_password'],
                 })
             }
-
             if (!data.owner_password_confirm) {
                 ctx.addIssue({
                     code: 'custom',
@@ -57,7 +58,6 @@ function useTenantForm(id: number) {
                 })
             }
         }
-
         if (data.owner_password || data.owner_password_confirm) {
             if (data.owner_password !== data.owner_password_confirm) {
                 ctx.addIssue({
@@ -80,8 +80,6 @@ function useTenantForm(id: number) {
         plan_id: 1,
         status: 'Active',
     })
-    const showPassword = ref(false)
-    const showConfirmPassword = ref(false)
 
     async function addData(payload: FormSubmitEvent<Schema>) {
         try {

@@ -8,6 +8,7 @@ async function useDetail(id: number) {
     const deleteConfirmation = ref(false)
     const activateConfirmation = ref(false)
     const deactivateConfirmation = ref(false)
+
     const { data, refresh } = await useFetch(`/api/tenant/${id}/detail`, {
         transform: res => ({
             ...res.data,
