@@ -33,21 +33,16 @@ function useLogin() {
 }
 
 async function onLogin(payload: FormSubmitEvent<Schema>) {
-    try {
-        const data = await $fetch('/api/auth/login', {
-            method: 'POST',
-            body: payload.data,
-        })
-        await refreshSession()
-        if (data.redirect) {
-            await navigateTo(data.redirect)
-        }
-        else {
-            await navigateTo('/')
-        }
+    const { data } = await useFetch('/api/auth/login', {
+        method: 'POST',
+        body: payload.data,
+    })
+    await refreshSession()
+    if (data.value?.redirect) {
+        await navigateTo(data.value?.redirect)
     }
-    catch (error) {
-        console.error('Login error:', error)
+    else {
+        await navigateTo('/')
     }
 }
 

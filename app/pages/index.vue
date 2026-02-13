@@ -3,16 +3,6 @@ definePageMeta({
     layout: 'clean',
 })
 
-const colorMode = useColorMode()
-const isDark = computed(() => colorMode.value === 'dark')
-const loaderColor = computed(() => ({
-    borderTopColor: isDark.value ? '#eee' : '#111',
-    borderLeftColor: isDark.value ? '#eee' : '#111',
-
-    borderBottomColor: isDark.value ? '#111' : '#eee',
-    borderRightColor: isDark.value ? '#111' : '#eee',
-}))
-
 const { user, loggedIn } = useUserSession()
 if (loggedIn.value && user) {
     const role = user.value?.role_slug
@@ -31,10 +21,7 @@ else {
 </script>
 
 <template>
-    <div
-        class="loader"
-        :class="loaderColor"
-    />
+    <div class="loader" />
 </template>
 
 <style scoped>
@@ -48,6 +35,10 @@ else {
     transform: translate(-50%, -50%);
     width: 18px;
     height: 18px;
+    border-top-color: '#111';
+    border-left-color: '#111';
+    border-bottom-color: '#eee';
+    border-right-color: '#eee';
     box-sizing: border-box;
     border: solid 2px transparent;
     border-radius: 50%;

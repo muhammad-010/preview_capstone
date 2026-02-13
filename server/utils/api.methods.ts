@@ -24,7 +24,18 @@ export async function externalApi<T>(
     if (!path.startsWith('/auth')) {
         const _ = await requireUserSession(event)
     }
-    return await $fetch<T>(path, {
+    return await $fetch.create({
+        onResponseError({ response }) {
+            if (response.status === 401) {
+                throw createError({
+                    statusCode: response.status,
+                    statusMessage: response.statusText,
+                    // status: response.status,
+                    // statusText: response.statusText,
+                })
+            }
+        },
+    })<T>(path, {
         ...options,
         method,
         baseURL: externalApi,
