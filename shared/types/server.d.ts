@@ -49,6 +49,10 @@ export type AddResult<T> = FetchResult & {
     data: T
 }
 
+export type DashboardTenantListResult = ListResult<{
+    tenants: Tenant[]
+}>
+
 export type TenantListResult = ListResult<
     PaginatedData<Tenant, 'tenants'>
 >

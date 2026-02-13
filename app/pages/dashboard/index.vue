@@ -1,70 +1,31 @@
 <script setup lang="ts">
-import { h, resolveComponent } from 'vue'
-import type { TableColumn } from '@nuxt/ui'
-
 const route = useRoute()
+
+async function useDashbaordListTenant() {
+    const { data, pending } = await useFetch('/api/dashboard/tenant', {
+        transform: res => res.data,
+        query: { page: 1, limit: 5 },
+    })
+    const tenants = computed<Tenant[]>(() => data.value?.tenants ?? [])
+    const total = 5
+
+    return {
+        tenants,
+        total,
+        pending,
+    }
+}
+
+const {
+    tenants,
+    total,
+    pending,
+} = await useDashbaordListTenant()
+
 useHead({
     title: 'Dashboard',
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
-
-const UBadge = resolveComponent('UBadge')
-const UButton = resolveComponent('UButton')
-const columns: TableColumn<DummyTenant>[] = [
-    {
-        accessorKey: 'tenantName',
-        header: 'Tenant Name',
-        meta: {
-            class: {
-                td: 'font-semibold',
-            },
-        },
-    },
-    {
-        accessorKey: 'adminEmail',
-        header: 'Admin Email',
-    },
-    {
-        accessorKey: 'events',
-        header: 'Events',
-    },
-    {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: ({ row }) => {
-            return h(UBadge, {
-                color: STATUS_COLORS[row.getValue('status') as 'active' | 'inactive'],
-                variant: 'subtle',
-                label: row.getValue('status'),
-            })
-        },
-    },
-    {
-        accessorKey: 'id',
-        header: 'Action',
-        cell: ({ row }) => {
-            return h('div', { class: 'flex gap-2' }, [
-                h(UButton, {
-                    color: 'secondary',
-                    variant: 'ghost',
-                    icon: 'lucide:pencil',
-                    to: `tenants/${row.original.id}/edit`,
-                }),
-                h(UButton, {
-                    color: 'secondary',
-                    variant: 'ghost',
-                    icon: 'lucide:info',
-                    to: `tenants/${row.original.id}`,
-                }),
-            ])
-        },
-    },
-]
-
-const data = ref<DummyTenant[]>([])
-onMounted(() => {
-    data.value = DUMMY_TENANTS as DummyTenant[]
-})
 </script>
 
 <template>
@@ -86,7 +47,7 @@ onMounted(() => {
                 icon="lucide:calendar"
                 with-stats
                 stats="5%"
-                stats-status="up"
+                stats-status="equal"
                 stats-text="vs last month"
             />
 
@@ -116,12 +77,12 @@ onMounted(() => {
                         </UButton>
                     </div>
                 </template>
-                <div>
-                    <UTable
-                        :data="data"
-                        :columns="columns"
-                    />
-                </div>
+
+                <TableTenant
+                    :data="tenants"
+                    :total="total"
+                    :pending="pending"
+                />
             </UCard>
         </div>
     </div>

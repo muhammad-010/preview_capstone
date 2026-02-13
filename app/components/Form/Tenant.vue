@@ -124,7 +124,6 @@ function useTenantForm(id: number) {
     }
 
     async function submitData(payload: FormSubmitEvent<Schema>) {
-        alert(payload.data)
         if (isCreate) {
             await addData(payload)
         }

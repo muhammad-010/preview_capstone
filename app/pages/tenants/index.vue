@@ -95,6 +95,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 :data="tenants"
                 :total="total"
                 :pending="pending"
+                with-pagination
             />
         </UCard>
     </div>

@@ -6,6 +6,7 @@ defineProps<{
     data: Tenant[]
     total: number
     pending: boolean
+    withPagination?: boolean
 }>()
 const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
@@ -13,7 +14,8 @@ const page = defineModel<number>('page', { default: 0 })
 function useColumns() {
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
-    const columns: TableColumn<Tenant>[] = [
+
+    return [
         {
             accessorKey: 'name',
             header: 'Tenant Name',
@@ -27,7 +29,7 @@ function useColumns() {
         },
         {
             accessorKey: 'owner.email',
-            header: 'Admin Email',
+            header: 'Owner Email',
             cell: ({ row }) => {
                 return h('div', {}, [
                     h('span', {}, row.original.owner?.email || ''),
@@ -82,8 +84,7 @@ function useColumns() {
                 ])
             },
         },
-    ]
-    return columns
+    ] as TableColumn<Tenant>[]
 }
 
 const columns = useColumns()
@@ -98,6 +99,7 @@ const columns = useColumns()
         />
 
         <MiscPagination
+            v-if="withPagination"
             v-model:limit="limit"
             v-model:page="page"
             :total="total"

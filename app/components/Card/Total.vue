@@ -5,9 +5,31 @@ defineProps<{
     icon?: string
     withStats?: boolean
     stats?: string
-    statsStatus?: 'up' | 'down'
+    statsStatus?: 'up' | 'down' | 'equal'
     statsText?: string
 }>()
+
+function statsIcon(statsStatus: 'up' | 'down' | 'equal' | undefined) {
+    switch (statsStatus) {
+        case 'up':
+            return 'lucide:arrow-up-right'
+        case 'down':
+            return 'lucide:arrow-down-right'
+        default:
+            return 'lucide:equal'
+    }
+}
+
+function statsTextColor(statsStatus: 'up' | 'down' | 'equal' | undefined) {
+    switch (statsStatus) {
+        case 'up':
+            return 'text-success'
+        case 'down':
+            return 'text-error'
+        default:
+            return 'text-neutral'
+    }
+}
 </script>
 
 <template>
@@ -29,12 +51,12 @@ defineProps<{
             class="flex items-center mt-2"
         >
             <UIcon
-                :name="statsStatus === 'up' ? 'lucide:arrow-up-right' : 'lucide:arrow-down-right'"
-                :class="statsStatus === 'up' ? 'text-success' : 'text-error'"
+                :name="statsIcon(statsStatus)"
+                :class="statsTextColor(statsStatus)"
                 class="size-4 mr-1"
             />
             <small
-                :class="statsStatus === 'up' ? 'text-success' : 'text-error'"
+                :class="statsTextColor(statsStatus)"
                 class="mr-1"
             >{{ stats }}</small>
             <small>{{ statsText }}</small>
