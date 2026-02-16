@@ -9,6 +9,7 @@ const role = user.value?.role_slug
 if (!role) {
     throw createError('Invalid role')
 }
+const roleName = ROLE_NAME[role]
 setNavigationState(shallowNavigationPerRole(role))
 const navigation = getNavigationState()
 const isCollapsed = ref(false)
@@ -72,7 +73,7 @@ async function onLogout() {
                                 {{ user?.name || '' }}
                             </p>
                             <small class="text-sm text-secondary-400">
-                                {{ user?.role_slug || '' }}
+                                {{ roleName }}
                             </small>
                         </div>
                     </Transition>

@@ -45,11 +45,15 @@ export type Result<T> = FetchResult & {
     data: T
 }
 
+// DASHBOARD
+
 export type DashboardTenantListResult = Result<{
     tenants: Tenant[]
 }>
 
 export type DashboardCardTotalTenantResult = Result<DashboardCard>
+
+// TENANTS
 
 export type TenantListResult = Result<
     PaginatedData<Tenant, 'tenants'>
@@ -59,4 +63,16 @@ export type TenantDetailResult = Result<Tenant>
 
 export type TenantAddResult = Result<
     AddedData<number, 'tenant_id'>
+>
+
+// EVENTS
+
+export type TenantEventListResult = Result<
+    PaginatedData<TenantEvent, 'events'>
+>
+
+export type TenantEventDetailResult = Result<TenantEvent>
+
+export type TenantEventAddResult = Result<
+    AddedData<number, 'event_id'>
 >

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 
-async function useDashbaordCardTotalTenant() {
+async function useDashboardCardTotalTenant() {
     const { data } = await useFetch('/api/dashboard/total-tenant', {
         transform: res => res.data,
     })
@@ -20,7 +20,7 @@ async function useDashbaordListTenant() {
     return { tenants, total }
 }
 
-const { totalTenant } = await useDashbaordCardTotalTenant()
+const { totalTenant } = await useDashboardCardTotalTenant()
 const { tenants, total } = await useDashbaordListTenant()
 
 useHead({
@@ -47,7 +47,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
             <CardTotal
                 title="Total Check-ins"
                 :total="12500"
-                icon="lucide:users"
+                icon="lucide:circle-check"
             />
         </div>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 useHead({
-    title: 'Settings',
+    title: 'Scan Page',
 })
 </script>
 

@@ -4,10 +4,14 @@ export interface ActivateDeactivate {
     status: Status
 }
 
+export type TenantEventStatus = Status | 'Draft' | 'Upcoming' | 'Live' | 'Completed'
+
 /** Represents YYYY-MM-DDTHH:mm:ssZ */
 export type ISOString = string
 
 export type RoleSlug = 'superadmin' | 'tenant.admin' | 'tenant.poc'
+
+// TENANTS
 
 export interface TenantOwnerPhone {
     number: string
@@ -48,4 +52,29 @@ export interface TenantForm {
     owner_password_confirm: string
 
     plan_id?: number
+}
+
+// EVENTS
+
+export interface TenantEventCapacity {
+    total: number
+    used: number
+}
+
+export interface TenantEvent {
+    event_id: number
+    name: string
+    description?: string
+    status: TenantEventStatus
+    start_time: ISOString
+    end_time?: ISOString
+    location: string
+    capacity: TenantEventCapacity
+}
+
+export interface TenantEventForm {
+    name: string
+    description: string
+    location: string
+    start_time: ISOString
 }

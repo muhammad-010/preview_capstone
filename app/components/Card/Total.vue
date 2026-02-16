@@ -3,6 +3,7 @@ defineProps<{
     title?: string
     total?: number
     icon?: string
+    percentage?: boolean
     withStats?: boolean
     stats?: string
     statsStatus?: 'up' | 'down' | 'equal'
@@ -37,7 +38,7 @@ function statsTextColor(statsStatus: 'up' | 'down' | 'equal' | undefined) {
         <div class="flex justify-between">
             <div class="mb-2">
                 <p>{{ title }}</p>
-                <h1>{{ formatNumberSuffix(total || 0) }}</h1>
+                <h1>{{ formatNumberSuffix(total || 0) }}{{ percentage ? ' %' : '' }}</h1>
             </div>
             <div v-if="icon">
                 <UIcon
