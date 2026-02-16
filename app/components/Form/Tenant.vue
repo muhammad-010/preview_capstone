@@ -24,6 +24,8 @@ function useTenantForm(id: number) {
         id: 1,
         label: 'Enterprise',
     }])
+    const toast = useToast()
+    const loading = ref(false)
     const showPassword = ref(false)
     const showConfirmPassword = ref(false)
 
@@ -38,9 +40,7 @@ function useTenantForm(id: number) {
             .email('Invalid owner email'),
         owner_phone_number: z
             .string()
-            .regex(/^\+?[0-9]{8,15}$/, 'Invalid phone number')
-            .optional()
-            .or(z.literal('')),
+            .regex(/^\+?[0-9]{11,15}$/, 'Invalid phone number'),
         owner_password: z
             .string()
             .min(8, 'Minimum 8 characters')
@@ -100,10 +100,20 @@ function useTenantForm(id: number) {
                 body: payload.data,
             })
             if (data.success) {
+                toast.add({
+                    title: 'Success',
+                    description: 'A tenant has been created',
+                    color: 'success',
+                })
                 router.go(-1)
             }
         }
         catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to create new tenant',
+                color: 'error',
+            })
             console.error('Add tenant error', error)
         }
     }
@@ -115,27 +125,41 @@ function useTenantForm(id: number) {
                 body: payload.data,
             })
             if (data.success) {
+                toast.add({
+                    title: 'Success',
+                    description: 'A tenant has been updated',
+                    color: 'success',
+                })
                 router.go(-1)
             }
         }
         catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to update new tenant',
+                color: 'error',
+            })
             console.error('Edit tenant error', error)
         }
     }
 
     async function submitData(payload: FormSubmitEvent<Schema>) {
+        loading.value = true
         if (isCreate) {
             await addData(payload)
         }
         else {
             await editData(payload, id)
         }
+        loading.value = false
     }
 
     return {
+        isCreate,
         statuses,
         plans,
         state,
+        loading,
         showPassword,
         showConfirmPassword,
         schema,
@@ -144,9 +168,11 @@ function useTenantForm(id: number) {
 }
 
 const {
+    isCreate,
     statuses,
     plans,
     state,
+    loading,
     showPassword,
     showConfirmPassword,
     schema,
@@ -159,6 +185,7 @@ const {
         <CardForm
             title="Tenant Information"
             subtitle="Enter the details for the new tenant organization"
+            :loading="loading"
             @cancel="router.back()"
             @save="saveData"
         >
@@ -211,6 +238,7 @@ const {
                     <UFormField
                         label="Phone Number"
                         name="owner_phone_number"
+                        required
                         class="my-2 w-full"
                     >
                         <UInput
@@ -223,11 +251,12 @@ const {
                     <UFormField
                         label="Admin Password"
                         name="owner_password"
-                        required
+                        :required="isCreate"
                         class="my-2 w-full"
                     >
                         <UInput
                             v-model="state.owner_password"
+                            :placeholder="!isCreate ? 'Leave blank to keep current' : ''"
                             :type="showPassword ? 'text' : 'password'"
                             class="w-full"
                         >
@@ -249,11 +278,12 @@ const {
                     <UFormField
                         label="Confirm Password"
                         name="owner_password_confirm"
-                        required
+                        :required="isCreate"
                         class="my-2 w-full"
                     >
                         <UInput
                             v-model="state.owner_password_confirm"
+                            :placeholder="!isCreate ? 'Leave blank to keep current' : ''"
                             :type="showConfirmPassword ? 'text' : 'password'"
                             class="w-full"
                         >

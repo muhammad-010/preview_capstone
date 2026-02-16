@@ -23,33 +23,44 @@ function useLogin() {
         identity: z.email('Invalid email'),
         password: z.string('Password is required'),
     })
-
+    const toast = useToast()
     const { fetch: refreshSession } = useUserSession()
+
+    async function onLogin(payload: FormSubmitEvent<Schema>) {
+        try {
+            const data = await $fetch('/api/auth/login', {
+                method: 'POST',
+                body: payload.data,
+            })
+            await refreshSession()
+            if (data.redirect) {
+                await navigateTo(data.redirect)
+            }
+            else {
+                await navigateTo('/')
+            }
+        }
+        catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Login failed',
+                color: 'error',
+            })
+            console.error('Login error', error)
+        }
+    }
+
     return {
         fields,
         schema,
-        refreshSession,
-    }
-}
-
-async function onLogin(payload: FormSubmitEvent<Schema>) {
-    const { data } = await useFetch('/api/auth/login', {
-        method: 'POST',
-        body: payload.data,
-    })
-    await refreshSession()
-    if (data.value?.redirect) {
-        await navigateTo(data.value?.redirect)
-    }
-    else {
-        await navigateTo('/')
+        onLogin,
     }
 }
 
 const {
     fields,
     schema,
-    refreshSession,
+    onLogin,
 } = useLogin()
 type Schema = z.output<typeof schema>
 

@@ -31,6 +31,7 @@ const emit = defineEmits([EMIT_INPUT_SEARCH, EMIT_INPUT_CLEAR])
                 color="neutral"
                 variant="subtle"
                 icon="lucide:search"
+                @click="emit(EMIT_INPUT_SEARCH)"
             />
         </UTooltip>
     </UFieldGroup>

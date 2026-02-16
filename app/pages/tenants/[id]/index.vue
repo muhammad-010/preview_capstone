@@ -5,6 +5,7 @@ const id = Number(route.params.id)
 
 async function useDetail(id: number) {
     const statusColors = STATUS_COLORS
+    const toast = useToast()
     const deleteConfirmation = ref(false)
     const activateConfirmation = ref(false)
     const deactivateConfirmation = ref(false)
@@ -23,10 +24,20 @@ async function useDetail(id: number) {
                 method: 'DELETE',
             })
             if (data.success) {
+                toast.add({
+                    title: 'Success',
+                    description: 'A tenant has been deleted',
+                    color: 'success',
+                })
                 router.go(-1)
             }
         }
         catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to delete new tenant',
+                color: 'error',
+            })
             console.error('Delete tenant error', error)
         }
     }
@@ -41,10 +52,20 @@ async function useDetail(id: number) {
             })
             if (data.success) {
                 activateConfirmation.value = false
+                toast.add({
+                    title: 'Success',
+                    description: 'A tenant has been activated',
+                    color: 'success',
+                })
                 refresh()
             }
         }
         catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to activate new tenant',
+                color: 'error',
+            })
             console.error('Activate tenant error', error)
         }
     }
@@ -59,10 +80,20 @@ async function useDetail(id: number) {
             })
             if (data.success) {
                 deactivateConfirmation.value = false
+                toast.add({
+                    title: 'Success',
+                    description: 'A tenant has been deactivated',
+                    color: 'success',
+                })
                 refresh()
             }
         }
         catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to deactivate new tenant',
+                color: 'error',
+            })
             console.error('Deactivate tenant error', error)
         }
     }
