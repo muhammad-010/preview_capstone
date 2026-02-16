@@ -17,15 +17,12 @@ export const STATUS_COLORS: Record<Status, 'success' | 'error'> = {
 // TENANT_EVENT_STATUS
 export const TENANT_EVENT_STATUS_ACTIVE: TenantEventStatus = 'Active'
 export const TENANT_EVENT_STATUS_INACTIVE: TenantEventStatus = 'Inactive'
-export const TENANT_EVENT_STATUS_DRAFT: TenantEventStatus = 'Draft'
 export const TENANT_EVENT_STATUS_UPCOMING: TenantEventStatus = 'Upcoming'
 export const TENANT_EVENT_STATUS_LIVE: TenantEventStatus = 'Live'
 export const TENANT_EVENT_STATUS_COMPLETED: TenantEventStatus = 'Completed'
 
 export const TENANT_EVENT_STATUS_DROPDOWN: TenantEventStatus[] = [
     TENANT_EVENT_STATUS_ACTIVE,
-    TENANT_EVENT_STATUS_INACTIVE,
-    TENANT_EVENT_STATUS_DRAFT,
     TENANT_EVENT_STATUS_UPCOMING,
     TENANT_EVENT_STATUS_LIVE,
     TENANT_EVENT_STATUS_COMPLETED,
@@ -36,7 +33,6 @@ export const TENANT_EVENT_STATUS_COLORS: Record<
 > = {
     [TENANT_EVENT_STATUS_ACTIVE]: 'success',
     [TENANT_EVENT_STATUS_INACTIVE]: 'error',
-    [TENANT_EVENT_STATUS_DRAFT]: 'error',
     [TENANT_EVENT_STATUS_UPCOMING]: 'warning',
     [TENANT_EVENT_STATUS_LIVE]: 'success',
     [TENANT_EVENT_STATUS_COMPLETED]: 'primary',

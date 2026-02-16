@@ -4,7 +4,7 @@ export interface ActivateDeactivate {
     status: Status
 }
 
-export type TenantEventStatus = Status | 'Draft' | 'Upcoming' | 'Live' | 'Completed'
+export type TenantEventStatus = Status | 'Upcoming' | 'Live' | 'Completed'
 
 /** Represents YYYY-MM-DDTHH:mm:ssZ */
 export type ISOString = string
