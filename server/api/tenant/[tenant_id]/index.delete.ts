@@ -1,7 +1,7 @@
 export default defineEventHandler(async (event): Promise<FetchResult> => {
     const method = 'DELETE'
-    const id = getRouterParam(event, 'id')
-    const path = `/tenant/${id}`
+    const tenantId = getRouterParam(event, 'tenant_id')
+    const path = `/tenant/${tenantId}`
 
     const res: FetchResult = await externalApi(event, method, path, {})
     if (res.success) {

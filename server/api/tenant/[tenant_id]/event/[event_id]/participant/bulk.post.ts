@@ -1,9 +1,9 @@
 export default defineEventHandler(async (event): Promise<FetchResult> => {
-    const method = 'PUT'
-    const id = getRouterParam(event, 'id')
-    const path = `/tenant/${id}`
-    const rawbody = await readBody(event)
-    const body = tenantFormToTenant(rawbody)
+    const method = 'POST'
+    const tenantId = getRouterParam(event, 'tenant_id')
+    const eventId = getRouterParam(event, 'event_id')
+    const path = `/tenant/${tenantId}/event/${eventId}/participant/bulk`
+    const body = await readBody(event)
 
     const res: FetchResult = await externalApi(event, method, path, {
         body,

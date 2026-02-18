@@ -1,7 +1,7 @@
 export default defineEventHandler(async (event): Promise<FetchResult> => {
     const method = 'PATCH'
-    const id = getRouterParam(event, 'id')
-    const path = `/tenant/${id}/status`
+    const tenantId = getRouterParam(event, 'tenant_id')
+    const path = `/tenant/${tenantId}/status`
     const body = await readBody(event)
 
     const res: FetchResult = await externalApi(event, method, path, {

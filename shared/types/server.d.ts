@@ -64,3 +64,15 @@ export type TenantEventDetailResult = Result<TenantEvent>
 export type TenantEventAddResult = Result<
     AddedData<number, 'event_id'>
 >
+
+export type TenantEventUserFound = Result<{
+    users: User[]
+}>
+
+export type ParticipantListResult = Result<
+    PaginatedData<Participant, 'participant'>
+>
+
+export type PrintQRResult = Result<{
+    filepath: string
+}>

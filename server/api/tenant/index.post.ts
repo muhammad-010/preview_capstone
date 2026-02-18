@@ -4,7 +4,6 @@ export default defineEventHandler(async (event): Promise<TenantAddResult> => {
     const rawbody = await readBody(event)
     const body = tenantFormToTenant(rawbody)
 
-    console.log(body)
     const res: TenantAddResult = await externalApi(event, method, path, {
         body,
     })
