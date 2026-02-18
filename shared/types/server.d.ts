@@ -49,6 +49,8 @@ export type TenantListResult = Result<
 
 export type TenantDetailResult = Result<Tenant>
 
+export type TenantFormResult = Result<TenantForm>
+
 export type TenantAddResult = Result<
     AddedData<number, 'tenant_id'>
 >

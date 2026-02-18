@@ -4,9 +4,7 @@ const id = Number(route.params.id)
 
 async function useInfo(id: number) {
     const { data } = await useFetch(`/api/tenant/${id}`, {
-        transform: res => ({
-            ...tenantToTenantForm(res.data),
-        }),
+        transform: res => res.data,
     })
     const tenant = computed<TenantForm>(() => data.value ?? {} as TenantForm)
 

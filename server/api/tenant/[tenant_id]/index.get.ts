@@ -1,9 +1,13 @@
-export default defineEventHandler(async (event): Promise<TenantDetailResult> => {
+export default defineEventHandler(async (event): Promise<TenantFormResult> => {
     const method = 'GET'
     const tenantId = getRouterParam(event, 'tenant_id')
     const path = `/tenant/${tenantId}`
 
-    const res: TenantDetailResult = await externalApi(event, method, path, {})
+    const rawres: TenantDetailResult = await externalApi(event, method, path, {})
+    const res = {
+        ...rawres,
+        data: tenantToTenantForm(rawres.data),
+    }
     if (res.success) {
         return res
     }

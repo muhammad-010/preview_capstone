@@ -10,7 +10,7 @@ async function useDashboardCardTotalTenant() {
     return { totalTenant }
 }
 
-async function useDashbaordListTenant() {
+async function useDashboardListTenant() {
     const { data } = await useFetch('/api/dashboard/tenant', {
         transform: res => res.data,
     })
@@ -21,7 +21,7 @@ async function useDashbaordListTenant() {
 }
 
 const { totalTenant } = await useDashboardCardTotalTenant()
-const { tenants, total } = await useDashbaordListTenant()
+const { tenants, total } = await useDashboardListTenant()
 
 useHead({
     title: 'Dashboard',
