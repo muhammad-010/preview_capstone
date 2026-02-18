@@ -1,15 +1,17 @@
 import type { BreadcrumbItem, NavigationMenuItem } from '@nuxt/ui'
 
-export function shallowNavigationPerRole(role: RoleSlug): NavigationMenuItem[] {
-    return [
-        ...routePerRole(role)
-            .filter((route: AppRoute) => route.render)
-            .map((route: AppRoute): NavigationMenuItem => ({
-                label: route.label,
-                icon: route.icon,
-                to: route.to,
-            })),
-    ]
+export function shallowNavigationPerRole(role: RoleSlug | null): NavigationMenuItem[] {
+    return role
+        ? [
+                ...routePerRole(role)
+                    .filter((route: AppRoute) => route.render)
+                    .map((route: AppRoute): NavigationMenuItem => ({
+                        label: route.label,
+                        icon: route.icon,
+                        to: route.to,
+                    })),
+            ]
+        : []
 }
 
 export function buildLayoutProp(

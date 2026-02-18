@@ -10,13 +10,19 @@ export function matchRoute(pattern: string, path: string): boolean {
     return p.every((seg, i) => seg.startsWith(':') || seg === c[i])
 }
 
-export function routePerRole(role: RoleSlug): AppRoute[] {
-    const routes = ROLE_ROUTES[role]
+export function routePerRole(role: RoleSlug | null): AppRoute[] {
+    if (!role) {
+        return []
+    }
+    const routes = roleRoute(role)
     return APP_ROUTES
         .filter((route: AppRoute) => routes.includes(route.to))
 }
 
-export function defaultRedirect(role: RoleSlug): string {
+export function defaultRedirect(role: RoleSlug | null): string {
+    if (!role) {
+        return ''
+    }
     const appRoutes = routePerRole(role)
     for (const route of appRoutes) {
         if (route.isDefault) {

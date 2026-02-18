@@ -4,14 +4,8 @@ export default defineNuxtRouteMiddleware((to, _) => {
     }
     const firstSegment = `/${to.path.split('/').filter(Boolean)[0]}`
 
-    const { user } = useUserSession()
-    const role = user.value?.role_slug
-    if (!role) {
-        throw createError('Invalid role')
-    }
-    const roleRoute = ROLE_ROUTES[role]
-
-    if (!roleRoute.includes(firstSegment)) {
+    const { roleSlug } = useUserState()
+    if (!roleRoute(roleSlug.value).includes(firstSegment)) {
         console.log('Access denied to', to.path)
         throw createError({
             status: 403,

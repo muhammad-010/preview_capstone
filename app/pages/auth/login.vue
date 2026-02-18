@@ -28,13 +28,14 @@ function useLogin() {
 
     async function onLogin(payload: FormSubmitEvent<Schema>) {
         try {
-            const data = await $fetch('/api/auth/login', {
+            await $fetch('/api/auth/login', {
                 method: 'POST',
                 body: payload.data,
             })
             await refreshSession()
-            if (data.redirect) {
-                await navigateTo(data.redirect)
+            const { redirect } = useUserState()
+            if (redirect) {
+                await navigateTo(redirect.value)
             }
             else {
                 await navigateTo('/')

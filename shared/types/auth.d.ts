@@ -1,9 +1,11 @@
+import type { AuthSessionAssignedTenant } from './data'
+
 declare module '#auth-utils' {
     interface User {
         id: number
         name: string
         avatar_url: string | null
-        role_slug: RoleSlug
+        assigned_tenant: AuthSessionAssignedTenant[]
     }
 
     interface SecureSessionData {

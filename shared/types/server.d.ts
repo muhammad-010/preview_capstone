@@ -5,7 +5,6 @@ export type FetchOptions = RequetInit & {
 export interface FetchResult {
     message?: string
     success?: boolean
-    redirect?: string
 }
 
 export interface Pagination {
@@ -13,21 +12,6 @@ export interface Pagination {
     last_page: number
     total_data: number
 }
-
-export type LoginResult = FetchResult & {
-    data: {
-        access_token: string
-        expired_in_sec: number
-        user: {
-            id: number
-            name: string
-            avatar_url: string | null
-            role_slug: RoleSlug
-        }
-    }
-}
-
-export type LogoutResult = FetchResult
 
 export interface DashboardCard {
     count: number
@@ -44,6 +28,10 @@ export type AddedData<T, K extends string> = {
 export type Result<T> = FetchResult & {
     data: T
 }
+
+export type LoginResult = Result<AuthSession>
+
+export type LogoutResult = FetchResult
 
 // DASHBOARD
 

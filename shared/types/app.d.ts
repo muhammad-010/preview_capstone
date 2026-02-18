@@ -1,4 +1,4 @@
-import type { BreadcrumbItem } from '@nuxt/ui'
+import type { BreadcrumbItem, NavigationMenuItem } from '@nuxt/ui'
 
 export interface AppRoute {
     title: string
@@ -9,6 +9,15 @@ export interface AppRoute {
     isDefault?: boolean
     render?: boolean
     child?: AppRoute[]
+}
+
+export interface UserStateComposable {
+    activeTenantIndex: Ref<number>
+    tenantList: ComputedRef<AuthSessionAssignedTenant[]>
+    roleSlug: ComputedRef<RoleSlug | null>
+    redirect: ComputedRef<string>
+    navigation: ComputedRef<NavigationMenuItem[]>
+    tenantId: ComputedRef<number>
 }
 
 export interface BreadCrumbParam {

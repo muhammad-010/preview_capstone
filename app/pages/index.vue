@@ -3,17 +3,10 @@ definePageMeta({
     layout: 'clean',
 })
 
-const { user, loggedIn } = useUserSession()
-if (loggedIn.value && user) {
-    const role = user.value?.role_slug
-    if (!role) {
-        throw createError('Invalid role')
-    }
-    const redirect = defaultRedirect(role)
-    if (!redirect) {
-        throw createError(`Invalid default redirect for ${role}`)
-    }
-    navigateTo(redirect)
+const { loggedIn } = useUserSession()
+const { redirect } = useUserState()
+if (loggedIn.value && redirect) {
+    navigateTo(redirect.value)
 }
 else {
     navigateTo('/auth/login')

@@ -4,24 +4,17 @@ const company = ref({
     name: 'EnterpriseEvent',
     logo: '/logo.png',
 })
-const { user } = useUserSession()
-const role = user.value?.role_slug
-if (!role) {
-    throw createError('Invalid role')
-}
-const roleName = ROLE_NAME[role]
-setNavigationState(shallowNavigationPerRole(role))
-const navigation = getNavigationState()
+const { user, clear } = useUserSession()
+const { navigation, roleSlug } = useUserState()
 const isCollapsed = ref(false)
 const refNavbar = ref<HTMLElement | null>(null)
 
-const { clear: clearSession } = useUserSession()
 async function onLogout() {
     try {
         await $fetch('/api/auth/logout', {
             method: 'POST',
         })
-        await clearSession()
+        await clear()
         await navigateTo('/auth/login')
     }
     catch (error) {
@@ -73,7 +66,7 @@ async function onLogout() {
                                 {{ user?.name || '' }}
                             </p>
                             <small class="text-sm text-secondary-400">
-                                {{ roleName }}
+                                {{ roleName(roleSlug) }}
                             </small>
                         </div>
                     </Transition>

@@ -11,6 +11,27 @@ export type ISOString = string
 
 export type RoleSlug = 'superadmin' | 'tenant.admin' | 'tenant.poc'
 
+// AUTH
+
+export interface AuthSessionAssignedTenant {
+    id: number
+    name: string
+    role_slug: RoleSlug
+}
+
+export interface AuthSessionUser {
+    id: number
+    name: string
+    avatar_url: string | null
+    assigned_tenant: AuthSessionAssignedTenant[]
+}
+
+export interface AuthSession {
+    access_token: string
+    expired_in_sec: number
+    user: AuthSessionUser
+}
+
 // TENANTS
 
 export interface TenantOwnerPhone {

@@ -13,10 +13,7 @@ export default defineEventHandler(async (event): Promise<FetchResult> => {
                 access_token: res.data.access_token,
             },
         })
-        return {
-            message: 'Login successful',
-            redirect: defaultRedirect(res.data.user.role_slug),
-        }
+        return { message: 'Login successful' }
     }
     else {
         console.error(`${method} ${path} failed`, res)
