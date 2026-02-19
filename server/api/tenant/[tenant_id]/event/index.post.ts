@@ -2,7 +2,8 @@ export default defineEventHandler(async (event): Promise<TenantEventAddResult> =
     const method = 'POST'
     const tenantId = getRouterParam(event, 'tenant_id')
     const path = `/tenant/${tenantId}/event`
-    const body = await readBody(event)
+    const rawbody = await readBody(event)
+    const body = tenantEventFormToTenantEvent(rawbody)
 
     const res: TenantEventAddResult = await externalApi(event, method, path, {
         body,

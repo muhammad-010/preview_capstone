@@ -21,8 +21,8 @@ async function useDetail(tId: number, id: number) {
     const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
             ...res.data,
-            start_time: formatShortDate(res.data.start_time || ''),
-            end_time: formatShortDate(res.data.end_time || ''),
+            start_time: formatLongDate(res.data.start_time || ''),
+            end_time: formatLongDate(res.data.end_time || ''),
         }),
     })
     const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
@@ -101,7 +101,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                                     color="primary"
                                     icon="lucide:pencil"
                                     class="cursor-pointer"
-                                    :to="`/events/${12}/edit`"
+                                    :to="`/events/${event.event_id}/edit`"
                                 >
                                     Edit Event
                                 </UButton>

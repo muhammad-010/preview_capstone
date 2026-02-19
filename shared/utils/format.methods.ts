@@ -20,10 +20,33 @@ export function formatNumberSuffix(value: number, decimals = 1): string {
 
 /** format date into YYYY-MM-DD */
 export function formatShortDate(datestring: string): string {
-    if (!datestring) {
-        return 'Invalid Date'
-    }
-    return new Date(datestring).toISOString().split('T')[0] || 'Invalid Date'
+    if (!datestring) return 'Invalid Date'
+
+    const date = new Date(datestring)
+    if (isNaN(date.getTime())) return 'Invalid Date'
+
+    const yyyy = date.getFullYear()
+    const mm = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
+
+    return `${yyyy}-${mm}-${dd}`
+}
+
+/** format date into YYYY-MM-DD at HH:mm */
+export function formatLongDate(datestring: string): string {
+    if (!datestring) return 'Invalid Date'
+
+    const date = new Date(datestring)
+    if (isNaN(date.getTime())) return 'Invalid Date'
+
+    const yyyy = date.getFullYear()
+    const mm = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
+
+    const hh = String(date.getHours()).padStart(2, '0')
+    const min = String(date.getMinutes()).padStart(2, '0')
+
+    return `${yyyy}-${mm}-${dd} at ${hh}:${min}`
 }
 
 export function formatPercentage(

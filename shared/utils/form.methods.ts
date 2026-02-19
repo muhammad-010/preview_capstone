@@ -24,6 +24,24 @@ export function tenantToTenantForm(data: Tenant): TenantForm {
     } as TenantForm
 }
 
+export function tenantEventFormToTenantEvent(data: TenantEventForm): TenantEvent {
+    return {
+        name: data.name,
+        description: data.description,
+        status: data.status,
+        location: data.location,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        rule_config: {
+            confirmation_attendance: data.confirmation_attendance,
+            capacity: {
+                total: data.capacity,
+            },
+        },
+        assign_user_ids: data.assign_user_ids,
+    } as TenantEvent
+}
+
 export function tenantEventToTenantEventForm(data: TenantEvent): TenantEventForm {
     return {
         name: data.name,
