@@ -107,6 +107,7 @@ export interface TenantEvent {
     description?: string
     end_time?: ISOString
     rule_config?: TenantEventRuleConfig
+    capacity?: TenantEventCapacity
     assigned_users?: User[]
     assign_user_ids: number[]
     participant_status?: TenantEventParticipantStatus

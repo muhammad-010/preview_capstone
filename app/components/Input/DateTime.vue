@@ -80,7 +80,7 @@ function inputLabel() {
                 <div class="flex gap-2 items-center">
                     <UIcon
                         name="lucide:calendar"
-                        class="size-9"
+                        class="size-8"
                     />
                     <UInput
                         :value="dateModel
@@ -92,7 +92,7 @@ function inputLabel() {
                     />
                     <UIcon
                         name="lucide:clock"
-                        class="size-9"
+                        class="size-8"
                     />
                     <InputTimePicker
                         v-model="hourModel"
