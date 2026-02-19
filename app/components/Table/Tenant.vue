@@ -43,7 +43,7 @@ function useColumns() {
             header: 'Plan',
             cell: ({ row }) => {
                 return h(UBadge, {
-                    color: 'secondary',
+                    color: 'neutral',
                     variant: 'subtle',
                     label: row.original.plan,
                 })
@@ -70,13 +70,13 @@ function useColumns() {
             cell: ({ row }) => {
                 return h('div', { class: 'flex gap-2' }, [
                     h(UButton, {
-                        color: 'secondary',
+                        color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:pencil',
                         to: `tenants/${row.original.tenant_id}/edit`,
                     }),
                     h(UButton, {
-                        color: 'secondary',
+                        color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:info',
                         to: `tenants/${row.original.tenant_id}`,

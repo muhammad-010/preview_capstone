@@ -1,6 +1,8 @@
 // EMITS
 export const EMIT_FORM_CANCEL = 'cancel'
 export const EMIT_FORM_SAVE = 'save'
+export const EMIT_FORM_NEXT_STEP = 'next-step'
+export const EMIT_FORM_PREV_STEP = 'prev-step'
 export const EMIT_INPUT_SEARCH = 'search'
 export const EMIT_INPUT_CLEAR = 'clear'
 export const EMIT_MODAL_CONFIRM = 'confirm'

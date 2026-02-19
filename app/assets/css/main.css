@@ -55,7 +55,7 @@
     }
 
     .navbar-ghost-button {
-        @apply  max-lg:text-secondary-300!
+        @apply  max-lg:text-neutral-300!
                 max-lg:hover:bg-primary/50!
                 max-lg:dark:hover:bg-primary/25!
                 max-lg:active:bg-primary/50!

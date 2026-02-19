@@ -2,7 +2,7 @@ export default defineAppConfig({
     ui: {
         colors: {
             primary: 'brand',
-            secondary: 'neutral',
+            secondary: 'purple',
         },
         main: {
             base: 'bg-primary-50! dark:bg-primary-950!',
@@ -34,7 +34,7 @@ export default defineAppConfig({
             slots: {
                 root: 'bg-primary-900 text-primary-50 transition-all',
                 content: 'bg-primary-900 text-primary-50',
-                toggle: 'text-secondary-300! hover:bg-primary/50 dark:hover:bg-primary/25 cursor-pointer',
+                toggle: 'text-neutral-300! hover:bg-primary/50 dark:hover:bg-primary/25 cursor-pointer',
                 header: 'border-b border-primary-100/25',
                 body: 'border-none',
                 footer: 'border-t border-primary-100/25',
@@ -75,6 +75,15 @@ export default defineAppConfig({
                     },
                     false: {
                         link: 'max-lg:text-primary-50/50!',
+                    },
+                },
+            },
+        },
+        stepper: {
+            variants: {
+                color: {
+                    primary: {
+                        icon: 'dark:text-primary-50',
                     },
                 },
             },

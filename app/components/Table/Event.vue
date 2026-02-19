@@ -69,13 +69,13 @@ function useColumns() {
             cell: ({ row }) => {
                 return h('div', { class: 'flex gap-2' }, [
                     h(UButton, {
-                        color: 'secondary',
+                        color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:pencil',
                         to: `events/${row.original.event_id}/edit`,
                     }),
                     h(UButton, {
-                        color: 'secondary',
+                        color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:info',
                         to: `events/${row.original.event_id}`,

@@ -70,7 +70,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
                     <div class="flex gap-2">
                         <!-- <UButton
-                            color="secondary"
+                            color="neutral"
                             variant="outline"
                             icon="lucide:filter"
                             class="cursor-pointer"

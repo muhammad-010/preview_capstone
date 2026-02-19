@@ -17,7 +17,7 @@ defineProps<{
         <Transition name="fade">
             <p
                 v-if="!collapsed"
-                class="text-secondary-50 font-bold text-lg ml-2"
+                class="text-neutral-50 font-bold text-lg ml-2"
             >
                 {{ name }}
             </p>

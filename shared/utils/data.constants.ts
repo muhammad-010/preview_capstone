@@ -28,7 +28,7 @@ export const TENANT_EVENT_STATUS_DROPDOWN: TenantEventStatus[] = [
 ]
 
 export const TENANT_EVENT_STATUS_COLORS: Record<
-    TenantEventStatus, 'success' | 'error' | 'primary' | 'secondary' | 'info' | 'warning'
+    TenantEventStatus, 'success' | 'error' | 'primary' | 'neutral' | 'info' | 'warning'
 > = {
     [TENANT_EVENT_STATUS_ACTIVE]: 'success',
     [TENANT_EVENT_STATUS_UPCOMING]: 'warning',
@@ -45,7 +45,7 @@ export const PARTICIPANT_STATUS_DROPDOWN: ParticipantStatus[] = [
     PARTICIPANT_STATUS_PENDING,
 ]
 
-export const PARTICIPANT_STATUS_COLORS: Record<ParticipantStatus, 'success' | 'secondary'> = {
+export const PARTICIPANT_STATUS_COLORS: Record<ParticipantStatus, 'success' | 'neutral'> = {
     [PARTICIPANT_STATUS_CHECKED_IN]: 'success',
-    [PARTICIPANT_STATUS_PENDING]: 'secondary',
+    [PARTICIPANT_STATUS_PENDING]: 'neutral',
 } as const

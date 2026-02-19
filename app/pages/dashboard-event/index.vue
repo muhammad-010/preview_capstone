@@ -1,5 +1,19 @@
 <script setup lang="ts">
 const route = useRoute()
+const { tenantId } = useUserState()
+
+async function useDashboardListEvent(tId: number) {
+    const { data } = await useFetch(`/api/tenant/${tId}/event`, {
+        query: { page: 1, limit: 5 },
+        transform: res => res.data,
+    })
+    const events = computed<TenantEvent[]>(() => data.value?.events ?? [])
+    const total = 5
+
+    return { events, total }
+}
+
+const { events, total } = await useDashboardListEvent(tenantId.value)
 
 useHead({
     title: 'Event Dashboard',
@@ -52,8 +66,8 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 </template>
 
                 <TableEvent
-                    :data="[]"
-                    :total="0"
+                    :data="events"
+                    :total="total"
                 />
             </UCard>
 

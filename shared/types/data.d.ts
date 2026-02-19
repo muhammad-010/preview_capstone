@@ -11,6 +11,9 @@ export type ParticipantStatus = 'Pending' | 'Checked In'
 /** Represents YYYY-MM-DDTHH:mm:ssZ */
 export type ISOString = string
 
+/** HH:mm:ss */
+export type HourString = string
+
 export type RoleSlug = 'superadmin' | 'tenant.admin' | 'tenant.poc'
 
 // AUTH
@@ -109,6 +112,11 @@ export interface TenantEventForm {
     description: string
     location: string
     start_time: ISOString
+    end_time: ISOString
+    confirmation_attendance: boolean
+    status: TenantEventStatus
+    capacity: number
+    assign_user_ids: number[]
 }
 
 // USERS

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 const route = useRoute()
+const { tenantId } = useUserState()
 
-async function useList() {
+async function useList(tId: number) {
     const search = ref('')
     const query = ref('')
     const page = ref(1)
     const limit = ref(5)
 
-    const { data, pending, refresh } = await useFetch('/api/event', {
+    const { data, pending, refresh } = await useFetch(`/api/tenant/${tId}/event`, {
         transform: res => res.data,
         query: { query, page, limit },
         watch: [page, limit],
@@ -49,7 +50,7 @@ const {
     pending,
     searchEvent,
     clearSearch,
-} = await useList()
+} = await useList(tenantId.value)
 
 useHead({
     title: 'Events',
@@ -70,7 +71,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
                     <div class="flex gap-2">
                         <!-- <UButton
-                            color="secondary"
+                            color="neutral"
                             variant="outline"
                             icon="lucide:filter"
                             class="cursor-pointer"

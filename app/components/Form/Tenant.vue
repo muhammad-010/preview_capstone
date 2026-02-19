@@ -262,7 +262,7 @@ const {
                         >
                             <template #trailing>
                                 <UButton
-                                    color="secondary"
+                                    color="neutral"
                                     variant="link"
                                     size="sm"
                                     :icon="showPassword ? 'lucide:eye-off' : 'lucide:eye'"
@@ -289,7 +289,7 @@ const {
                         >
                             <template #trailing>
                                 <UButton
-                                    color="secondary"
+                                    color="neutral"
                                     variant="link"
                                     size="sm"
                                     :icon="showConfirmPassword ? 'lucide:eye-off' : 'lucide:eye'"

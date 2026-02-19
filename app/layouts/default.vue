@@ -62,10 +62,10 @@ async function onLogout() {
                     </Transition>
                     <Transition name="fade">
                         <div v-if="!collapsed">
-                            <p class="text-secondary-50 font-semibold">
+                            <p class="text-neutral-50 font-semibold">
                                 {{ user?.name || '' }}
                             </p>
-                            <small class="text-sm text-secondary-400">
+                            <small class="text-sm text-neutral-400">
                                 {{ roleName(roleSlug) }}
                             </small>
                         </div>
@@ -74,7 +74,7 @@ async function onLogout() {
                         icon="lucide:log-out"
                         variant="ghost"
                         size="lg"
-                        class="text-secondary-300! hover:bg-primary/50 dark:hover:bg-primary/25 cursor-pointer"
+                        class="text-neutral-300! hover:bg-primary/50 dark:hover:bg-primary/25 cursor-pointer"
                         :class="{ 'ml-auto': !collapsed }"
                         @click="onLogout"
                     />
