@@ -63,6 +63,8 @@ export type TenantEventListResult = Result<
 
 export type TenantEventDetailResult = Result<TenantEvent>
 
+export type TenantEventFormResult = Result<TenantEventForm>
+
 export type TenantEventAddResult = Result<
     AddedData<number, 'event_id'>
 >

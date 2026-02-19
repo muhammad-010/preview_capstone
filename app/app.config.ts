@@ -88,5 +88,11 @@ export default defineAppConfig({
                 },
             },
         },
+        tabs: {
+            slots: {
+                trigger: 'cursor-pointer',
+                label: 'dark:text-primary-50',
+            },
+        },
     },
 })

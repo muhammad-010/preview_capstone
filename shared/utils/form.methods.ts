@@ -1,14 +1,14 @@
-import type { Tenant, TenantForm } from '../types/data'
+import type { Tenant, TenantForm, TenantEvent, TenantEventForm } from '../types/data'
 
-export function tenantFormToTenant(body: TenantForm): Tenant {
+export function tenantFormToTenant(data: TenantForm): Tenant {
     return {
-        name: body.name,
-        status: body.status,
+        name: data.name,
+        status: data.status,
         owner: {
-            name: body.owner_name,
-            email: body.owner_email,
-            password: body.owner_password,
-            phone_number: body.owner_phone_number,
+            name: data.owner_name,
+            email: data.owner_email,
+            password: data.owner_password,
+            phone_number: data.owner_phone_number,
         },
     } as Tenant
 }
@@ -22,4 +22,18 @@ export function tenantToTenantForm(data: Tenant): TenantForm {
         owner_phone_number: data.owner.phone.number,
         plan_id: 1, // HARDCODE
     } as TenantForm
+}
+
+export function tenantEventToTenantEventForm(data: TenantEvent): TenantEventForm {
+    return {
+        name: data.name,
+        description: data.description,
+        status: data.status,
+        location: data.location,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        confirmation_attendance: data.rule_config?.confirmation_attendance,
+        capacity: data.rule_config?.capacity?.total,
+        assign_user_ids: data.assigned_users ? data.assigned_users!.map(u => u.user_id) : [],
+    } as TenantEventForm
 }

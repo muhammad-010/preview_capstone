@@ -25,3 +25,16 @@ export function formatShortDate(datestring: string): string {
     }
     return new Date(datestring).toISOString().split('T')[0] || 'Invalid Date'
 }
+
+export function formatPercentage(
+    part: number,
+    total: number,
+    precision = 2,
+): number {
+    if (total === 0) return 0
+
+    const result = (part / total) * 100
+    const factor = Math.pow(10, precision)
+
+    return Math.round(result * factor) / factor
+}

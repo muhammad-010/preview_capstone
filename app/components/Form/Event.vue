@@ -288,7 +288,6 @@ const {
                     </template>
 
                     <template #poc>
-                        {{ state.assign_user_ids }}
                         <InputTransfer
                             v-model="state.assign_user_ids"
                             :options="users"
