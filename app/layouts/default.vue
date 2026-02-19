@@ -95,6 +95,9 @@ async function onLogout() {
                             :items="pageBreadCrumb"
                             class="ml-4 lg:ml-2 transition-all"
                         />
+                        <template #fallback>
+                            <USkeleton class="ml-3 h-4 w-20" />
+                        </template>
                     </ClientOnly>
                 </template>
 
@@ -114,6 +117,10 @@ async function onLogout() {
                                 {{ pageTitle }}
                             </h2>
                             <small v-if="pageSubtitle">{{ pageSubtitle }}</small>
+                            <template #fallback>
+                                <USkeleton class="h-4 w-40 mb-2" />
+                                <USkeleton class="h-4 w-90" />
+                            </template>
                         </ClientOnly>
                     </div>
                 </div>

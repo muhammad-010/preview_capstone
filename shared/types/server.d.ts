@@ -58,7 +58,7 @@ export type TenantAddResult = Result<
 // EVENTS
 
 export type TenantEventListResult = Result<
-    PaginatedData<TenantEvent, 'events'>
+    PaginatedData<TenantEvent, 'event'>
 >
 
 export type TenantEventDetailResult = Result<TenantEvent>

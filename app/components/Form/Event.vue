@@ -13,7 +13,7 @@ async function saveData() {
     await formRef.value?.submit()
 }
 
-function useTenantEventForm(tId: number, id: number) {
+async function useTenantEventForm(tId: number, id: number) {
     const isCreate = !id
     const steps = [
         {
@@ -49,6 +49,13 @@ function useTenantEventForm(tId: number, id: number) {
             .datetime(),
         capacity: z
             .number(),
+        confirmation_attendance: z
+            .boolean(),
+        status: z
+            .string()
+            .optional(),
+        assign_user_ids: z
+            .array(z.number()),
     })
     type Schema = z.output<typeof schema>
 
@@ -63,6 +70,11 @@ function useTenantEventForm(tId: number, id: number) {
         status: 'Active',
         assign_user_ids: [],
     })
+
+    const { data } = await useFetch(`/api/tenant/${tId}/user/find`, {
+        transform: res => res.data,
+    })
+    const users = computed<User[]>(() => data.value?.users ?? [])
 
     async function addData(payload: FormSubmitEvent<Schema>) {
         try {
@@ -144,6 +156,7 @@ function useTenantEventForm(tId: number, id: number) {
         state,
         loading,
         schema,
+        users,
         submitData,
         nextStep,
         prevStep,
@@ -156,10 +169,11 @@ const {
     state,
     loading,
     schema,
+    users,
     submitData,
     nextStep,
     prevStep,
-} = useTenantEventForm(tenantId.value, props.id || 0)
+} = await useTenantEventForm(tenantId.value, props.id || 0)
 </script>
 
 <template>
@@ -274,7 +288,31 @@ const {
                     </template>
 
                     <template #poc>
-                        POC
+                        {{ state.assign_user_ids }}
+                        <InputTransfer
+                            v-model="state.assign_user_ids"
+                            :options="users"
+                            key-prop="user_id"
+                            source-title="Available Personnel"
+                            destination-title="Assigned Personnel"
+                        >
+                            <template #default="{ option, selected, toggle }">
+                                <UCard class="w-full">
+                                    <div class="flex w-full justify-between items-center">
+                                        <div>
+                                            <h5>{{ option.name }}</h5>
+                                            <small>{{ option.role_str }}</small>
+                                        </div>
+                                        <UButton
+                                            variant="outline"
+                                            :icon="selected ? 'lucide:user-plus' : 'lucide:user-minus'"
+                                            :color="selected ? 'success' : 'error'"
+                                            @click="toggle"
+                                        />
+                                    </div>
+                                </UCard>
+                            </template>
+                        </InputTransfer>
                     </template>
                 </UStepper>
             </UForm>

@@ -13,7 +13,7 @@ async function useList(tId: number) {
         query: { query, page, limit },
         watch: [page, limit],
     })
-    const events = computed<TenantEvent[]>(() => data.value?.events ?? [])
+    const events = computed<TenantEvent[]>(() => data.value?.event ?? [])
     const total = computed(() => data.value?.total_data ?? 0)
 
     function searchEvent() {
