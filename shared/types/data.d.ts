@@ -8,6 +8,8 @@ export type TenantEventStatus = 'Active' | 'Upcoming' | 'Live' | 'Completed'
 
 export type ParticipantStatus = 'Pending' | 'Checked In'
 
+export type ParticipantCategory = 'VIP' | 'Regular'
+
 /** Represents YYYY-MM-DDTHH:mm:ssZ */
 export type ISOString = string
 

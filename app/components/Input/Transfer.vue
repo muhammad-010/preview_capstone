@@ -1,67 +1,44 @@
 <script
   setup
   lang="ts"
-  generic="
-    O extends Record<string, any>,
-    K extends keyof O | undefined = undefined
-  "
+  generic="O extends Record<string, any>, K extends keyof O"
 >
 import { computed } from 'vue'
-
-type ModelType
-    = K extends keyof O
-        ? O[K]
-        : O
-
-const model = defineModel<ModelType[]>({
-    default: () => [],
-})
 
 const props = defineProps<{
     sourceTitle?: string
     destinationTitle?: string
     options: O[]
-    keyProp?: K
+    keyProp: K
 }>()
-
-const getValue = props.keyProp
-    ? (option: O) => option[props.keyProp!] as ModelType
-    : (option: O) => option as ModelType
-
-const selectedSet = computed(() => new Set(model.value))
-
+const model = defineModel<O[K][]>({ default: () => [] })
 const partitioned = computed(() => {
     const selected: O[] = []
     const unselected: O[] = []
-
-    const set = selectedSet.value
-
+    const data = model.value
     for (const option of props.options) {
-        if (set.has(getValue(option))) {
+        if (data.includes(option[props.keyProp])) {
             selected.push(option)
         }
         else {
             unselected.push(option)
         }
     }
-
     return { selected, unselected }
 })
 const selectedOptions = computed(() => partitioned.value.selected)
 const unselectedOptions = computed(() => partitioned.value.unselected)
 
-const toggle = (option: O) => {
-    const value = getValue(option)
-    const set = new Set(model.value)
-
-    if (set.has(value)) {
-        set.delete(value)
+function toggle(value: O[K]) {
+    const data = model.value
+    const i = data.indexOf(value)
+    if (i !== -1) {
+        data.splice(i, 1)
     }
     else {
-        set.add(value)
+        data.push(value)
     }
-
-    model.value = Array.from(set)
+    model.value = data
 }
 
 const cardUI = {
@@ -82,17 +59,17 @@ const cardUI = {
 
             <div class="flex flex-col gap-4">
                 <template
-                    v-for="(option, i) in unselectedOptions"
-                    :key="props.keyProp ? option[props.keyProp] : i"
+                    v-for="(option) in unselectedOptions"
+                    :key="option[props.keyProp]"
                 >
                     <slot
                         :option="option"
                         :selected="true"
-                        :toggle="() => toggle(option)"
+                        :toggle="() => toggle(option[props.keyProp])"
                         :is-selected="true"
                     >
                         <UButton
-                            @click="toggle(option)"
+                            @click="toggle(option[props.keyProp])"
                         >
                             {{ option }}
                         </UButton>
@@ -111,17 +88,17 @@ const cardUI = {
 
             <div class="flex flex-col gap-4">
                 <template
-                    v-for="(option, i) in selectedOptions"
-                    :key="props.keyProp ? option[props.keyProp] : i"
+                    v-for="(option) in selectedOptions"
+                    :key="option[props.keyProp]"
                 >
                     <slot
                         :option="option"
                         :selected="false"
-                        :toggle="() => toggle(option)"
+                        :toggle="() => toggle(option[props.keyProp])"
                         :is-selected="false"
                     >
                         <UButton
-                            @click="toggle(option)"
+                            @click="toggle(option[props.keyProp])"
                         >
                             {{ option }}
                         </UButton>

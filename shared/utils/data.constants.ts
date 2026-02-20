@@ -1,4 +1,4 @@
-import type { Status, TenantEventStatus, ParticipantStatus } from '../types/data'
+import type { Status, TenantEventStatus, ParticipantStatus, ParticipantCategory } from '../types/data'
 
 // STATUS
 export const STATUS_ACTIVE: Status = 'Active'
@@ -48,4 +48,18 @@ export const PARTICIPANT_STATUS_DROPDOWN: ParticipantStatus[] = [
 export const PARTICIPANT_STATUS_COLORS: Record<ParticipantStatus, 'success' | 'neutral'> = {
     [PARTICIPANT_STATUS_CHECKED_IN]: 'success',
     [PARTICIPANT_STATUS_PENDING]: 'neutral',
+} as const
+
+// PARTICIPANT_CATEGORY
+export const PARTICIPANT_CATEGORY_VIP = 'VIP'
+export const PARTICIPANT_CATEGORY_REGULAR = 'Regular'
+
+export const PARTICIPANT_CATEGORY_DROPDOWN: ParticipantCategory[] = [
+    PARTICIPANT_CATEGORY_VIP,
+    PARTICIPANT_CATEGORY_REGULAR,
+]
+
+export const PARTICIPANT_CATEGORY_COLORS: Record<ParticipantCategory, 'warn' | 'neutral'> = {
+    [PARTICIPANT_CATEGORY_VIP]: 'warn',
+    [PARTICIPANT_CATEGORY_REGULAR]: 'neutral',
 } as const

@@ -52,7 +52,10 @@ async function useList(tId: number, id: number) {
     const query = ref('')
     const page = ref(1)
     const limit = ref(5)
-    const printQrDialog = ref(false)
+    const importDialog = ref(false)
+    const uploadFile = ref<File | null>(null)
+    const selectedIds = ref<number[]>([])
+    const toast = useToast()
 
     const { data, pending, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
@@ -75,37 +78,90 @@ async function useList(tId: number, id: number) {
         refresh()
     }
 
+    async function downloadTemplate() {
+        try {
+            await useDownload(
+                `/api/files/template/${FILE_IMPORT_PARTICIPANT}`,
+                FILE_IMPORT_PARTICIPANT,
+            )
+        }
+        catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to download template',
+                color: 'error',
+            })
+            console.error('Download template error', error)
+        }
+    }
+
+    async function uploadTemplate(tId: number, id: number) {
+        if (!uploadFile.value) return
+
+        const formData = new FormData()
+        formData.append('file', uploadFile.value)
+        try {
+            await $fetch(`/api/tenant/${tId}/event/${id}/participant/bulk`, {
+                method: 'POST',
+                body: formData,
+            })
+            importDialog.value = false
+        }
+        catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to upload participants',
+                color: 'error',
+            })
+            console.error('Upload participants error', error)
+        }
+    }
+
     return {
         search,
         page,
         limit,
-        printQrDialog,
+        importDialog,
+        uploadFile,
+        selectedIds,
+        toast,
         participants,
         total,
         pending,
         searchEvent,
         clearSearch,
+        downloadTemplate,
+        uploadTemplate,
     }
 }
 
-const {
-    tabs,
-    statusColors,
-    event,
-    checkInProgressLabel,
-    checkInPercentage,
-} = await useDetail(tenantId.value, id)
-const {
-    search,
-    page,
-    limit,
-    printQrDialog,
-    participants,
-    total,
-    pending,
-    searchEvent,
-    clearSearch,
-} = await useList(tenantId.value, id)
+const [
+    {
+        tabs,
+        statusColors,
+        event,
+        checkInProgressLabel,
+        checkInPercentage,
+    },
+    {
+        search,
+        page,
+        limit,
+        importDialog,
+        uploadFile,
+        selectedIds,
+        participants,
+        total,
+        pending,
+        searchEvent,
+        clearSearch,
+        downloadTemplate,
+        uploadTemplate,
+    },
+] = await Promise.all([
+    useDetail(tenantId.value, id),
+    useList(tenantId.value, id),
+])
 
 useHead({
     title: `Event - ${event.value.name}`,
@@ -227,15 +283,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                                     <UButton
                                         color="neutral"
                                         variant="outline"
-                                        icon="lucide:qr-code"
-                                        class="cursor-pointer"
-                                        @click="printQrDialog = true"
-                                    >
-                                        Print QR
-                                    </UButton>
-                                    <UButton
-                                        color="neutral"
-                                        variant="outline"
                                         icon="lucide:download"
                                         class="cursor-pointer"
                                     >
@@ -246,8 +293,17 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                                         variant="outline"
                                         icon="lucide:upload"
                                         class="cursor-pointer"
+                                        @click="importDialog = true"
                                     >
                                         Import
+                                    </UButton>
+                                    <UButton
+                                        color="neutral"
+                                        variant="outline"
+                                        icon="lucide:qr-code"
+                                        class="cursor-pointer"
+                                    >
+                                        Print QR
                                     </UButton>
                                     <UButton
                                         color="primary"
@@ -264,6 +320,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                         <TableEventParticipant
                             v-model:limit="limit"
                             v-model:page="page"
+                            v-model:selected="selectedIds"
                             :data="participants"
                             :total="total"
                             :pending="pending"
@@ -274,9 +331,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             </template>
         </UTabs>
 
-        <UModal
-            v-model:open="printQrDialog"
-        >
+        <UModal v-model:open="importDialog">
             <template #header="{ close }">
                 <div class="flex justify-between items-center w-full">
                     <h5>Import Attendee</h5>
@@ -310,19 +365,43 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                             <UButton
                                 icon="lucide:download"
                                 label="Download Template"
+                                @click="downloadTemplate"
                             />
                         </div>
                     </div>
                 </UCard>
 
                 <UFileUpload
+                    v-model="uploadFile"
                     icon="lucide:file-spreadsheet"
                     highlight
                     label="Click to upload or Drop your files here"
-                    description="CSV only"
+                    description="XLSX only"
                     class="cursor-pointer"
-                    accept=".csv,text/csv"
+                    :accept="FILE_EXT_XLSX"
                 />
+            </template>
+
+            <template #footer>
+                <div class="flex justify-end items-center">
+                    <div class="flex gap-2">
+                        <UButton
+                            color="neutral"
+                            variant="outline"
+                            icon="lucide:x"
+                            class="cursor-pointer"
+                            label="Cancel"
+                            @click="importDialog = false"
+                        />
+                        <UButton
+                            color="primary"
+                            icon="lucide:save"
+                            class="cursor-pointer"
+                            label="Upload"
+                            @click="uploadTemplate(tenantId, id)"
+                        />
+                    </div>
+                </div>
             </template>
         </UModal>
     </div>
