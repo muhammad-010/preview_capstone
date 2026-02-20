@@ -1,7 +1,7 @@
 import { $fetch } from 'ofetch'
 import type { H3Event } from 'h3'
 
-export async function externalApi<T>(
+export async function api<T>(
     event: H3Event,
     method: string,
     path: string,
@@ -26,14 +26,16 @@ export async function externalApi<T>(
     }
     return await $fetch.create({
         onResponseError({ response }) {
-            if (response.status === 401) {
-                throw createError({
-                    statusCode: response.status,
-                    statusMessage: response.statusText,
-                    // status: response.status,
-                    // statusText: response.statusText,
-                })
-            }
+            console.error({
+                url: response.url,
+                status: response.status,
+                statusText: response.statusText,
+                data: response._data,
+            })
+            throw createError({
+                statusCode: response.status,
+                statusMessage: response.statusText,
+            })
         },
     })<T>(path, {
         ...options,

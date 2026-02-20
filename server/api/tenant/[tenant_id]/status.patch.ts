@@ -4,7 +4,7 @@ export default defineEventHandler(async (event): Promise<FetchResult> => {
     const path = `/tenant/${tenantId}/status`
     const body = await readBody(event)
 
-    const res: FetchResult = await externalApi(event, method, path, {
+    const res: FetchResult = await api(event, method, path, {
         body,
     })
     if (res.success) {

@@ -2,7 +2,7 @@ export default defineEventHandler(async (event): Promise<DashboardCardTotalTenan
     const method = 'GET'
     const path = '/widget/tenant/total'
 
-    const res: DashboardCardTotalTenantResult = await externalApi(event, method, path)
+    const res: DashboardCardTotalTenantResult = await api(event, method, path)
     if (res.success) {
         return res
     }

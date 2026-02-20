@@ -3,7 +3,7 @@ export default defineEventHandler(async (event): Promise<FetchResult> => {
     const tenantId = getRouterParam(event, 'tenant_id')
     const path = `/tenant/${tenantId}`
 
-    const res: FetchResult = await externalApi(event, method, path, {})
+    const res: FetchResult = await api(event, method, path, {})
     if (res.success) {
         return res
     }

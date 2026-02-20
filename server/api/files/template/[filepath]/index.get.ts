@@ -3,7 +3,7 @@ export default defineEventHandler(async (event) => {
     const filepath = getRouterParam(event, 'filepath')
     const path = `/files/template/${filepath}`
 
-    const res = await externalApi(event, method, path, {})
+    const res = await api(event, method, path, {})
     if (res) {
         return res
     }

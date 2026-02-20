@@ -3,7 +3,7 @@ export default defineEventHandler(async (event): Promise<TenantListResult> => {
     const path = '/tenant'
     const query = getQuery(event)
 
-    const res: TenantListResult = await externalApi(event, method, path, {
+    const res: TenantListResult = await api(event, method, path, {
         query,
     })
     if (res.success) {

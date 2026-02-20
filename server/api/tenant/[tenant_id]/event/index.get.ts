@@ -4,7 +4,7 @@ export default defineEventHandler(async (event): Promise<TenantEventListResult> 
     const path = `/tenant/${tenantId}/event`
     const query = getQuery(event)
 
-    const res: TenantEventListResult = await externalApi(event, method, path, {
+    const res: TenantEventListResult = await api(event, method, path, {
         query,
     })
     if (res.success) {

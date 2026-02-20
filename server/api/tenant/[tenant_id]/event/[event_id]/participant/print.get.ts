@@ -4,7 +4,7 @@ export default defineEventHandler(async (event): Promise<PrintQRResult> => {
     const eventId = getRouterParam(event, 'event_id')
     const path = `/tenant/${tenantId}/event/${eventId}/participant/print`
 
-    const res: PrintQRResult = await externalApi(event, method, path, {})
+    const res: PrintQRResult = await api(event, method, path, {})
     if (res.success) {
         return res
     }

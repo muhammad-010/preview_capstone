@@ -3,7 +3,7 @@ export default defineEventHandler(async (event): Promise<FetchResult> => {
     const path = '/auth/login'
     const body = await readBody(event)
 
-    const res: LoginResult = await externalApi(event, method, path, {
+    const res: LoginResult = await api(event, method, path, {
         body,
     })
     if (res.success) {

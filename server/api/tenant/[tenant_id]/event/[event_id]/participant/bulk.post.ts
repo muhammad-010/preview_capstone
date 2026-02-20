@@ -5,7 +5,7 @@ export default defineEventHandler(async (event): Promise<FetchResult> => {
     const path = `/tenant/${tenantId}/event/${eventId}/participant/bulk`
     const body = await readMultipartFormData(event)
 
-    const res: FetchResult = await externalApi(event, method, path, {
+    const res: FetchResult = await api(event, method, path, {
         body,
         headers: {
             ['Content-Type']: 'multipart/form-data',
