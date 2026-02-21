@@ -3,13 +3,19 @@ export default defineEventHandler(async (event): Promise<FetchResult> => {
     const tenantId = getRouterParam(event, 'tenant_id')
     const eventId = getRouterParam(event, 'event_id')
     const path = `/tenant/${tenantId}/event/${eventId}/participant/bulk`
-    const body = await readMultipartFormData(event)
+    const rawbody = await readMultipartFormData(event)
+    const file = rawbody?.[0]
+    if (!file) {
+        throw createError({
+            statusCode: 400,
+            message: 'No file provided',
+        })
+    }
+    const body = new FormData()
+    body.append('file', new Blob([new Uint8Array(file.data)]), file.filename)
 
     const res: FetchResult = await api(event, method, path, {
         body,
-        headers: {
-            ['Content-Type']: 'multipart/form-data',
-        },
     })
     if (res.success) {
         return res

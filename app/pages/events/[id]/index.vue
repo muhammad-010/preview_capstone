@@ -4,21 +4,21 @@ import { formatPercentage } from '~~/shared/utils/format.methods'
 const route = useRoute()
 const id = Number(route.params.id)
 const { tenantId } = useUserState()
+const tabs = [
+    {
+        label: 'Overview',
+        slot: 'overview',
+    },
+    {
+        label: 'Attendees',
+        slot: 'attendees',
+    },
+]
 
 async function useDetail(tId: number, id: number) {
-    const tabs = [
-        {
-            label: 'Overview',
-            slot: 'overview',
-        },
-        {
-            label: 'Attendees',
-            slot: 'attendees',
-        },
-    ]
     const statusColors = TENANT_EVENT_STATUS_COLORS
 
-    const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/detail`, {
+    const { data, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
             ...res.data,
             start_time: formatLongDate(res.data.start_time || ''),
@@ -39,9 +39,9 @@ async function useDetail(tId: number, id: number) {
     ))
 
     return {
-        tabs,
         statusColors,
         event,
+        refresh,
         checkInProgressLabel,
         checkInPercentage,
     }
@@ -62,6 +62,7 @@ async function useList(tId: number, id: number) {
         query: { query, page, limit },
         watch: [page, limit],
     })
+    console.log(data.value)
     const participants = computed<Participant[]>(() => data.value?.participant ?? [])
     const total = computed(() => data.value?.total_data ?? 0)
 
@@ -81,7 +82,7 @@ async function useList(tId: number, id: number) {
     async function downloadTemplate() {
         try {
             await useDownload(
-                `/api/files/template/${FILE_IMPORT_PARTICIPANT}`,
+                `/api/files/${FILE_IMPORT_PARTICIPANT}`,
                 FILE_IMPORT_PARTICIPANT,
             )
         }
@@ -98,14 +99,15 @@ async function useList(tId: number, id: number) {
     async function uploadTemplate(tId: number, id: number) {
         if (!uploadFile.value) return
 
-        const formData = new FormData()
-        formData.append('file', uploadFile.value)
+        const body = new FormData()
+        body.append('file', uploadFile.value)
         try {
             await $fetch(`/api/tenant/${tId}/event/${id}/participant/bulk`, {
                 method: 'POST',
-                body: formData,
+                body,
             })
             importDialog.value = false
+            refresh()
         }
         catch (error) {
             toast.add({
@@ -128,6 +130,7 @@ async function useList(tId: number, id: number) {
         participants,
         total,
         pending,
+        refresh,
         searchEvent,
         clearSearch,
         downloadTemplate,
@@ -137,9 +140,9 @@ async function useList(tId: number, id: number) {
 
 const [
     {
-        tabs,
         statusColors,
         event,
+        refresh: refreshDetail,
         checkInProgressLabel,
         checkInPercentage,
     },
@@ -153,6 +156,7 @@ const [
         participants,
         total,
         pending,
+        refresh: refreshParticipants,
         searchEvent,
         clearSearch,
         downloadTemplate,
@@ -172,6 +176,14 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         label: event.value.name,
     },
 }))
+
+async function uploadParticipants() {
+    await uploadTemplate(tenantId.value, id)
+    await Promise.all([
+        refreshDetail(),
+        refreshParticipants(),
+    ])
+}
 </script>
 
 <template>
@@ -398,7 +410,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                             icon="lucide:save"
                             class="cursor-pointer"
                             label="Upload"
-                            @click="uploadTemplate(tenantId, id)"
+                            @click="uploadParticipants"
                         />
                     </div>
                 </div>
