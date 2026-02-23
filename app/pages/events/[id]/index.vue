@@ -62,7 +62,6 @@ async function useList(tId: number, id: number) {
         query: { query, page, limit },
         watch: [page, limit],
     })
-    console.log(data.value)
     const participants = computed<Participant[]>(() => data.value?.participant ?? [])
     const total = computed(() => data.value?.total_data ?? 0)
 
@@ -119,6 +118,38 @@ async function useList(tId: number, id: number) {
         }
     }
 
+    async function printQr(tId: number, id: number) {
+        const ids = selectedIds.value.length > 0 ? selectedIds.value.join(',') : null
+        try {
+            const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/print`, {
+                transform: res => res.data,
+                query: { ids },
+            })
+            if (data.value && data.value.filepath) {
+                await useDownload(
+                    `/api/files/${data.value?.filepath}`,
+                    FILE_IMPORT_PARTICIPANT,
+                )
+            }
+            else {
+                toast.add({
+                    title: 'Error',
+                    description: 'Cannot read filepath',
+                    color: 'error',
+                })
+                console.error('Print QR error: can\'t read filepath')
+            }
+        }
+        catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to print QR',
+                color: 'error',
+            })
+            console.error('Print QR error', error)
+        }
+    }
+
     return {
         search,
         page,
@@ -135,6 +166,7 @@ async function useList(tId: number, id: number) {
         clearSearch,
         downloadTemplate,
         uploadTemplate,
+        printQr,
     }
 }
 
@@ -161,6 +193,7 @@ const [
         clearSearch,
         downloadTemplate,
         uploadTemplate,
+        printQr,
     },
 ] = await Promise.all([
     useDetail(tenantId.value, id),
@@ -259,8 +292,6 @@ async function uploadParticipants() {
                         </section>
 
                         <section>
-                            <DetailSectionTitle title="Check-In Progress" />
-
                             <DetailSectionData :title="checkInProgressLabel">
                                 <UProgress
                                     :model-value="event.participant_status?.total_checked_in"
@@ -314,6 +345,7 @@ async function uploadParticipants() {
                                         variant="outline"
                                         icon="lucide:qr-code"
                                         class="cursor-pointer"
+                                        @click="printQr(tenantId, id)"
                                     >
                                         Print QR
                                     </UButton>
@@ -329,6 +361,7 @@ async function uploadParticipants() {
                             </div>
                         </template>
 
+                        {{ selectedIds }}
                         <TableEventParticipant
                             v-model:limit="limit"
                             v-model:page="page"

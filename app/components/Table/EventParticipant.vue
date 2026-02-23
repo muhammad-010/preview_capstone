@@ -2,6 +2,8 @@
 import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 
+type ToggleAllPageRowsSelected = (value?: boolean | undefined) => void
+
 const props = defineProps<{
     data: Participant[]
     total: number
@@ -11,7 +13,10 @@ const props = defineProps<{
 const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
 const selected = defineModel<number[]>('selected', { default: () => [] })
-const rowSelection = ref({})
+const rowSelection = ref<Record<string, boolean>>({})
+const selectAll = ref(false)
+const resetSelectionConfirmation = ref(false)
+const resetFunction = ref<ToggleAllPageRowsSelected>()
 
 function toggle(pId: number | undefined) {
     if (!pId) return
@@ -29,20 +34,38 @@ function toggle(pId: number | undefined) {
     selected.value = data
 }
 
-function toggleAll(all: boolean) {
-    if (!all) {
-        selected.value = []
-        return
-    }
-
-    const data: number[] = []
-    for (const participant of props.data) {
-        if (participant.participant_id) {
-            data.push(participant.participant_id)
-        }
-    }
-    selected.value = data
+/** all is null, so this worked for select all */
+function clearSelection(all: boolean) {
+    selected.value = []
+    selectAll.value = all
 }
+
+function askResetSelection(cb: ToggleAllPageRowsSelected) {
+    resetFunction.value = cb
+    resetSelectionConfirmation.value = true
+}
+
+function confirmResetSelection() {
+    const cb = resetFunction.value
+    if (cb) cb(false)
+    clearSelection(false)
+    resetFunction.value = undefined
+    resetSelectionConfirmation.value = false
+}
+
+watch(
+    () => props.data,
+    () => {
+        const map: Record<string, boolean> = {}
+        props.data.forEach((value, index) => {
+            if (selectAll.value || (value.participant_id && selected.value.includes(value.participant_id))) {
+                map[index] = true
+            }
+        })
+        rowSelection.value = map
+    },
+    { immediate: true, deep: true },
+)
 
 function useColumns() {
     const UBadge = resolveComponent('UBadge')
@@ -58,15 +81,19 @@ function useColumns() {
                         ? 'indeterminate'
                         : table.getIsAllPageRowsSelected(),
                     'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
-                        toggleAll(!!value)
+                        clearSelection(!!value)
                         table.toggleAllPageRowsSelected(!!value)
                     },
                     'aria-label': 'Select all',
                 }),
-            cell: ({ row }) =>
+            cell: ({ table, row }) =>
                 h(UCheckbox, {
                     'modelValue': row.getIsSelected(),
                     'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
+                        if (table.getIsAllPageRowsSelected()) {
+                            askResetSelection(table.toggleAllPageRowsSelected)
+                            return
+                        }
                         toggle(row.original.participant_id)
                         row.toggleSelected(!!value)
                     },
@@ -145,6 +172,14 @@ const { columns, tableRef } = useColumns()
             v-model:limit="limit"
             v-model:page="page"
             :total="total"
+        />
+
+        <ModalConfirmNegativeAction
+            v-model:open="resetSelectionConfirmation"
+            title="Reset Selection"
+            body="Are you sure you want to reset selection?"
+            confirm-label="Yes, Reset Selection"
+            @confirm="confirmResetSelection"
         />
     </div>
 </template>
