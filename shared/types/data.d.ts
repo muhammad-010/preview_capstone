@@ -127,17 +127,6 @@ export interface TenantEventForm {
     assign_user_ids: number[]
 }
 
-// USERS
-
-export interface User {
-    user_id: number
-    name: string
-    avatar_url: string | null
-    role_str: string
-}
-
-// PARTICIPANT
-
 export interface Participant {
     participant_id?: number
     name: string
@@ -146,4 +135,33 @@ export interface Participant {
     status: ParticipantStatus
     check_in_time: ISOString
     number_of_attendance: number | null
+}
+
+// USERS
+
+export interface UserPhone {
+    number: string
+    country_code?: string
+}
+
+export interface User {
+    user_id?: number
+    name: string
+    avatar_url: string | null
+
+    email?: string
+    phone?: UserPhone
+    status?: Status
+    tenant_role_id?: number
+    role_str?: string
+}
+
+export interface UserForm {
+    name: string
+    email: string
+    phone_number: string
+    status: Status
+    tenant_role_id: number
+    password: string
+    password_confirm: string
 }

@@ -5,6 +5,7 @@ export function useUserState(): UserStateComposable {
     if (!user.value || !user.value.assigned_tenant) {
         throw createError('Invalid assigned tenant when assigning state')
     }
+    const id = computed(() => user.value?.id || 0)
     const activeTenantIndex = useState<number>(STATE_USER_ACTIVE_TENANT_INDEX, () => DEFAULT_ACTIVE_TENANT_INDEX)
     const tenantList = computed(() => user.value?.assigned_tenant || [])
 
@@ -23,6 +24,7 @@ export function useUserState(): UserStateComposable {
     const tenantId = computed(() => tenantList.value[activeTenantIndex.value]!.id)
 
     return {
+        id,
         activeTenantIndex,
         tenantList,
         roleSlug,

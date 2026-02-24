@@ -12,6 +12,7 @@ export interface AppRoute {
 }
 
 export interface UserStateComposable {
+    id: ComputedRef<number>
     activeTenantIndex: Ref<number>
     tenantList: ComputedRef<AuthSessionAssignedTenant[]>
     roleSlug: ComputedRef<RoleSlug | null>

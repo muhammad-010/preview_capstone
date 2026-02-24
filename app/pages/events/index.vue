@@ -13,10 +13,10 @@ async function useList(tId: number) {
         query: { query, page, limit },
         watch: [page, limit],
     })
-    const events = computed<TenantEvent[]>(() => data.value?.event ?? [])
+    const list = computed<TenantEvent[]>(() => data.value?.event ?? [])
     const total = computed(() => data.value?.total_data ?? 0)
 
-    function searchEvent() {
+    function searchData() {
         page.value = 1
         query.value = search.value
         refresh()
@@ -33,10 +33,10 @@ async function useList(tId: number) {
         search,
         page,
         limit,
-        events,
+        list,
         total,
         pending,
-        searchEvent,
+        searchData,
         clearSearch,
     }
 }
@@ -45,10 +45,10 @@ const {
     search,
     page,
     limit,
-    events,
+    list,
     total,
     pending,
-    searchEvent,
+    searchData,
     clearSearch,
 } = await useList(tenantId.value)
 
@@ -65,7 +65,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 <div class="flex justify-between items-center">
                     <InputSearch
                         v-model="search"
-                        @search="searchEvent"
+                        @search="searchData"
                         @clear="clearSearch"
                     />
 
@@ -93,7 +93,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
             <TableEvent
                 v-model:limit="limit"
                 v-model:page="page"
-                :data="events"
+                :data="list"
                 :total="total"
                 :pending="pending"
                 with-pagination

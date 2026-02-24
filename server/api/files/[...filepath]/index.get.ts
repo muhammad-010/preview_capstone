@@ -8,7 +8,6 @@ export default defineEventHandler(async (event) => {
         })
     }
     const path = `/files/${filepath}`
-    console.log(path)
 
     const res = await api(event, method, path, {})
     if (res) {

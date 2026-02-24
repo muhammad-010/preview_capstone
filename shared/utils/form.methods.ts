@@ -1,4 +1,11 @@
-import type { Tenant, TenantForm, TenantEvent, TenantEventForm } from '../types/data'
+import type {
+    Tenant,
+    TenantForm,
+    TenantEvent,
+    TenantEventForm,
+    User,
+    UserForm,
+} from '../types/data'
 
 export function tenantFormToTenant(data: TenantForm): Tenant {
     return {
@@ -54,4 +61,26 @@ export function tenantEventToTenantEventForm(data: TenantEvent): TenantEventForm
         capacity: data.rule_config?.capacity?.total,
         assign_user_ids: data.assigned_users ? data.assigned_users!.map(u => u.user_id) : [],
     } as TenantEventForm
+}
+
+export function userFormToUser(data: UserForm): User {
+    return {
+        name: data.name,
+        email: data.email,
+        phone: {
+            number: data.phone_number,
+        },
+        status: data.status,
+        tenant_role_id: data.tenant_role_id,
+    } as User
+}
+
+export function userToUserForm(data: User): UserForm {
+    return {
+        name: data.name,
+        email: data.email,
+        phone_number: data.phone?.number,
+        status: data.status,
+        tenant_role_id: data.tenant_role_id,
+    } as UserForm
 }

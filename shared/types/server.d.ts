@@ -80,3 +80,17 @@ export type ParticipantListResult = Result<
 export type PrintQRResult = Result<{
     filepath: string
 }>
+
+// USERS
+
+export type TenantMemberListresult = Result<
+    PaginatedData<User, 'user'>
+>
+
+export type TenantMemberDetailResult = Result<User>
+
+export type TenantMemberFormResult = Result<USerForm>
+
+export type TenantMemberAddResult = Result<
+    AddedData<number, 'user_id'>
+>

@@ -12,10 +12,10 @@ async function useList() {
         query: { query, page, limit },
         watch: [page, limit],
     })
-    const tenants = computed<Tenant[]>(() => data.value?.tenants ?? [])
+    const list = computed<Tenant[]>(() => data.value?.tenants ?? [])
     const total = computed(() => data.value?.total_data ?? 0)
 
-    function searchTenant() {
+    function searchData() {
         page.value = 1
         query.value = search.value
         refresh()
@@ -32,10 +32,10 @@ async function useList() {
         search,
         page,
         limit,
-        tenants,
+        list,
         total,
         pending,
-        searchTenant,
+        searchData,
         clearSearch,
     }
 }
@@ -44,10 +44,10 @@ const {
     search,
     page,
     limit,
-    tenants,
+    list,
     total,
     pending,
-    searchTenant,
+    searchData,
     clearSearch,
 } = await useList()
 
@@ -64,7 +64,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 <div class="flex justify-between items-center">
                     <InputSearch
                         v-model="search"
-                        @search="searchTenant"
+                        @search="searchData"
                         @clear="clearSearch"
                     />
 
@@ -92,7 +92,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
             <TableTenant
                 v-model:limit="limit"
                 v-model:page="page"
-                :data="tenants"
+                :data="list"
                 :total="total"
                 :pending="pending"
                 with-pagination

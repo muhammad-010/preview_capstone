@@ -300,7 +300,7 @@ const {
                                     <div class="flex w-full justify-between items-center">
                                         <div>
                                             <h5>{{ option.name }}</h5>
-                                            <small>{{ option.role_str }}</small>
+                                            <small>{{ option.role_str || '-' }}</small>
                                         </div>
                                         <UButton
                                             variant="outline"
