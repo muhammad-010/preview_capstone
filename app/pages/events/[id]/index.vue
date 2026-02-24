@@ -126,9 +126,19 @@ async function useList(tId: number, id: number) {
                 query: { ids },
             })
             if (data.value && data.value.filepath) {
+                const filename = data.value.filepath.split('/').pop()
+                if (!filename) {
+                    toast.add({
+                        title: 'Error',
+                        description: 'Cannot read filename',
+                        color: 'error',
+                    })
+                    console.error('Print QR error: can\'t read filename')
+                    return
+                }
                 await useDownload(
                     `/api/files/${data.value?.filepath}`,
-                    FILE_IMPORT_PARTICIPANT,
+                    filename,
                 )
             }
             else {
@@ -138,6 +148,7 @@ async function useList(tId: number, id: number) {
                     color: 'error',
                 })
                 console.error('Print QR error: can\'t read filepath')
+                return
             }
         }
         catch (error) {
@@ -361,7 +372,6 @@ async function uploadParticipants() {
                             </div>
                         </template>
 
-                        {{ selectedIds }}
                         <TableEventParticipant
                             v-model:limit="limit"
                             v-model:page="page"
