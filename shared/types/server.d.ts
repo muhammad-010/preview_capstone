@@ -89,7 +89,7 @@ export type TenantMemberListresult = Result<
 
 export type TenantMemberDetailResult = Result<User>
 
-export type TenantMemberFormResult = Result<USerForm>
+export type TenantMemberFormResult = Result<UserForm>
 
 export type TenantMemberAddResult = Result<
     AddedData<number, 'user_id'>
