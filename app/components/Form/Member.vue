@@ -8,7 +8,7 @@ const props = defineProps<{
     id?: number
     fields?: UserForm
 }>()
-const formRef = useTemplateRef<Form<UserForm>>('formref')
+const formRef = useTemplateRef<Form<UserForm>>('formRef')
 async function saveData() {
     await formRef.value?.submit()
 }
@@ -29,7 +29,8 @@ async function useUserForm(tId: number, id: number) {
             .email('Invalid email'),
         phone_number: z
             .string()
-            .regex(/^\+?[0-9]{11,15}$/, 'Invalid phone number'),
+            .min(12, 'Phone number must be at least 12 digits')
+            .regex(/^0\d+$/, 'Phone number must start with 0 and contain only digits'),
         password: z
             .string()
             .min(8, 'Minimum 8 characters')
@@ -40,6 +41,9 @@ async function useUserForm(tId: number, id: number) {
             .optional(),
         status: z
             .enum(STATUS_DROPDOWN),
+        tenant_role_id: z
+            .number()
+            .optional(),
     }).superRefine((data, ctx) => {
         if (isCreate) {
             if (!data.password) {
@@ -76,6 +80,7 @@ async function useUserForm(tId: number, id: number) {
         password: '',
         password_confirm: '',
         status: 'Active',
+        tenant_role_id: 0,
     })
 
     async function addData(payload: FormSubmitEvent<Schema>) {

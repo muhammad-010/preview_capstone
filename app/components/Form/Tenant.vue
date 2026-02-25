@@ -40,7 +40,8 @@ function useTenantForm(id: number) {
             .email('Invalid owner email'),
         owner_phone_number: z
             .string()
-            .regex(/^\+?[0-9]{11,15}$/, 'Invalid phone number'),
+            .min(12, 'Phone number must be at least 12 digits')
+            .regex(/^0\d+$/, 'Phone number must start with 0 and contain only digits'),
         owner_password: z
             .string()
             .min(8, 'Minimum 8 characters')
