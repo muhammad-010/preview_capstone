@@ -6,6 +6,7 @@ type ToggleAllPageRowsSelected = (value?: boolean | undefined) => void
 
 const props = defineProps<{
     data: Participant[]
+    eventId: number
     total: number
     pending?: boolean
     withPagination?: boolean
@@ -138,13 +139,13 @@ function useColumns() {
                         color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:pencil',
-                        to: `events/${row.original.participant_id}/edit`,
+                        to: `${props.eventId}/participant/${row.original.participant_id}/edit`,
                     }),
                     h(UButton, {
                         color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:info',
-                        to: `events/${row.original.participant_id}`,
+                        to: `${props.eventId}/participant/${row.original.participant_id}`,
                     }),
                 ])
             },

@@ -364,7 +364,7 @@ async function uploadParticipants() {
                                         color="primary"
                                         icon="lucide:plus"
                                         class="cursor-pointer"
-                                        to="/events/add"
+                                        :to="`/events/${id}/participant/add`"
                                     >
                                         Add Attendee
                                     </UButton>
@@ -376,6 +376,7 @@ async function uploadParticipants() {
                             v-model:limit="limit"
                             v-model:page="page"
                             v-model:selected="selectedIds"
+                            :event-id="id"
                             :data="participants"
                             :total="total"
                             :pending="pending"

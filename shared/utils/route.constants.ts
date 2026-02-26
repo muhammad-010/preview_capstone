@@ -103,6 +103,27 @@ export const APP_ROUTES: AppRoute[] = [
                         label: 'Edit',
                         to: '/events/:id/edit',
                     },
+                    {
+                        title: 'Add New Participant',
+                        description: 'Assign new participant into the even',
+                        label: 'Add',
+                        to: '/events/:id/participant/add',
+                    },
+                    {
+                        title: 'Participant Detail',
+                        description: 'Detailed information about participant',
+                        label: 'Detail',
+                        to: '/events/:id/participant/:participant_id',
+                        disabled: true,
+                        child: [
+                            {
+                                title: 'Edit Participant',
+                                description: 'Update participant information',
+                                label: 'Edit',
+                                to: '/events/:id/participant/:participant_id/edit',
+                            },
+                        ],
+                    },
                 ],
             },
         ],
@@ -126,6 +147,7 @@ export const APP_ROUTES: AppRoute[] = [
                 description: 'Detailed information about member',
                 label: 'Detail',
                 to: '/members/:id',
+                disabled: true,
                 child: [
                     {
                         title: 'Edit Member',
