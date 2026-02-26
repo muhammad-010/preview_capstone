@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const { tenantId } = useUserState()
-const eventId = Number(route.params.id)
+const eventId = Number(route.params.event_id)
 async function useEventInfo(tId: number, eId: number) {
     const { data } = await useFetch(`/api/tenant/${tId}/event/${eId}`, {
         transform: res => res.data,
@@ -24,6 +24,8 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
 <template>
     <div class="my-8">
-        <FormMember />
+        <FormAttendee
+            :event-id="eventId"
+        />
     </div>
 </template>
