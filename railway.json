@@ -1,0 +1,20 @@
+{
+  "$schema": "https://railway.app/json-schema/railway.schema.json",
+  "build": {
+    "builderCommand": "pnpm install --frozen-lockfile && pnpm run build",
+    "restartPolicyMaxRetries": 5
+  },
+  "deploy": {
+    "startCommand": "node .output/server/index.mjs",
+    "numReplicas": 1,
+    "restartPolicyMaxRetries": 5,
+    "healthchecks": {
+      "cpu": {
+        "percentage": 80
+      },
+      "memory": {
+        "percentage": 80
+      }
+    }
+  }
+}
