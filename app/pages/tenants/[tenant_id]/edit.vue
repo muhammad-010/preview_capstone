@@ -1,17 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
-const id = Number(route.params.tenant_id)
-
-async function useInfo(id: number) {
-    const { data } = await useFetch(`/api/tenant/${id}`, {
-        transform: res => res.data,
-    })
-    const tenant = computed<TenantForm>(() => data.value ?? {} as TenantForm)
-
-    return { tenant }
-}
-
-const { tenant } = await useInfo(id)
+const tenantId = Number(route.params.tenant_id)
+const { tenant } = await useTenantInfo(tenantId)
 
 useHead({
     title: 'Tenant - Edit',
@@ -27,7 +17,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 <template>
     <div class="my-8">
         <FormTenant
-            :id="id"
+            :id="tenantId"
             :fields="tenant"
         />
     </div>

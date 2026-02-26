@@ -1,18 +1,8 @@
 <script setup lang="ts">
 const route = useRoute()
 const { tenantId } = useUserState()
-const id = Number(route.params.event_id)
-
-async function useInfo(tId: number, id: number) {
-    const { data } = await useFetch(`/api/tenant/${tId}/event/${id}`, {
-        transform: res => res.data,
-    })
-    const event = computed<TenantEventForm>(() => data.value ?? {} as TenantEventForm)
-
-    return { event }
-}
-
-const { event } = await useInfo(tenantId.value, id)
+const eventId = Number(route.params.event_id)
+const { event } = await useEventInfo(tenantId.value, eventId)
 
 useHead({
     title: 'Event - Edit',
@@ -28,7 +18,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 <template>
     <div class="my-8">
         <FormEvent
-            :id="id"
+            :id="eventId"
             :fields="event"
         />
     </div>
