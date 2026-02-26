@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const { tenantId } = useUserState()
-const eventId = Number(route.params.id)
+const eventId = Number(route.params.event_id)
 const participantId = Number(route.params.participant_id)
 
 async function useInfo(tId: number, eId: number, id: number) {
@@ -29,8 +29,8 @@ useHead({
     title: 'Participant - Edit',
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
-    [':id']: {
-        param: route.params.id as string,
+    [':event_id']: {
+        param: route.params.event_id as string,
         label: event.value.name,
     },
     [':participant_id']: {

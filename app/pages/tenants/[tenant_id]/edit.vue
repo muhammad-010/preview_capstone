@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
-const id = Number(route.params.id)
+const id = Number(route.params.tenant_id)
 
 async function useInfo(id: number) {
     const { data } = await useFetch(`/api/tenant/${id}`, {
@@ -17,8 +17,8 @@ useHead({
     title: 'Tenant - Edit',
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
-    [':id']: {
-        param: route.params.id as string,
+    [':tenant_id']: {
+        param: route.params.tenant_id as string,
         label: tenant.value.name,
     },
 }))

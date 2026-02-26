@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const router = useRouter()
 const route = useRoute()
-const id = Number(route.params.id)
+const id = Number(route.params.tenant_id)
 
 async function useDetail(id: number) {
     const statusColors = STATUS_COLORS
@@ -126,8 +126,8 @@ useHead({
     title: `Tenant - ${tenant.value.name}`,
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
-    [':id']: {
-        param: route.params.id as string,
+    [':tenant_id']: {
+        param: route.params.tenant_id as string,
         label: tenant.value.name,
     },
 }))
