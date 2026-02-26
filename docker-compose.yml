@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  sisreg-fe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      NUXT_SESSION_PASSWORD: ${NUXT_SESSION_PASSWORD:-your-random-password-with-at-least-32-characters}
+      EXTERNAL_API_URL: ${EXTERNAL_API_URL:-http://host.docker.internal:6060}
+    restart: unless-stopped
+    networks:
+      - sisreg-network
+
+networks:
+  sisreg-network:
+    driver: bridge

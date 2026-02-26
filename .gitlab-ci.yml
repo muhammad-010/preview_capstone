@@ -1,0 +1,75 @@
+# GitLab CI/CD Pipeline for SisReg Frontend
+
+stages:
+  - lint
+  - build
+  - deploy
+
+variables:
+  APP_NAME: "rawooh-ui"
+  NODE_VERSION: "22"
+  PNPM_VERSION: "9"
+  FF_USE_FASTZIP: "true"
+  ARTIFACT_COMPRESSION_LEVEL: "fastest"
+
+# Cache configuration
+.pnpm_cache:
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - .pnpm-store
+  before_script:
+    - npm install -g pnpm@${PNPM_VERSION}
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile
+
+# Lint stage: Check code quality
+lint:
+  stage: lint
+  image: node:${NODE_VERSION}-alpine
+  extends: .pnpm_cache
+  script:
+    - echo "Running ESLint..."
+    - pnpm run lint
+  allow_failure: true
+
+# Build stage: Build the Nuxt application
+build:
+  stage: build
+  image: node:${NODE_VERSION}-alpine
+  extends: .pnpm_cache
+  script:
+    - echo "Building Nuxt application..."
+    - pnpm run build
+    - echo "Build completed successfully"
+  artifacts:
+    paths:
+      - .output/
+      - node_modules/
+    expire_in: 1 hour
+  only:
+    - staging
+
+# Deploy to Railway 
+.deploy_staging_script:
+  image: node:20
+  before_script:
+    - npm install -g @railway/cli@latest
+  script:
+    - |
+      if [ -z "$RAILWAY_TOKEN" ]; then
+        echo "Error: RAILWAY_TOKEN not set. Add it to GitLab CI/CD variables."
+        exit 1
+      fi
+    - echo "Triggering Railway Deployment..."
+    - RAILWAY_TOKEN=$RAILWAY_TOKEN railway up -s $APP_NAME --detach
+
+deploy_staging:
+  stage: deploy
+  extends: .deploy_staging_script
+  environment:
+    name: staging
+  only:
+    - staging

@@ -1,0 +1,80 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+    --font-sans: 'Public Sans', system-ui, sans-serif;
+    --container-8xl: 90rem;
+    --container-9xl: 100rem;
+}
+
+@theme static {
+  --color-brand-50: #F8FAFC;
+  --color-brand-100: #CCD4E5;
+  --color-brand-200: #A1ADCE;
+  --color-brand-300: #7587B8;
+  --color-brand-400: #5B7EE7;
+  --color-brand-500: #1E3A8A;
+  --color-brand-600: #183073;
+  --color-brand-700: #13255C;
+  --color-brand-800: #0D1B46;
+  --color-brand-900: #08102F;
+  --color-brand-950: #020618;
+}
+
+@layer base {
+    h1 {
+        @apply text-3xl font-bold
+    }
+
+    h2 {
+        @apply text-2xl font-semibold
+    }
+
+    h3 {
+        @apply text-lg font-semibold
+    }
+
+    h4 {
+        @apply text-lg
+    }
+
+    h5 {
+        @apply font-semibold
+    }
+}
+
+@layer components {
+    .scrollbar {
+        @apply  [&::-webkit-scrollbar]:w-2
+                [&::-webkit-scrollbar-track]:rounded-none
+                [&::-webkit-scrollbar-thumb]:rounded-none
+                [&::-webkit-scrollbar-track]:bg-brand-100
+                [&::-webkit-scrollbar-thumb]:bg-brand-300
+                dark:[&::-webkit-scrollbar-track]:bg-brand-700
+                dark:[&::-webkit-scrollbar-thumb]:bg-brand-300/50
+    }
+
+    .navbar-ghost-button {
+        @apply  max-lg:text-neutral-300!
+                max-lg:hover:bg-primary/50!
+                max-lg:dark:hover:bg-primary/25!
+                max-lg:active:bg-primary/50!
+                max-lg:dark:active:bg-primary/25!
+                cursor-pointer
+                transition-colors
+    }
+}
+
+:root {
+    --ui-container: var(--container-9xl);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

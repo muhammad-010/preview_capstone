@@ -1,0 +1,28 @@
+# Railway Configuration File
+[build]
+# pnpm is the package manager
+builder = "dockerfile"
+
+[deploy]
+# Start command runs the built Nuxt server
+startCommand = "node .output/server/index.mjs"
+
+# Health check configuration
+healthCheck = "/api/health"
+healthCheckInterval = 10  # seconds
+healthCheckTimeout = 5    # seconds
+
+# Port to expose
+port = 3000
+
+[env]
+# Environment variables required for production
+NODE_ENV = "production"
+
+# Required variables that must be set in Railway dashboard:
+# NUXT_SESSION_PASSWORD - Session encryption key (min 32 characters)
+# EXTERNAL_API_URL - Backend API endpoint
+
+[variables]
+# Optional: you can set default values here or leave empty
+# to require configuration in Railway dashboard
