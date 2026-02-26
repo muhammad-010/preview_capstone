@@ -119,11 +119,11 @@ async function useList(tId: number, id: number) {
     }
 
     async function printQr(tId: number, id: number) {
-        const ids = selectedIds.value.length > 0 ? selectedIds.value.join(',') : null
+        const ids = selectedIds.value.length > 0 ? selectedIds.value.join(',') : []
         try {
             const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/print`, {
                 transform: res => res.data,
-                query: { ids },
+                query: ids.length ? { ids } : {},
             })
             if (data.value && data.value.filepath) {
                 const filename = data.value.filepath.split('/').pop()

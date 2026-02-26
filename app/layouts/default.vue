@@ -3,7 +3,6 @@ import type { BreadcrumbItem } from '@nuxt/ui'
 
 const { pageTitle, pageSubtitle, pageBreadCrumb } = useLayoutPropState()
 const company = ref({
-    name: 'EnterpriseEvent',
     logo: '/logo.png',
 })
 const { user, clear } = useUserSession()
@@ -36,7 +35,6 @@ async function onLogout() {
         >
             <template #header="{ collapsed }">
                 <MiscCompanyLogo
-                    :name="company.name"
                     :logo="company.logo"
                     :collapsed="collapsed"
                 />

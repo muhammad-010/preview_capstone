@@ -1,3 +1,6 @@
+// APP
+export const APP_NAME = 'Rawooh'
+
 // EMITS
 export const EMIT_FORM_CANCEL = 'cancel'
 export const EMIT_FORM_SAVE = 'save'
