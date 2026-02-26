@@ -381,6 +381,7 @@ async function uploadParticipants() {
                             :total="total"
                             :pending="pending"
                             with-pagination
+                            @refresh="refreshParticipants"
                         />
                     </UCard>
                 </div>
