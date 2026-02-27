@@ -6,6 +6,7 @@ const id = Number(route.params.tenant_id)
 async function useDetail(id: number) {
     const statusColors = STATUS_COLORS
     const toast = useToast()
+    const loading = ref(false)
     const deleteConfirmation = ref(false)
     const activateConfirmation = ref(false)
     const deactivateConfirmation = ref(false)
@@ -20,6 +21,7 @@ async function useDetail(id: number) {
 
     async function deleteData(id: number) {
         try {
+            loading.value = true
             const data = await $fetch(`/api/tenant/${id}`, {
                 method: 'DELETE',
             })
@@ -40,10 +42,14 @@ async function useDetail(id: number) {
             })
             console.error('Delete tenant error', error)
         }
+        finally {
+            loading.value = false
+        }
     }
 
     async function activateData(id: number) {
         try {
+            loading.value = true
             const data = await $fetch(`/api/tenant/${id}/status`, {
                 method: 'PATCH',
                 body: {
@@ -68,10 +74,14 @@ async function useDetail(id: number) {
             })
             console.error('Activate tenant error', error)
         }
+        finally {
+            loading.value = false
+        }
     }
 
     async function deactivateData(id: number) {
         try {
+            loading.value = true
             const data = await $fetch(`/api/tenant/${id}/status`, {
                 method: 'PATCH',
                 body: {
@@ -96,10 +106,14 @@ async function useDetail(id: number) {
             })
             console.error('Deactivate tenant error', error)
         }
+        finally {
+            loading.value = false
+        }
     }
 
     return {
         statusColors,
+        loading,
         deleteConfirmation,
         activateConfirmation,
         deactivateConfirmation,
@@ -113,6 +127,7 @@ async function useDetail(id: number) {
 
 const {
     statusColors,
+    loading,
     deleteConfirmation,
     activateConfirmation,
     deactivateConfirmation,
@@ -255,6 +270,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             v-model:open="deleteConfirmation"
             title="Delete Confirmation"
             :body="`Are you sure you want to delete ${tenant.name}? This action cannot be undone`"
+            :loading="loading"
             @confirm="deleteData(id)"
         />
 
@@ -262,6 +278,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             v-model:open="deactivateConfirmation"
             title="Deactivate Confirmation"
             :body="`Are you sure you want to deactivate ${tenant.name}? All services and access will be disabled for this tenant`"
+            :loading="loading"
             @confirm="deactivateData(id)"
         />
 
@@ -269,6 +286,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             v-model:open="activateConfirmation"
             title="Activate Confirmation"
             :body="`Are you sure you want to activate ${tenant.name}? All services and access will be enabled for this tenant`"
+            :loading="loading"
             @confirm="activateData(id)"
         />
     </div>

@@ -53,6 +53,10 @@ async function useList(tId: number, id: number) {
     const page = ref(1)
     const limit = ref(5)
     const importDialog = ref(false)
+    const printConfirmation = ref(false)
+    const loading = ref(false)
+    const downloadLoading = ref(false)
+    const uploadLoading = ref(false)
     const uploadFile = ref<File | null>(null)
     const selectedIds = ref<number[]>([])
     const toast = useToast()
@@ -80,6 +84,7 @@ async function useList(tId: number, id: number) {
 
     async function downloadTemplate() {
         try {
+            downloadLoading.value = true
             await useDownload(
                 `/api/files/${FILE_IMPORT_PARTICIPANT}`,
                 FILE_IMPORT_PARTICIPANT,
@@ -93,6 +98,9 @@ async function useList(tId: number, id: number) {
             })
             console.error('Download template error', error)
         }
+        finally {
+            downloadLoading.value = false
+        }
     }
 
     async function uploadTemplate(tId: number, id: number) {
@@ -101,6 +109,7 @@ async function useList(tId: number, id: number) {
         const body = new FormData()
         body.append('file', uploadFile.value)
         try {
+            uploadLoading.value = true
             await $fetch(`/api/tenant/${tId}/event/${id}/participant/bulk`, {
                 method: 'POST',
                 body,
@@ -116,11 +125,15 @@ async function useList(tId: number, id: number) {
             })
             console.error('Upload participants error', error)
         }
+        finally {
+            uploadLoading.value = false
+        }
     }
 
     async function printQr(tId: number, id: number) {
         const ids = selectedIds.value.length > 0 ? selectedIds.value.join(',') : []
         try {
+            loading.value = true
             const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/print`, {
                 transform: res => res.data,
                 query: ids.length ? { ids } : {},
@@ -159,6 +172,10 @@ async function useList(tId: number, id: number) {
             })
             console.error('Print QR error', error)
         }
+        finally {
+            printConfirmation.value = false
+            loading.value = false
+        }
     }
 
     return {
@@ -166,6 +183,10 @@ async function useList(tId: number, id: number) {
         page,
         limit,
         importDialog,
+        printConfirmation,
+        loading,
+        downloadLoading,
+        uploadLoading,
         uploadFile,
         selectedIds,
         toast,
@@ -194,6 +215,10 @@ const [
         page,
         limit,
         importDialog,
+        printConfirmation,
+        loading,
+        downloadLoading,
+        uploadLoading,
         uploadFile,
         selectedIds,
         participants,
@@ -356,7 +381,7 @@ async function uploadParticipants() {
                                         variant="outline"
                                         icon="lucide:qr-code"
                                         class="cursor-pointer"
-                                        @click="printQr(tenantId, id)"
+                                        @click="printConfirmation = true"
                                     >
                                         Print QR
                                     </UButton>
@@ -388,6 +413,15 @@ async function uploadParticipants() {
             </template>
         </UTabs>
 
+        <ModalConfirmPositiveAction
+            v-model:open="printConfirmation"
+            title="Print QR Confirmation"
+            :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
+            confirm-label="Yes, Print The QR"
+            :loading="loading"
+            @confirm="printQr(tenantId, id)"
+        />
+
         <UModal v-model:open="importDialog">
             <template #header="{ close }">
                 <div class="flex justify-between items-center w-full">
@@ -403,40 +437,44 @@ async function uploadParticipants() {
             </template>
 
             <template #body>
-                <UCard
-                    :ui="{
-                        root: 'bg-neutral-50 dark:bg-neutral-800',
-                    }"
-                    class="mb-4"
-                >
-                    <div class="flex gap-4">
-                        <UIcon
-                            name="lucide:file-spreadsheet"
-                            class="size-8"
-                        />
-                        <div>
-                            <div class="mb-2">
-                                <h5>Download Template</h5>
-                                <small>Use our CSV template to ensure your data is formatted correctly</small>
-                            </div>
-                            <UButton
-                                icon="lucide:download"
-                                label="Download Template"
-                                @click="downloadTemplate"
+                <MiscLoadingOverlay :loading="downloadLoading">
+                    <UCard
+                        :ui="{
+                            root: 'bg-neutral-50 dark:bg-neutral-800',
+                        }"
+                        class="mb-4"
+                    >
+                        <div class="flex gap-4">
+                            <UIcon
+                                name="lucide:file-spreadsheet"
+                                class="size-8"
                             />
+                            <div>
+                                <div class="mb-2">
+                                    <h5>Download Template</h5>
+                                    <small>Use our CSV template to ensure your data is formatted correctly</small>
+                                </div>
+                                <UButton
+                                    icon="lucide:download"
+                                    label="Download Template"
+                                    @click="downloadTemplate"
+                                />
+                            </div>
                         </div>
-                    </div>
-                </UCard>
+                    </UCard>
+                </MiscLoadingOverlay>
 
-                <UFileUpload
-                    v-model="uploadFile"
-                    icon="lucide:file-spreadsheet"
-                    highlight
-                    label="Click to upload or Drop your files here"
-                    description="XLSX only"
-                    class="cursor-pointer"
-                    :accept="FILE_EXT_XLSX"
-                />
+                <MiscLoadingOverlay :loading="uploadLoading">
+                    <UFileUpload
+                        v-model="uploadFile"
+                        icon="lucide:file-spreadsheet"
+                        highlight
+                        label="Click to upload or Drop your files here"
+                        description="XLSX only"
+                        class="cursor-pointer"
+                        :accept="FILE_EXT_XLSX"
+                    />
+                </MiscLoadingOverlay>
             </template>
 
             <template #footer>
@@ -448,6 +486,7 @@ async function uploadParticipants() {
                             icon="lucide:x"
                             class="cursor-pointer"
                             label="Cancel"
+                            :disabled="downloadLoading || uploadLoading"
                             @click="importDialog = false"
                         />
                         <UButton
@@ -455,6 +494,7 @@ async function uploadParticipants() {
                             icon="lucide:save"
                             class="cursor-pointer"
                             label="Upload"
+                            :disabled="downloadLoading || uploadLoading"
                             @click="uploadParticipants"
                         />
                     </div>
