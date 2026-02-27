@@ -27,36 +27,32 @@ export function buildLayoutProp(
     }
 
     for (const route of routes) {
-        if (matchRoute(route.to, path)) {
-            layoutProp.pageTitle = route.title
-            layoutProp.pageSubtitle = route.description || ''
-
-            const item: BreadcrumbItem = {
-                label: route.label,
-                to: route.to,
-            }
-            for (const [key, value] of Object.entries(params)) {
-                if (route.to.endsWith(key)) {
-                    layoutProp.pageTitle = value.label || ''
-                    item.label = value.label || ''
-                    item.to = route.to.replace(key, value.param || '')
+        const splittedRoute = route.to.split('/').filter(seg => seg.startsWith(':'))
+        const match = matchRoute(route.to, path)
+        const item: BreadcrumbItem = {
+            label: route.label,
+        }
+        let to = route.to
+        for (const [key, value] of Object.entries(params)) {
+            if (splittedRoute.includes(key)) {
+                layoutProp.pageTitle = match ? value.label || '' : layoutProp.pageTitle
+                item.label = route.to.endsWith(key) ? value.label || '' : item.label
+                to = to.replace(key, value.param || '')
+                if (route.disabled) {
+                    item.slot = 'disabled' as const
                 }
             }
+        }
+        item.to = to
+
+        if (match) {
+            layoutProp.pageTitle = layoutProp.pageTitle ? layoutProp.pageTitle : route.title
+            layoutProp.pageSubtitle = route.description || ''
             layoutProp.pageBreadCrumb = [...acc, item]
             return layoutProp
         }
 
         if (route.child) {
-            const item: BreadcrumbItem = {
-                label: route.label,
-                to: route.to,
-            }
-            for (const [key, value] of Object.entries(params)) {
-                if (route.to.endsWith(key)) {
-                    item.label = value.label || ''
-                    item.to = route.to.replace(key, value.param || '')
-                }
-            }
             const next = buildLayoutProp(
                 route.child,
                 path,

@@ -18,6 +18,11 @@ export type HourString = string
 
 export type RoleSlug = 'superadmin' | 'tenant.admin' | 'tenant.poc'
 
+export interface Phone {
+    number: string
+    country_code?: string
+}
+
 // AUTH
 
 export interface AuthSessionAssignedTenant {
@@ -41,10 +46,7 @@ export interface AuthSession {
 
 // TENANTS
 
-export interface TenantOwnerPhone {
-    number: string
-    country_code?: string
-}
+export type TenantOwnerPhone = Phone
 
 export interface TenantOwner {
     name: string
@@ -127,6 +129,8 @@ export interface TenantEventForm {
     assign_user_ids: number[]
 }
 
+export type ParticipantPhone = Phone
+
 export interface Participant {
     participant_id?: number
     name: string
@@ -135,14 +139,19 @@ export interface Participant {
     status: ParticipantStatus
     check_in_time: ISOString
     number_of_attendance: number | null
+
+    phone?: Phone
+}
+
+export interface ParticipantForm {
+    name: string
+    email: string
+    phone_number: string
 }
 
 // USERS
 
-export interface UserPhone {
-    number: string
-    country_code?: string
-}
+export type UserPhone = Phone
 
 export interface User {
     user_id?: number

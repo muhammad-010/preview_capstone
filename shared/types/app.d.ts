@@ -8,6 +8,7 @@ export interface AppRoute {
     icon?: string
     isDefault?: boolean
     render?: boolean
+    disabled?: boolean
     child?: AppRoute[]
 }
 

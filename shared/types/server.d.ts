@@ -77,6 +77,14 @@ export type ParticipantListResult = Result<
     PaginatedData<Participant, 'participant'>
 >
 
+export type ParticipantDetailresult = Result<Participant>
+
+export type ParticipantFormResult = Result<ParticipantForm>
+
+export type ParticipantAddResult = Result<
+    AddedData<number, 'participant_id'>
+>
+
 export type PrintQRResult = Result<{
     filepath: string
 }>

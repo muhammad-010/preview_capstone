@@ -1,3 +1,6 @@
+// APP
+export const APP_NAME = 'Rawooh'
+
 // EMITS
 export const EMIT_FORM_CANCEL = 'cancel'
 export const EMIT_FORM_SAVE = 'save'
@@ -6,6 +9,7 @@ export const EMIT_FORM_PREV_STEP = 'prev-step'
 export const EMIT_INPUT_SEARCH = 'search'
 export const EMIT_INPUT_CLEAR = 'clear'
 export const EMIT_MODAL_CONFIRM = 'confirm'
+export const EMIT_TABLE_REFRESH = 'refresh'
 
 // STATE
 export const STATE_LAYOUT_PAGE_TITLE = 'layout:pageTitle'

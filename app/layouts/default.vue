@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import type { BreadcrumbItem } from '@nuxt/ui'
+
 const { pageTitle, pageSubtitle, pageBreadCrumb } = useLayoutPropState()
 const company = ref({
-    name: 'EnterpriseEvent',
     logo: '/logo.png',
 })
 const { user, clear } = useUserSession()
@@ -34,7 +35,6 @@ async function onLogout() {
         >
             <template #header="{ collapsed }">
                 <MiscCompanyLogo
-                    :name="company.name"
                     :logo="company.logo"
                     :collapsed="collapsed"
                 />
@@ -94,7 +94,17 @@ async function onLogout() {
                         <UBreadcrumb
                             :items="pageBreadCrumb"
                             class="ml-4 lg:ml-2 transition-all"
-                        />
+                        >
+                            <template #disabled="{ item }: { item: BreadcrumbItem }">
+                                <UButton
+                                    disabled
+                                    :label="item.label"
+                                    color="neutral"
+                                    variant="link"
+                                    class="p-0.5"
+                                />
+                            </template>
+                        </UBreadcrumb>
                         <template #fallback>
                             <USkeleton class="ml-3 h-4 w-20" />
                         </template>

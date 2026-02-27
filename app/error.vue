@@ -5,6 +5,7 @@ definePageMeta({
     layout: 'clean',
 })
 defineProps<{ error: NuxtError }>()
+const { redirect } = useUserState()
 
 function errTitle(code: number) {
     switch (code) {
@@ -37,7 +38,7 @@ function errDescription(code: number) {
                 <h4>{{ errDescription(error.statusCode || 500) }}</h4>
             </div>
 
-            <UButton @click="clearError({ redirect: '/home' })">
+            <UButton @click="clearError({ redirect })">
                 Back to Home
             </UButton>
         </div>

@@ -61,13 +61,6 @@ function useColumns(uId: number) {
                         icon: 'lucide:pencil',
                         to: `members/${row.original.user_id}/edit`,
                     }),
-                    h(UButton, {
-                        color: 'neutral',
-                        variant: 'ghost',
-                        disabled: uId === row.original.user_id,
-                        icon: 'lucide:info',
-                        to: `members/${row.original.user_id}`,
-                    }),
                 ])
             },
         },

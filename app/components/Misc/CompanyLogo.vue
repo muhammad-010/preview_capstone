@@ -7,20 +7,19 @@ defineProps<{
 </script>
 
 <template>
-    <div class="flex items-center">
+    <div class="flex justify-center items-center w-full">
         <NuxtImg
             :src="logo ?? '/logo.png'"
-            width="40"
-            height="40"
-            class="mr-2"
+            :width="200"
+            class="mt-2"
         />
-        <Transition name="fade">
+        <!-- <Transition name="fade">
             <p
                 v-if="!collapsed"
                 class="text-neutral-50 font-bold text-lg ml-2"
             >
                 {{ name }}
             </p>
-        </Transition>
+        </Transition> -->
     </div>
 </template>
