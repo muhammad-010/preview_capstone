@@ -89,6 +89,10 @@ export type PrintQRResult = Result<{
     filepath: string
 }>
 
+export type ParticipantCheckInResult = Result<{
+    confirmation_attendance: boolean
+}>
+
 // USERS
 
 export type TenantMemberListresult = Result<

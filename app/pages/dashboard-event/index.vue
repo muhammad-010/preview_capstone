@@ -7,7 +7,7 @@ async function useDashboardListEvent(tId: number) {
         query: { page: 1, limit: 5 },
         transform: res => res.data,
     })
-    const events = computed<TenantEvent[]>(() => data.value?.events ?? [])
+    const events = computed<TenantEvent[]>(() => data.value?.event ?? [])
     const total = 5
 
     return { events, total }

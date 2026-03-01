@@ -37,6 +37,9 @@ async function useDetail(tId: number, id: number) {
         event.value.participant_status?.total_registered || 0,
         1,
     ))
+    const totalCheckedIn = computed(() => event.value.participant_status?.total_checked_in || 0)
+    const totalRegistered = computed(() => event.value.participant_status?.total_registered || 0)
+    const totalNotCheckedIn = computed(() => totalRegistered.value - totalCheckedIn.value)
 
     return {
         statusColors,
@@ -44,6 +47,9 @@ async function useDetail(tId: number, id: number) {
         refresh,
         checkInProgressLabel,
         checkInPercentage,
+        totalCheckedIn,
+        totalRegistered,
+        totalNotCheckedIn,
     }
 }
 
@@ -209,6 +215,8 @@ const [
         refresh: refreshDetail,
         checkInProgressLabel,
         checkInPercentage,
+        totalCheckedIn,
+        totalRegistered,
     },
     {
         search,
@@ -262,13 +270,13 @@ async function uploadParticipants() {
                 <div class="grid grid-cols-3 gap-4 my-8">
                     <CardTotal
                         title="Total Registrations"
-                        :total="event.participant_status?.total_registered || 0"
+                        :total="totalRegistered"
                         icon="lucide:users"
                     />
 
                     <CardTotal
                         title="Checked Ins"
-                        :total="event.participant_status?.total_checked_in || 0"
+                        :total="totalCheckedIn"
                         icon="lucide:circle-check"
                     />
 
@@ -276,7 +284,7 @@ async function uploadParticipants() {
                         title="Attendance Rate"
                         :total="checkInPercentage"
                         percentage
-                        icon="lucide:clock"
+                        icon="lucide:user-check"
                     />
                 </div>
 

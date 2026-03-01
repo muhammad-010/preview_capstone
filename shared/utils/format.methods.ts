@@ -1,3 +1,5 @@
+import type { ISOString } from '../types/data'
+
 const UNITS = [
     { value: 1e12, suffix: 'T' },
     { value: 1e9, suffix: 'B' },
@@ -19,7 +21,7 @@ export function formatNumberSuffix(value: number, decimals = 1): string {
 }
 
 /** format date into YYYY-MM-DD */
-export function formatShortDate(datestring: string): string {
+export function formatShortDate(datestring: ISOString): string {
     if (!datestring) return 'Invalid Date'
 
     const date = new Date(datestring)
@@ -33,7 +35,7 @@ export function formatShortDate(datestring: string): string {
 }
 
 /** format date into YYYY-MM-DD at HH:mm */
-export function formatLongDate(datestring: string): string {
+export function formatLongDate(datestring: ISOString): string {
     if (!datestring) return 'Invalid Date'
 
     const date = new Date(datestring)
@@ -47,6 +49,19 @@ export function formatLongDate(datestring: string): string {
     const min = String(date.getMinutes()).padStart(2, '0')
 
     return `${yyyy}-${mm}-${dd} at ${hh}:${min}`
+}
+
+/** format date into HH:mm */
+export function formatHour(datestring: ISOString) {
+    if (!datestring) return 'Invalid Date'
+
+    const date = new Date(datestring)
+    if (isNaN(date.getTime())) return 'Invalid Date'
+
+    const hh = String(date.getHours()).padStart(2, '0')
+    const min = String(date.getMinutes()).padStart(2, '0')
+
+    return `${hh}:${min}`
 }
 
 export function formatPercentage(

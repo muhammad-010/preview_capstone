@@ -45,6 +45,14 @@ export const APP_ROUTES: AppRoute[] = [
         to: '/my-events',
         isDefault: true,
         render: true,
+        child: [
+            {
+                title: 'My Event Detail',
+                description: 'Detailed information about event and attendance',
+                label: 'Detail',
+                to: '/my-events/:event_id',
+            },
+        ],
     },
 
     {
@@ -165,6 +173,17 @@ export const APP_ROUTES: AppRoute[] = [
         icon: 'lucide:scan-qr-code',
         to: '/scan-page',
         render: false,
+        disabled: true,
+        child: [
+            {
+                title: 'Check-In Event',
+                description: 'Check-in attendee by scanning their QR Code',
+                label: 'Check-In Event',
+                to: '/scan-page/:event_id',
+                render: false,
+                disabled: true,
+            },
+        ],
     },
 
     {

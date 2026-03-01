@@ -16,7 +16,7 @@ export type ISOString = string
 /** HH:mm:ss */
 export type HourString = string
 
-export type RoleSlug = 'superadmin' | 'tenant.admin' | 'tenant.poc'
+export type RoleSlug = 'superadmin' | 'tenant.admin' | 'tenant.member'
 
 export interface Phone {
     number: string
@@ -147,6 +147,11 @@ export interface ParticipantForm {
     name: string
     email: string
     phone_number: string
+}
+
+export interface ParticipantCheckIn {
+    token: string
+    count_attendance?: number
 }
 
 // USERS

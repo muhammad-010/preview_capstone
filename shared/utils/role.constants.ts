@@ -2,7 +2,7 @@ import type { RoleSlug } from '../types/data'
 
 export const ROLE_SUPER_ADMIN: RoleSlug = 'superadmin'
 export const ROLE_ADMIN_TENANT: RoleSlug = 'tenant.admin'
-export const ROLE_POC_TENANT: RoleSlug = 'tenant.poc'
+export const ROLE_POC_TENANT: RoleSlug = 'tenant.member'
 
 export const ROLE_ROUTES: Record<RoleSlug, string[]> = {
     [ROLE_SUPER_ADMIN]: APP_SUPER_ADMIN_ROUTES,
