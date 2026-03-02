@@ -94,6 +94,10 @@ export type PrintQRResult = Result<{
 }>
 
 export type ParticipantCheckInResult = Result<{
+    participant: {
+        participant_id: number
+        name: string
+    }
     confirmation_attendance: boolean
 }>
 

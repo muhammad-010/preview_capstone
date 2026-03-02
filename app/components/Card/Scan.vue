@@ -110,6 +110,7 @@ function onError(error: Error) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scaleX(-1) scale(1.5);
 }
 
 .overlay {

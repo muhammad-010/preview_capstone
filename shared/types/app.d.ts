@@ -20,6 +20,7 @@ export interface UserStateComposable {
     redirect: ComputedRef<string>
     navigation: ComputedRef<NavigationMenuItem[]>
     tenantId: ComputedRef<number>
+    tenantName: ComputedRef<string>
 }
 
 export interface BreadCrumbParam {

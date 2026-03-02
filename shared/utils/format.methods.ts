@@ -27,9 +27,9 @@ export function formatShortDate(datestring: ISOString): string {
     const date = new Date(datestring)
     if (isNaN(date.getTime())) return 'Invalid Date'
 
-    const yyyy = date.getFullYear()
-    const mm = String(date.getMonth() + 1).padStart(2, '0')
-    const dd = String(date.getDate()).padStart(2, '0')
+    const yyyy = date.getUTCFullYear()
+    const mm = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const dd = String(date.getUTCDate()).padStart(2, '0')
 
     return `${yyyy}-${mm}-${dd}`
 }
@@ -41,12 +41,12 @@ export function formatLongDate(datestring: ISOString): string {
     const date = new Date(datestring)
     if (isNaN(date.getTime())) return 'Invalid Date'
 
-    const yyyy = date.getFullYear()
-    const mm = String(date.getMonth() + 1).padStart(2, '0')
-    const dd = String(date.getDate()).padStart(2, '0')
+    const yyyy = date.getUTCFullYear()
+    const mm = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const dd = String(date.getUTCDate()).padStart(2, '0')
 
-    const hh = String(date.getHours()).padStart(2, '0')
-    const min = String(date.getMinutes()).padStart(2, '0')
+    const hh = String(date.getUTCHours()).padStart(2, '0')
+    const min = String(date.getUTCMinutes()).padStart(2, '0')
 
     return `${yyyy}-${mm}-${dd} at ${hh}:${min}`
 }
@@ -58,8 +58,8 @@ export function formatHour(datestring: ISOString) {
     const date = new Date(datestring)
     if (isNaN(date.getTime())) return 'Invalid Date'
 
-    const hh = String(date.getHours()).padStart(2, '0')
-    const min = String(date.getMinutes()).padStart(2, '0')
+    const hh = String(date.getUTCHours()).padStart(2, '0')
+    const min = String(date.getUTCMinutes()).padStart(2, '0')
 
     return `${hh}:${min}`
 }
