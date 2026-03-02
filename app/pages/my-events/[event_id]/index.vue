@@ -159,6 +159,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                             color="primary"
                             icon="lucide:scan-qr-code"
                             class="cursor-pointer"
+                            :disabled="!SCANNABLE_EVENT.includes(event.status)"
                             :to="`/scan-page/${event.event_id}`"
                         >
                             Start Scanning

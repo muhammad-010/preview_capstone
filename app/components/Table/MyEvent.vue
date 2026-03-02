@@ -31,7 +31,7 @@ function useColumns() {
                 h(UButton, {
                     color: 'primary',
                     icon: 'lucide:scan-qr-code',
-                    disabled: event.status !== TENANT_EVENT_STATUS_UPCOMING,
+                    disabled: !SCANNABLE_EVENT.includes(event.status),
                     to: `scan-page/${event.event_id}`,
                 }),
             )
