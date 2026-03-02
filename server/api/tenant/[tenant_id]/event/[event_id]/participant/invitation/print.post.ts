@@ -3,7 +3,7 @@ export default defineEventHandler(async (event): Promise<PrintQRResult> => {
     const tenantId = getRouterParam(event, 'tenant_id')
     const eventId = getRouterParam(event, 'event_id')
     const path = `/tenant/${tenantId}/event/${eventId}/participant/invitation/print`
-    const body = readBody(event)
+    const body = await readBody(event)
 
     const res: PrintQRResult = await api(event, method, path, {
         body,

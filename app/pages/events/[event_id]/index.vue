@@ -137,7 +137,7 @@ async function useList(tId: number, id: number) {
     }
 
     async function printQr(tId: number, id: number) {
-        const ids = selectedIds.value.length > 0 ? selectedIds.value.join(',') : []
+        const ids = selectedIds.value.length > 0 ? selectedIds.value : []
         try {
             loading.value = true
             const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/invitation/print`, {
