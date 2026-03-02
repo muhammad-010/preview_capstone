@@ -85,8 +85,16 @@ export type ParticipantAddResult = Result<
     AddedData<number, 'participant_id'>
 >
 
+export type PrintQRRequest = {
+    participant_ids?: number[]
+}
+
 export type PrintQRResult = Result<{
     filepath: string
+}>
+
+export type ParticipantCheckInResult = Result<{
+    confirmation_attendance: boolean
 }>
 
 // USERS

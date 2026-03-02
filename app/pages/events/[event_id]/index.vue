@@ -37,6 +37,9 @@ async function useDetail(tId: number, id: number) {
         event.value.participant_status?.total_registered || 0,
         1,
     ))
+    const totalCheckedIn = computed(() => event.value.participant_status?.total_checked_in || 0)
+    const totalRegistered = computed(() => event.value.participant_status?.total_registered || 0)
+    const totalNotCheckedIn = computed(() => totalRegistered.value - totalCheckedIn.value)
 
     return {
         statusColors,
@@ -44,6 +47,9 @@ async function useDetail(tId: number, id: number) {
         refresh,
         checkInProgressLabel,
         checkInPercentage,
+        totalCheckedIn,
+        totalRegistered,
+        totalNotCheckedIn,
     }
 }
 
@@ -131,12 +137,13 @@ async function useList(tId: number, id: number) {
     }
 
     async function printQr(tId: number, id: number) {
-        const ids = selectedIds.value.length > 0 ? selectedIds.value.join(',') : []
+        const ids = selectedIds.value.length > 0 ? selectedIds.value : []
         try {
             loading.value = true
-            const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/print`, {
+            const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/invitation/print`, {
+                method: 'POST',
                 transform: res => res.data,
-                query: ids.length ? { ids } : {},
+                body: ids.length ? { participant_ids: ids } : {},
             })
             if (data.value && data.value.filepath) {
                 const filename = data.value.filepath.split('/').pop()
@@ -209,6 +216,8 @@ const [
         refresh: refreshDetail,
         checkInProgressLabel,
         checkInPercentage,
+        totalCheckedIn,
+        totalRegistered,
     },
     {
         search,
@@ -262,13 +271,13 @@ async function uploadParticipants() {
                 <div class="grid grid-cols-3 gap-4 my-8">
                     <CardTotal
                         title="Total Registrations"
-                        :total="event.participant_status?.total_registered || 0"
+                        :total="totalRegistered"
                         icon="lucide:users"
                     />
 
                     <CardTotal
                         title="Checked Ins"
-                        :total="event.participant_status?.total_checked_in || 0"
+                        :total="totalCheckedIn"
                         icon="lucide:circle-check"
                     />
 
@@ -276,7 +285,7 @@ async function uploadParticipants() {
                         title="Attendance Rate"
                         :total="checkInPercentage"
                         percentage
-                        icon="lucide:clock"
+                        icon="lucide:user-check"
                     />
                 </div>
 

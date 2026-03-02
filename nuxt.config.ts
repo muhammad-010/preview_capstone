@@ -5,6 +5,7 @@ export default defineNuxtConfig({
         '@nuxt/ui',
         '@nuxt/image',
         'nuxt-auth-utils',
+        'nuxt-qrcode',
     ],
     imports: {
         dirs: ['shared/types', 'shared/utils'],
