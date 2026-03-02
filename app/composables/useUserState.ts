@@ -22,6 +22,7 @@ export function useUserState(): UserStateComposable {
     const redirect = computed(() => defaultRedirect(tenantList.value[activeTenantIndex.value]?.role_slug || null))
     const navigation = computed(() => shallowNavigationPerRole(tenantList.value[activeTenantIndex.value]?.role_slug || null))
     const tenantId = computed(() => tenantList.value[activeTenantIndex.value]!.id)
+    const tenantName = computed(() => tenantList.value[activeTenantIndex.value]!.name)
 
     return {
         id,
@@ -31,6 +32,7 @@ export function useUserState(): UserStateComposable {
         redirect,
         navigation,
         tenantId,
+        tenantName,
     }
 }
 

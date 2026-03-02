@@ -1,11 +1,11 @@
 <template>
     <UContainer class="flex justify-center items-center flex-col h-screen">
-        <div class="mt-12">
-            <slot />
+        <div class="mb-auto mt-12">
+            <UColorModeButton />
         </div>
 
-        <div class="mt-auto mb-12">
-            <UColorModeButton />
+        <div class="mb-12">
+            <slot />
         </div>
     </UContainer>
 </template>

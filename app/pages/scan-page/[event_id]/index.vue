@@ -3,7 +3,7 @@ import type { DetectedBarcode } from 'nuxt-qrcode'
 
 const route = useRoute()
 const id = Number(route.params.event_id)
-const { tenantId } = useUserState()
+const { tenantId, tenantName } = useUserState()
 
 async function useDetail(tId: number, id: number) {
     const qrValue = ref('')
@@ -31,6 +31,9 @@ async function useDetail(tId: number, id: number) {
     function openCheckInSuccess() {
         resetRef()
         checkInSuccessDialog.value = true
+        setTimeout(() => {
+            checkInSuccessDialog.value = false
+        }, 3000)
     }
 
     async function qrDetected(qrCodes: DetectedBarcode[]) {
@@ -51,6 +54,9 @@ async function useDetail(tId: number, id: number) {
             })
             return
         }
+        if (import.meta.client) {
+            new Audio('/camera-shutter.mp3').play()
+        }
         qrValue.value = qrCode.rawValue
         try {
             const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/check-in`, {
@@ -60,6 +66,7 @@ async function useDetail(tId: number, id: number) {
                     token: qrValue.value,
                 },
             })
+            participantName.value = data.value?.participant.name || ''
             const needConfirm = !!data.value?.confirmation_attendance
             if (needConfirm) {
                 confirmationAttendanceDialog.value = true
@@ -76,6 +83,11 @@ async function useDetail(tId: number, id: number) {
             })
             console.error('Failed submitting QR', error)
         }
+    }
+
+    function closeConfirmAttendance(close: () => void) {
+        close()
+        resetRef()
     }
 
     async function confirmAttendance() {
@@ -109,12 +121,13 @@ async function useDetail(tId: number, id: number) {
         startDate,
         startHour,
         qrDetected,
+        closeConfirmAttendance,
         confirmAttendance,
     }
 }
 
 const {
-    // participantName,
+    participantName,
     confirmationAttendanceDialog,
     attendanceCount,
     checkInSuccessDialog,
@@ -122,6 +135,7 @@ const {
     startDate,
     startHour,
     qrDetected,
+    closeConfirmAttendance,
     confirmAttendance,
 } = await useDetail(tenantId.value, id)
 
@@ -143,7 +157,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
     <div class="max-w-[60vw]">
         <CardScan
             :event-name="event.name"
-            :tenant="'tenant'"
+            :tenant="tenantName"
             :start-date="startDate"
             :start-hour="startHour"
             :location="event.location"
@@ -157,18 +171,28 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                         name="lucide:circle-check"
                         class="text-success size-32 mb-8"
                     />
-                    <h2 class="mb-8">
-                        Check-In Success
+                    <h2>
+                        Welcome to {{ event.name }}, {{ participantName }}!
                     </h2>
-                    <small>Click anywhere to close modal</small>
                 </div>
             </template>
         </UModal>
 
-        <UModal
-            v-model:open="confirmationAttendanceDialog"
-            title="Confirm Your Attendance"
-        >
+        <UModal v-model:open="confirmationAttendanceDialog">
+            <template #header="{ close }">
+                <div>
+                    <h2 class="text-highlighted font-semibold">
+                        Confirm Your Attendance
+                    </h2>
+                </div>
+                <UButton
+                    icon="lucide:x"
+                    color="neutral"
+                    variant="ghost"
+                    class="rounded-md ml-auto"
+                    @click="() => closeConfirmAttendance(close)"
+                />
+            </template>
             <template #body>
                 <div class="flex flex-col justify-center items-center">
                     <UFormField
