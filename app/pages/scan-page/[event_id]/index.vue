@@ -33,7 +33,7 @@ async function useDetail(tId: number, id: number) {
         checkInSuccessDialog.value = true
         setTimeout(() => {
             checkInSuccessDialog.value = false
-        }, 3000)
+        }, 5000)
     }
 
     async function qrDetected(qrCodes: DetectedBarcode[]) {
