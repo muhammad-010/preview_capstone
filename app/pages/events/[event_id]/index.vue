@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatPercentage } from '~~/shared/utils/format.methods'
+import { formatCapitalize } from '~~/shared/utils/format.methods'
 
 const route = useRoute()
 const id = Number(route.params.event_id)
@@ -60,12 +60,15 @@ async function useList(tId: number, id: number) {
     const limit = ref(5)
     const importDialog = ref(false)
     const printConfirmation = ref(false)
+    const sendConfirmation = ref(false)
     const loading = ref(false)
     const downloadLoading = ref(false)
     const uploadLoading = ref(false)
     const uploadFile = ref<File | null>(null)
     const selectedIds = ref<number[]>([])
     const toast = useToast()
+    const sendChannels = ref(SEND_CHANNEL_DROPDOWN)
+    const selectedSendChannel = ref<SendChannel[]>([])
 
     const { data, pending, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
@@ -185,17 +188,45 @@ async function useList(tId: number, id: number) {
         }
     }
 
+    async function sendQr(tId: number, id: number) {
+        const ids = selectedIds.value.length > 0 ? selectedIds.value : []
+        try {
+            loading.value = true
+            await useFetch(`/api/tenant/${tId}/event/${id}/participant/invitation/send`, {
+                method: 'POST',
+                body: ids.length
+                    ? { channel: selectedSendChannel.value, participant_ids: ids }
+                    : { channel: selectedSendChannel.value },
+            })
+        }
+        catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to send QR',
+                color: 'error',
+            })
+            console.error('Send QR error', error)
+        }
+        finally {
+            sendConfirmation.value = false
+            loading.value = false
+        }
+    }
+
     return {
         search,
         page,
         limit,
         importDialog,
         printConfirmation,
+        sendConfirmation,
         loading,
         downloadLoading,
         uploadLoading,
         uploadFile,
         selectedIds,
+        sendChannels,
+        selectedSendChannel,
         toast,
         participants,
         total,
@@ -206,6 +237,7 @@ async function useList(tId: number, id: number) {
         downloadTemplate,
         uploadTemplate,
         printQr,
+        sendQr,
     }
 }
 
@@ -225,11 +257,14 @@ const [
         limit,
         importDialog,
         printConfirmation,
+        sendConfirmation,
         loading,
         downloadLoading,
         uploadLoading,
         uploadFile,
         selectedIds,
+        sendChannels,
+        selectedSendChannel,
         participants,
         total,
         pending,
@@ -239,6 +274,7 @@ const [
         downloadTemplate,
         uploadTemplate,
         printQr,
+        sendQr,
     },
 ] = await Promise.all([
     useDetail(tenantId.value, id),
@@ -399,6 +435,15 @@ async function uploadParticipants() {
                                         Print QR
                                     </UButton>
                                     <UButton
+                                        color="neutral"
+                                        variant="outline"
+                                        icon="lucide:send"
+                                        class="cursor-pointer"
+                                        @click="sendConfirmation = true"
+                                    >
+                                        Send QR
+                                    </UButton>
+                                    <UButton
                                         color="primary"
                                         icon="lucide:plus"
                                         class="cursor-pointer"
@@ -426,7 +471,7 @@ async function uploadParticipants() {
             </template>
         </UTabs>
 
-        <ModalConfirmPositiveAction
+        <ModalConfirmNeutralAction
             v-model:open="printConfirmation"
             title="Print QR Confirmation"
             :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
@@ -434,6 +479,30 @@ async function uploadParticipants() {
             :loading="loading"
             @confirm="printQr(tenantId, id)"
         />
+
+        <ModalConfirmNeutralAction
+            v-model:open="sendConfirmation"
+            title="Send QR Confirmation"
+            confirm-label="Yes, Send The QR"
+            :loading="loading"
+            @confirm="sendQr(tenantId, id)"
+        >
+            <div>
+                {{ `You will send ${selectedIds.length || 'All'} QR code of participants, Continue?` }}
+                <USeparator class="my-4" />
+                <UCheckboxGroup
+                    v-model="selectedSendChannel"
+                    :items="sendChannels"
+                    variant="card"
+                    indicator="end"
+                    :ui="{ fieldset: 'gap-2' }"
+                >
+                    <template #label="{ item: { id: scId } }">
+                        {{ formatCapitalize(scId.split(':')[1] || '') }}
+                    </template>
+                </UCheckboxGroup>
+            </div>
+        </ModalConfirmNeutralAction>
 
         <UModal v-model:open="importDialog">
             <template #header="{ close }">

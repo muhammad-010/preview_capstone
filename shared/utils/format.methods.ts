@@ -76,3 +76,15 @@ export function formatPercentage(
 
     return Math.round(result * factor) / factor
 }
+
+export function formatCapitalize(s: string) {
+    return s.length <= 0
+        ? s
+        : s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+export function formatCapitalizeAll(s: string, sep: string) {
+    return s.length <= 0
+        ? s
+        : s.split(sep).map(v => formatCapitalize(v))
+}
