@@ -10,6 +10,8 @@ export type ParticipantStatus = 'Pending' | 'Checked In'
 
 export type ParticipantCategory = 'VIP' | 'Regular'
 
+export type SendChannel = 'email' | 'whatsapp'
+
 /** Represents YYYY-MM-DDTHH:mm:ssZ */
 export type ISOString = string
 

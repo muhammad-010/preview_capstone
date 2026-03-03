@@ -31,7 +31,7 @@ function useColumns() {
             header: 'Date',
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('span', {}, row.original.start_time || ''),
+                    h('span', {}, row.original.start_time ? formatLongDate(row.original.start_time) : ''),
                 ])
             },
         },

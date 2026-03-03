@@ -1,4 +1,10 @@
-import type { Status, TenantEventStatus, ParticipantStatus, ParticipantCategory } from '../types/data'
+import type {
+    Status,
+    TenantEventStatus,
+    ParticipantStatus,
+    ParticipantCategory,
+    SendChannel,
+} from '../types/data'
 
 // STATUS
 export const STATUS_ACTIVE: Status = 'Active'
@@ -62,4 +68,18 @@ export const PARTICIPANT_CATEGORY_DROPDOWN: ParticipantCategory[] = [
 export const PARTICIPANT_CATEGORY_COLORS: Record<ParticipantCategory, 'warn' | 'neutral'> = {
     [PARTICIPANT_CATEGORY_VIP]: 'warn',
     [PARTICIPANT_CATEGORY_REGULAR]: 'neutral',
+} as const
+
+// SEND_CHANNEL
+export const SEND_CHANNEL_EMAIL = 'email'
+export const SEND_CHANNEL_WHATSAPP = 'whatsapp'
+
+export const SEND_CHANNEL_DROPDOWN: SendChannel[] = [
+    SEND_CHANNEL_EMAIL,
+    SEND_CHANNEL_WHATSAPP,
+]
+
+export const SEND_CHANNEL_COLORS: Record<SendChannel, 'neutral' | 'success'> = {
+    [SEND_CHANNEL_EMAIL]: 'neutral',
+    [SEND_CHANNEL_WHATSAPP]: 'success',
 } as const

@@ -33,7 +33,7 @@ async function useDetail(tId: number, id: number) {
         checkInSuccessDialog.value = true
         setTimeout(() => {
             checkInSuccessDialog.value = false
-        }, 3000)
+        }, 5000)
     }
 
     async function qrDetected(qrCodes: DetectedBarcode[]) {
@@ -166,14 +166,18 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
         <UModal v-model:open="checkInSuccessDialog">
             <template #content>
-                <div class="flex flex-col justify-center items-center p-12">
+                <div class="flex flex-col justify-center items-center text-center p-12">
                     <UIcon
                         name="lucide:circle-check"
                         class="text-success size-32 mb-8"
                     />
-                    <h2>
-                        Welcome to {{ event.name }}, {{ participantName }}!
-                    </h2>
+                    <div class="mb-6">
+                        <h2>
+                            Welcome to {{ event.name }}, {{ participantName }}!
+                        </h2>
+                    </div>
+                    <h5>We’re excited to have you join us.</h5>
+                    <h5>Enjoy the event, and don’t forget to connect with new friends!</h5>
                 </div>
             </template>
         </UModal>

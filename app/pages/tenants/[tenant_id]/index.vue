@@ -2,15 +2,10 @@
 const router = useRouter()
 const route = useRoute()
 const id = Number(route.params.tenant_id)
+const toast = useToast()
 
 async function useDetail(id: number) {
     const statusColors = STATUS_COLORS
-    const toast = useToast()
-    const loading = ref(false)
-    const deleteConfirmation = ref(false)
-    const activateConfirmation = ref(false)
-    const deactivateConfirmation = ref(false)
-
     const { data, refresh } = await useFetch(`/api/tenant/${id}/detail`, {
         transform: res => ({
             ...res.data,
@@ -19,9 +14,20 @@ async function useDetail(id: number) {
     })
     const tenant = computed<Tenant>(() => data.value ?? {} as Tenant)
 
-    async function deleteData(id: number) {
+    return {
+        statusColors,
+        tenant,
+        refresh,
+    }
+}
+
+async function useDeleteData(id: number) {
+    const deleteConfirmation = ref(false)
+    const deleteLoading = ref(false)
+
+    async function deleteData() {
         try {
-            loading.value = true
+            deleteLoading.value = true
             const data = await $fetch(`/api/tenant/${id}`, {
                 method: 'DELETE',
             })
@@ -43,13 +49,24 @@ async function useDetail(id: number) {
             console.error('Delete tenant error', error)
         }
         finally {
-            loading.value = false
+            deleteLoading.value = false
         }
     }
 
-    async function activateData(id: number) {
+    return {
+        deleteConfirmation,
+        deleteLoading,
+        deleteData,
+    }
+}
+
+async function useActivateData(id: number) {
+    const activateConfirmation = ref(false)
+    const activateLoading = ref(false)
+
+    async function activateData() {
         try {
-            loading.value = true
+            activateLoading.value = true
             const data = await $fetch(`/api/tenant/${id}/status`, {
                 method: 'PATCH',
                 body: {
@@ -63,7 +80,6 @@ async function useDetail(id: number) {
                     description: 'A tenant has been activated',
                     color: 'success',
                 })
-                refresh()
             }
         }
         catch (error) {
@@ -75,13 +91,24 @@ async function useDetail(id: number) {
             console.error('Activate tenant error', error)
         }
         finally {
-            loading.value = false
+            activateLoading.value = false
         }
     }
 
-    async function deactivateData(id: number) {
+    return {
+        activateConfirmation,
+        activateLoading,
+        activateData,
+    }
+}
+
+async function useDeactivateData(id: number) {
+    const deactivateConfirmation = ref(false)
+    const deactivateLoading = ref(false)
+
+    async function deactivateData() {
         try {
-            loading.value = true
+            deactivateLoading.value = true
             const data = await $fetch(`/api/tenant/${id}/status`, {
                 method: 'PATCH',
                 body: {
@@ -95,7 +122,6 @@ async function useDetail(id: number) {
                     description: 'A tenant has been deactivated',
                     color: 'success',
                 })
-                refresh()
             }
         }
         catch (error) {
@@ -107,35 +133,47 @@ async function useDetail(id: number) {
             console.error('Deactivate tenant error', error)
         }
         finally {
-            loading.value = false
+            deactivateLoading.value = false
         }
     }
 
     return {
-        statusColors,
-        loading,
-        deleteConfirmation,
-        activateConfirmation,
         deactivateConfirmation,
-        tenant,
-        refresh,
-        deleteData,
-        activateData,
+        deactivateLoading,
         deactivateData,
     }
 }
 
-const {
-    statusColors,
-    loading,
-    deleteConfirmation,
-    activateConfirmation,
-    deactivateConfirmation,
-    tenant,
-    deleteData,
-    activateData,
-    deactivateData,
-} = await useDetail(id)
+const [
+    {
+        statusColors,
+        tenant,
+        refresh,
+    },
+
+    {
+        deleteLoading,
+        deleteConfirmation,
+        deleteData,
+    },
+
+    {
+        activateLoading,
+        activateConfirmation,
+        activateData,
+    },
+
+    {
+        deactivateLoading,
+        deactivateConfirmation,
+        deactivateData,
+    },
+] = await Promise.all([
+    useDetail(id),
+    useDeleteData(id),
+    useActivateData(id),
+    useDeactivateData(id),
+])
 
 useHead({
     title: `Tenant - ${tenant.value.name}`,
@@ -146,6 +184,16 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         label: tenant.value.name,
     },
 }))
+
+async function activateTenant() {
+    await activateData()
+    await refresh()
+}
+
+async function deactivateTenant() {
+    await deactivateData()
+    await refresh()
+}
 </script>
 
 <template>
@@ -270,24 +318,24 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             v-model:open="deleteConfirmation"
             title="Delete Confirmation"
             :body="`Are you sure you want to delete ${tenant.name}? This action cannot be undone`"
-            :loading="loading"
-            @confirm="deleteData(id)"
+            :loading="deleteLoading"
+            @confirm="deleteData"
         />
 
         <ModalConfirmNegativeAction
             v-model:open="deactivateConfirmation"
             title="Deactivate Confirmation"
             :body="`Are you sure you want to deactivate ${tenant.name}? All services and access will be disabled for this tenant`"
-            :loading="loading"
-            @confirm="deactivateData(id)"
+            :loading="deactivateLoading"
+            @confirm="deactivateTenant"
         />
 
         <ModalConfirmPositiveAction
             v-model:open="activateConfirmation"
             title="Activate Confirmation"
             :body="`Are you sure you want to activate ${tenant.name}? All services and access will be enabled for this tenant`"
-            :loading="loading"
-            @confirm="activateData(id)"
+            :loading="activateLoading"
+            @confirm="activateTenant"
         />
     </div>
 </template>

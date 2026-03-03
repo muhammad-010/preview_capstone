@@ -42,7 +42,7 @@ function onError(error: Error) {
                 </h4>
             </section>
 
-            <section class="bg-primary-50/20 dark:bg-primary-950/15 rounded-xl grid grid-cols-3 gap-8 justify-items-center py-8 px-24 text-xl mb-8">
+            <section class="bg-primary-950/20 dark:bg-primary-50/15 rounded-xl grid grid-cols-3 gap-8 justify-items-center py-8 px-24 text-xl mb-8">
                 <div class="col-span-3 flex items-center">
                     <UIcon
                         name="lucide:building"

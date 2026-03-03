@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatPercentage } from '~~/shared/utils/format.methods'
+import { formatCapitalize } from '~~/shared/utils/format.methods'
 
 const route = useRoute()
 const id = Number(route.params.event_id)
@@ -14,10 +14,10 @@ const tabs = [
         slot: 'attendees',
     },
 ]
+const toast = useToast()
 
 async function useDetail(tId: number, id: number) {
     const statusColors = TENANT_EVENT_STATUS_COLORS
-
     const { data, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
             ...res.data,
@@ -58,15 +58,7 @@ async function useList(tId: number, id: number) {
     const query = ref('')
     const page = ref(1)
     const limit = ref(5)
-    const importDialog = ref(false)
-    const printConfirmation = ref(false)
-    const loading = ref(false)
-    const downloadLoading = ref(false)
-    const uploadLoading = ref(false)
-    const uploadFile = ref<File | null>(null)
     const selectedIds = ref<number[]>([])
-    const toast = useToast()
-
     const { data, pending, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
         query: { query, page, limit },
@@ -87,6 +79,27 @@ async function useList(tId: number, id: number) {
         query.value = search.value
         refresh()
     }
+
+    return {
+        search,
+        page,
+        limit,
+        selectedIds,
+        toast,
+        participants,
+        total,
+        pending,
+        refresh,
+        searchEvent,
+        clearSearch,
+    }
+}
+
+async function useImportFile(tId: number, id: number) {
+    const importDialog = ref(false)
+    const downloadLoading = ref(false)
+    const uploadLoading = ref(false)
+    const uploadFile = ref<File | null>(null)
 
     async function downloadTemplate() {
         try {
@@ -109,7 +122,7 @@ async function useList(tId: number, id: number) {
         }
     }
 
-    async function uploadTemplate(tId: number, id: number) {
+    async function uploadTemplate() {
         if (!uploadFile.value) return
 
         const body = new FormData()
@@ -121,7 +134,6 @@ async function useList(tId: number, id: number) {
                 body,
             })
             importDialog.value = false
-            refresh()
         }
         catch (error) {
             toast.add({
@@ -136,10 +148,24 @@ async function useList(tId: number, id: number) {
         }
     }
 
-    async function printQr(tId: number, id: number) {
-        const ids = selectedIds.value.length > 0 ? selectedIds.value : []
+    return {
+        importDialog,
+        downloadLoading,
+        uploadLoading,
+        uploadFile,
+        downloadTemplate,
+        uploadTemplate,
+    }
+}
+
+async function usePrintQr(tId: number, id: number) {
+    const printConfirmation = ref(false)
+    const printLoading = ref(false)
+
+    async function printQr(selIds: number[]) {
+        const ids = selIds.length > 0 ? selIds : []
         try {
-            loading.value = true
+            printLoading.value = true
             const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/invitation/print`, {
                 method: 'POST',
                 transform: res => res.data,
@@ -181,31 +207,54 @@ async function useList(tId: number, id: number) {
         }
         finally {
             printConfirmation.value = false
-            loading.value = false
+            printLoading.value = false
         }
     }
 
     return {
-        search,
-        page,
-        limit,
-        importDialog,
         printConfirmation,
-        loading,
-        downloadLoading,
-        uploadLoading,
-        uploadFile,
-        selectedIds,
-        toast,
-        participants,
-        total,
-        pending,
-        refresh,
-        searchEvent,
-        clearSearch,
-        downloadTemplate,
-        uploadTemplate,
+        printLoading,
         printQr,
+    }
+}
+
+async function useSendQr(tId: number, id: number) {
+    const sendConfirmation = ref(false)
+    const sendLoading = ref(false)
+    const sendChannels = ref(SEND_CHANNEL_DROPDOWN)
+    const selectedSendChannel = ref<SendChannel[]>([])
+
+    async function sendQr(selIds: number[]) {
+        const ids = selIds.length > 0 ? selIds : []
+        try {
+            sendLoading.value = true
+            await useFetch(`/api/tenant/${tId}/event/${id}/participant/invitation/send`, {
+                method: 'POST',
+                body: ids.length
+                    ? { channel: selectedSendChannel.value, participant_ids: ids }
+                    : { channel: selectedSendChannel.value },
+            })
+        }
+        catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to send QR',
+                color: 'error',
+            })
+            console.error('Send QR error', error)
+        }
+        finally {
+            sendConfirmation.value = false
+            sendLoading.value = false
+        }
+    }
+
+    return {
+        sendConfirmation,
+        sendLoading,
+        sendChannels,
+        selectedSendChannel,
+        sendQr,
     }
 }
 
@@ -219,16 +268,11 @@ const [
         totalCheckedIn,
         totalRegistered,
     },
+
     {
         search,
         page,
         limit,
-        importDialog,
-        printConfirmation,
-        loading,
-        downloadLoading,
-        uploadLoading,
-        uploadFile,
         selectedIds,
         participants,
         total,
@@ -236,13 +280,36 @@ const [
         refresh: refreshParticipants,
         searchEvent,
         clearSearch,
+    },
+
+    {
+        importDialog,
+        downloadLoading,
+        uploadLoading,
+        uploadFile,
         downloadTemplate,
         uploadTemplate,
+    },
+
+    {
+        printConfirmation,
+        printLoading,
         printQr,
+    },
+
+    {
+        sendConfirmation,
+        sendLoading,
+        sendChannels,
+        selectedSendChannel,
+        sendQr,
     },
 ] = await Promise.all([
     useDetail(tenantId.value, id),
     useList(tenantId.value, id),
+    useImportFile(tenantId.value, id),
+    usePrintQr(tenantId.value, id),
+    useSendQr(tenantId.value, id),
 ])
 
 useHead({
@@ -255,12 +322,27 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
     },
 }))
 
-async function uploadParticipants() {
-    await uploadTemplate(tenantId.value, id)
+async function refreshAll() {
+    selectedIds.value = []
     await Promise.all([
         refreshDetail(),
         refreshParticipants(),
     ])
+}
+
+async function uploadParticipants() {
+    await uploadTemplate()
+    await refreshAll()
+}
+
+async function printSelectedQr() {
+    await printQr(selectedIds.value)
+    await refreshAll()
+}
+
+async function sendSelectedQr() {
+    await sendQr(selectedIds.value)
+    await refreshAll()
 }
 </script>
 
@@ -311,19 +393,19 @@ async function uploadParticipants() {
                         <section class="grid md:grid-cols-2 gap-6 mb-8">
                             <DetailSectionData
                                 title="Start Time"
-                                icon="lucide:user"
+                                icon="lucide:clock"
                                 :subtitle="event.start_time"
                             />
 
                             <DetailSectionData
                                 title="End Time"
-                                icon="lucide:mail"
+                                icon="lucide:clock-8"
                                 :subtitle="event.end_time"
                             />
 
                             <DetailSectionData
                                 title="Venue"
-                                icon="lucide:phone"
+                                icon="lucide:map-pin"
                                 :subtitle="event.location"
                             />
 
@@ -395,6 +477,15 @@ async function uploadParticipants() {
                                         Print QR
                                     </UButton>
                                     <UButton
+                                        color="neutral"
+                                        variant="outline"
+                                        icon="lucide:send"
+                                        class="cursor-pointer"
+                                        @click="sendConfirmation = true"
+                                    >
+                                        Send QR
+                                    </UButton>
+                                    <UButton
                                         color="primary"
                                         icon="lucide:plus"
                                         class="cursor-pointer"
@@ -415,21 +506,45 @@ async function uploadParticipants() {
                             :total="total"
                             :pending="pending"
                             with-pagination
-                            @refresh="refreshParticipants"
+                            @refresh="refreshAll"
                         />
                     </UCard>
                 </div>
             </template>
         </UTabs>
 
-        <ModalConfirmPositiveAction
+        <ModalConfirmNeutralAction
             v-model:open="printConfirmation"
             title="Print QR Confirmation"
             :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
             confirm-label="Yes, Print The QR"
-            :loading="loading"
-            @confirm="printQr(tenantId, id)"
+            :loading="printLoading"
+            @confirm="printSelectedQr"
         />
+
+        <ModalConfirmNeutralAction
+            v-model:open="sendConfirmation"
+            title="Send QR Confirmation"
+            confirm-label="Yes, Send The QR"
+            :loading="sendLoading"
+            @confirm="sendSelectedQr"
+        >
+            <div>
+                {{ `You will send ${selectedIds.length || 'All'} QR code of participants, Continue?` }}
+                <USeparator class="my-4" />
+                <UCheckboxGroup
+                    v-model="selectedSendChannel"
+                    :items="sendChannels"
+                    variant="card"
+                    indicator="end"
+                    :ui="{ fieldset: 'gap-2' }"
+                >
+                    <template #label="{ item: { id: scId } }">
+                        {{ formatCapitalize(scId.split(':')[1] || '') }}
+                    </template>
+                </UCheckboxGroup>
+            </div>
+        </ModalConfirmNeutralAction>
 
         <UModal v-model:open="importDialog">
             <template #header="{ close }">

@@ -7,7 +7,6 @@ const { tenantId } = useUserState()
 
 async function useDetail(tId: number, id: number) {
     const statusColors = TENANT_EVENT_STATUS_COLORS
-
     const { data, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
             ...res.data,
@@ -49,7 +48,6 @@ async function useList(tId: number, id: number) {
     const page = ref(1)
     const limit = ref(5)
     const toast = useToast()
-
     const { data, pending, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
         query: { query, page, limit },
@@ -172,19 +170,19 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                 <section class="grid md:grid-cols-4 gap-6 mb-8">
                     <DetailSectionData
                         title="Start Time"
-                        icon="lucide:user"
+                        icon="lucide:clock"
                         :subtitle="event.start_time"
                     />
 
                     <DetailSectionData
                         title="End Time"
-                        icon="lucide:mail"
+                        icon="lucide:clock-8"
                         :subtitle="event.end_time"
                     />
 
                     <DetailSectionData
                         title="Venue"
-                        icon="lucide:phone"
+                        icon="lucide:map-pin"
                         :subtitle="event.location"
                     />
 

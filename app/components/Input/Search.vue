@@ -17,6 +17,7 @@ const emit = defineEmits([EMIT_INPUT_SEARCH, EMIT_INPUT_CLEAR])
         >
             <template #trailing>
                 <UButton
+                    v-if="model"
                     color="neutral"
                     variant="link"
                     size="sm"
