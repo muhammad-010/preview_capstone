@@ -95,7 +95,7 @@ async function useList(tId: number, id: number) {
     }
 }
 
-async function useUploadFile(tId: number, id: number) {
+async function useImportFile(tId: number, id: number) {
     const importDialog = ref(false)
     const downloadLoading = ref(false)
     const uploadLoading = ref(false)
@@ -307,7 +307,7 @@ const [
 ] = await Promise.all([
     useDetail(tenantId.value, id),
     useList(tenantId.value, id),
-    useUploadFile(tenantId.value, id),
+    useImportFile(tenantId.value, id),
     usePrintQr(tenantId.value, id),
     useSendQr(tenantId.value, id),
 ])
