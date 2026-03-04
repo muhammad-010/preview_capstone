@@ -1,7 +1,13 @@
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
     const api = $fetch.create({
         async onResponseError({ response }) {
-            apiOnResponseError(response)
+            if (response.status === 401) {
+                await nuxtApp.runWithContext(async () => {
+                    const { clear } = useUserSession()
+                    await clear()
+                    await navigateTo('/auth', { replace: true })
+                })
+            }
         },
     })
 
