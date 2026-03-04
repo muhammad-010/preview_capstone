@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { BreadcrumbItem } from '@nuxt/ui'
 
+const { $api } = useNuxtApp()
 const { pageTitle, pageSubtitle, pageBreadCrumb } = useLayoutPropState()
 const company = ref({
     logo: '/logo.png',
@@ -12,7 +13,7 @@ const refNavbar = ref<HTMLElement | null>(null)
 
 async function onLogout() {
     try {
-        await $fetch('/api/auth/logout', {
+        await $api('/api/auth/logout', {
             method: 'POST',
         })
         await clear()

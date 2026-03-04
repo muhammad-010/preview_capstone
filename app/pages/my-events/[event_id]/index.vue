@@ -7,7 +7,7 @@ const { tenantId } = useUserState()
 
 async function useDetail(tId: number, id: number) {
     const statusColors = TENANT_EVENT_STATUS_COLORS
-    const { data, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/detail`, {
+    const { data, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
             ...res.data,
             start_time: formatLongDate(res.data.start_time || ''),
@@ -48,7 +48,7 @@ async function useList(tId: number, id: number) {
     const page = ref(1)
     const limit = ref(5)
     const toast = useToast()
-    const { data, pending, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/participant`, {
+    const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
         query: { query, page, limit },
         watch: [page, limit],

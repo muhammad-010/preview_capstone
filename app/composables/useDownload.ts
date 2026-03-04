@@ -3,7 +3,7 @@ export async function useDownload(
     filename: string,
     options: Parameters<typeof $fetch>[1] = {},
 ) {
-    const response = await $fetch.raw(url, {
+    const response = await useNuxtApp().$api.raw(url, {
         ...options,
         responseType: 'blob',
     })

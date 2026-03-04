@@ -2,7 +2,7 @@
 const route = useRoute()
 
 async function useDashboardCardTotalTenant() {
-    const { data } = await useFetch('/api/dashboard/total-tenant', {
+    const { data } = await useApi('/api/dashboard/total-tenant', {
         transform: res => res.data,
     })
     const totalTenant = computed<number>(() => data.value?.count || 0)
@@ -11,7 +11,7 @@ async function useDashboardCardTotalTenant() {
 }
 
 async function useDashboardListTenant() {
-    const { data } = await useFetch('/api/dashboard/tenant', {
+    const { data } = await useApi('/api/dashboard/tenant', {
         transform: res => res.data,
     })
     const tenants = computed<Tenant[]>(() => data.value?.tenants ?? [])

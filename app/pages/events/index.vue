@@ -8,7 +8,7 @@ async function useList(tId: number) {
     const page = ref(1)
     const limit = ref(5)
 
-    const { data, pending, refresh } = await useFetch(`/api/tenant/${tId}/event`, {
+    const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event`, {
         transform: res => res.data,
         query: { query, page, limit },
         watch: [page, limit],

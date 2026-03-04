@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { formatCapitalize } from '~~/shared/utils/format.methods'
 
+const { $api } = useNuxtApp()
 const route = useRoute()
 const id = Number(route.params.event_id)
 const { tenantId } = useUserState()
@@ -18,7 +19,7 @@ const toast = useToast()
 
 async function useDetail(tId: number, id: number) {
     const statusColors = TENANT_EVENT_STATUS_COLORS
-    const { data, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/detail`, {
+    const { data, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
             ...res.data,
             start_time: formatLongDate(res.data.start_time || ''),
@@ -59,7 +60,7 @@ async function useList(tId: number, id: number) {
     const page = ref(1)
     const limit = ref(5)
     const selectedIds = ref<number[]>([])
-    const { data, pending, refresh } = await useFetch(`/api/tenant/${tId}/event/${id}/participant`, {
+    const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
         query: { query, page, limit },
         watch: [page, limit],
@@ -129,7 +130,7 @@ async function useImportFile(tId: number, id: number) {
         body.append('file', uploadFile.value)
         try {
             uploadLoading.value = true
-            await $fetch(`/api/tenant/${tId}/event/${id}/participant/bulk`, {
+            await $api(`/api/tenant/${tId}/event/${id}/participant/bulk`, {
                 method: 'POST',
                 body,
             })
@@ -166,7 +167,7 @@ async function usePrintQr(tId: number, id: number) {
         const ids = selIds.length > 0 ? selIds : []
         try {
             printLoading.value = true
-            const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/invitation/print`, {
+            const { data } = await useApi(`/api/tenant/${tId}/event/${id}/participant/invitation/print`, {
                 method: 'POST',
                 transform: res => res.data,
                 body: ids.length ? { participant_ids: ids } : {},
@@ -228,7 +229,7 @@ async function useSendQr(tId: number, id: number) {
         const ids = selIds.length > 0 ? selIds : []
         try {
             sendLoading.value = true
-            await useFetch(`/api/tenant/${tId}/event/${id}/participant/invitation/send`, {
+            await $api(`/api/tenant/${tId}/event/${id}/participant/invitation/send`, {
                 method: 'POST',
                 body: ids.length
                     ? { channel: selectedSendChannel.value, participant_ids: ids }
