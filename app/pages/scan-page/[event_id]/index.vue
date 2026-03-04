@@ -141,7 +141,7 @@ const {
 } = await useDetail(tenantId.value, id)
 
 useHead({
-    title: `Event - ${event.value.name}`,
+    title: computed(() => `Event - ${event.value ? event.value.name : 'Detail'}`),
 })
 definePageMeta({
     layout: 'scan',

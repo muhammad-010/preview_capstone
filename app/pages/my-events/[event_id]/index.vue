@@ -108,7 +108,7 @@ const [
 ])
 
 useHead({
-    title: `Event - ${event.value.name}`,
+    title: computed(() => `Event - ${event.value ? event.value.name : 'Detail'}`),
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
     [':event_id']: {
