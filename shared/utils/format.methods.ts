@@ -27,9 +27,9 @@ export function formatShortDate(datestring: ISOString): string {
     const date = new Date(datestring)
     if (isNaN(date.getTime())) return 'Invalid Date'
 
-    const yyyy = date.getUTCFullYear()
-    const mm = String(date.getUTCMonth() + 1).padStart(2, '0')
-    const dd = String(date.getUTCDate()).padStart(2, '0')
+    const yyyy = date.getFullYear()
+    const mm = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
 
     return `${yyyy}-${mm}-${dd}`
 }
@@ -41,12 +41,12 @@ export function formatLongDate(datestring: ISOString): string {
     const date = new Date(datestring)
     if (isNaN(date.getTime())) return 'Invalid Date'
 
-    const yyyy = date.getUTCFullYear()
-    const mm = String(date.getUTCMonth() + 1).padStart(2, '0')
-    const dd = String(date.getUTCDate()).padStart(2, '0')
+    const yyyy = date.getFullYear()
+    const mm = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
 
-    const hh = String(date.getUTCHours()).padStart(2, '0')
-    const min = String(date.getUTCMinutes()).padStart(2, '0')
+    const hh = String(date.getHours()).padStart(2, '0')
+    const min = String(date.getMinutes()).padStart(2, '0')
 
     return `${yyyy}-${mm}-${dd} at ${hh}:${min}`
 }
@@ -58,10 +58,44 @@ export function formatHour(datestring: ISOString) {
     const date = new Date(datestring)
     if (isNaN(date.getTime())) return 'Invalid Date'
 
-    const hh = String(date.getUTCHours()).padStart(2, '0')
-    const min = String(date.getUTCMinutes()).padStart(2, '0')
+    const hh = String(date.getHours()).padStart(2, '0')
+    const min = String(date.getMinutes()).padStart(2, '0')
 
     return `${hh}:${min}`
+}
+
+/**
+ * format date into YYYY-MM-DDTHH:mm:ss+hh:mm
+ *
+ * uses getUTC<*>() since FE input doesn't have timezone
+ * */
+export function formatISOWithOffset(datestring: string) {
+    if (!datestring) return 'Invalid Date'
+
+    const date = new Date(datestring)
+    if (isNaN(date.getTime())) {
+        throw new Error('Invalid date string')
+    }
+
+    const year = date.getUTCFullYear()
+    const month = padNumber(date.getUTCMonth() + 1)
+    const day = padNumber(date.getUTCDate())
+
+    const hours = padNumber(date.getUTCHours())
+    const minutes = padNumber(date.getUTCMinutes())
+    const seconds = padNumber(date.getUTCSeconds())
+    const ms = padNumber(date.getUTCMilliseconds(), 3)
+
+    const offset = -date.getTimezoneOffset()
+    const sign = offset >= 0 ? '+' : '-'
+    const offsetHours = padNumber(Math.floor(Math.abs(offset) / 60))
+    const offsetMinutes = padNumber(Math.abs(offset) % 60)
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}${sign}${offsetHours}:${offsetMinutes}`
+}
+
+export function padNumber(n: number, z: number = 2) {
+    return ('00' + n).slice(-z)
 }
 
 export function formatPercentage(

@@ -81,7 +81,11 @@ async function useTenantEventForm(tId: number, id: number) {
         try {
             const data = await $api(`/api/tenant/${tId}/event`, {
                 method: 'POST',
-                body: payload.data,
+                body: {
+                    ...payload.data,
+                    start_time: formatISOWithOffset(payload.data.start_time),
+                    end_time: formatISOWithOffset(payload.data.end_time),
+                },
             })
             if (data.success) {
                 toast.add({
