@@ -2,6 +2,8 @@
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 
+const { $api } = useNuxtApp()
+
 function useLogin() {
     const fields = ref<AuthFormField[]>([
         {
@@ -28,7 +30,7 @@ function useLogin() {
 
     async function onLogin(payload: FormSubmitEvent<Schema>) {
         try {
-            await $fetch('/api/auth/login', {
+            await $api('/api/auth/login', {
                 method: 'POST',
                 body: payload.data,
             })

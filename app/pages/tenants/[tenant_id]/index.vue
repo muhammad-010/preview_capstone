@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { $api } = useNuxtApp()
 const router = useRouter()
 const route = useRoute()
 const id = Number(route.params.tenant_id)
@@ -6,7 +7,7 @@ const toast = useToast()
 
 async function useDetail(id: number) {
     const statusColors = STATUS_COLORS
-    const { data, refresh } = await useFetch(`/api/tenant/${id}/detail`, {
+    const { data, refresh } = await useApi(`/api/tenant/${id}/detail`, {
         transform: res => ({
             ...res.data,
             joined_at: formatShortDate(res.data.joined_at || ''),
@@ -28,7 +29,7 @@ async function useDeleteData(id: number) {
     async function deleteData() {
         try {
             deleteLoading.value = true
-            const data = await $fetch(`/api/tenant/${id}`, {
+            const data = await $api(`/api/tenant/${id}`, {
                 method: 'DELETE',
             })
             if (data.success) {
@@ -67,7 +68,7 @@ async function useActivateData(id: number) {
     async function activateData() {
         try {
             activateLoading.value = true
-            const data = await $fetch(`/api/tenant/${id}/status`, {
+            const data = await $api(`/api/tenant/${id}/status`, {
                 method: 'PATCH',
                 body: {
                     status: STATUS_ACTIVE,
@@ -109,7 +110,7 @@ async function useDeactivateData(id: number) {
     async function deactivateData() {
         try {
             deactivateLoading.value = true
-            const data = await $fetch(`/api/tenant/${id}/status`, {
+            const data = await $api(`/api/tenant/${id}/status`, {
                 method: 'PATCH',
                 body: {
                     status: STATUS_INACTIVE,

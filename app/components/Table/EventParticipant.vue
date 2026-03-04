@@ -4,6 +4,7 @@ import type { TableColumn } from '@nuxt/ui'
 
 type ToggleAllPageRowsSelected = (value?: boolean | undefined) => void
 
+const { $api } = useNuxtApp()
 const props = defineProps<{
     data: Participant[]
     eventId: number
@@ -80,7 +81,7 @@ function closeDeleteConfirmation() {
 
 async function deleteData(id: number) {
     try {
-        const data = await $fetch(`/api/tenant/${tenantId.value}/event/${props.eventId}/participant/${id}`, {
+        const data = await $api(`/api/tenant/${tenantId.value}/event/${props.eventId}/participant/${id}`, {
             method: 'DELETE',
         })
         if (data.success) {

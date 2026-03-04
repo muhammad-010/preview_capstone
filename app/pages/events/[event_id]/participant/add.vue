@@ -2,15 +2,8 @@
 const route = useRoute()
 const { tenantId } = useUserState()
 const eventId = Number(route.params.event_id)
-async function useEventInfo(tId: number, eId: number) {
-    const { data } = await useFetch(`/api/tenant/${tId}/event/${eId}`, {
-        transform: res => res.data,
-    })
-    const event = computed<TenantEventForm>(() => data.value ?? {} as TenantEventForm)
-
-    return { event }
-}
 const { event } = await useEventInfo(tenantId.value, eventId)
+
 useHead({
     title: 'Participant - Add',
 })

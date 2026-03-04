@@ -2,6 +2,7 @@
 import type { Form, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 
+const { $api } = useNuxtApp()
 const router = useRouter()
 const { tenantId } = useUserState()
 const props = defineProps<{
@@ -85,7 +86,7 @@ async function useUserForm(tId: number, id: number) {
 
     async function addData(payload: FormSubmitEvent<Schema>) {
         try {
-            const data = await $fetch(`/api/tenant/${tId}/user`, {
+            const data = await $api(`/api/tenant/${tId}/user`, {
                 method: 'POST',
                 body: payload.data,
             })
@@ -110,7 +111,7 @@ async function useUserForm(tId: number, id: number) {
 
     async function editData(payload: FormSubmitEvent<Schema>, id: number) {
         try {
-            const data = await $fetch(`/api/tenant/${tId}/user/${id}`, {
+            const data = await $api(`/api/tenant/${tId}/user/${id}`, {
                 method: 'PUT',
                 body: payload.data,
             })

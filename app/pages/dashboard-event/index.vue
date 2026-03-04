@@ -3,7 +3,7 @@ const route = useRoute()
 const { tenantId } = useUserState()
 
 async function useDashboardListEvent(tId: number) {
-    const { data } = await useFetch(`/api/tenant/${tId}/event`, {
+    const { data } = await useApi(`/api/tenant/${tId}/event`, {
         query: { page: 1, limit: 5 },
         transform: res => res.data,
     })

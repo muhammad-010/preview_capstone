@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DetectedBarcode } from 'nuxt-qrcode'
 
+const { $api } = useNuxtApp()
 const route = useRoute()
 const id = Number(route.params.event_id)
 const { tenantId, tenantName } = useUserState()
@@ -12,7 +13,7 @@ async function useDetail(tId: number, id: number) {
     const confirmationAttendanceDialog = ref(false)
     const checkInSuccessDialog = ref(false)
     const toast = useToast()
-    const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/detail`, {
+    const { data } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
             ...res.data,
         }),
@@ -59,7 +60,7 @@ async function useDetail(tId: number, id: number) {
         }
         qrValue.value = qrCode.rawValue
         try {
-            const { data } = await useFetch(`/api/tenant/${tId}/event/${id}/participant/check-in`, {
+            const { data } = await useApi(`/api/tenant/${tId}/event/${id}/participant/check-in`, {
                 method: 'POST',
                 transform: res => res.data,
                 body: {
@@ -92,7 +93,7 @@ async function useDetail(tId: number, id: number) {
 
     async function confirmAttendance() {
         try {
-            await useFetch(`/api/tenant/${tId}/event/${id}/participant/check-in/confirm`, {
+            await $api(`/api/tenant/${tId}/event/${id}/participant/check-in/confirm`, {
                 method: 'POST',
                 body: {
                     token: qrValue.value,
