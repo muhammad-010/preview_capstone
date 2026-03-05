@@ -5,7 +5,7 @@ export default defineNuxtPlugin((nuxtApp) => {
                 await nuxtApp.runWithContext(async () => {
                     const { clear } = useUserSession()
                     await clear()
-                    await navigateTo('/auth', { replace: true })
+                    await navigateTo(APP_UNAUTHORIZED_REDIRECT, { replace: true })
                 })
             }
         },
