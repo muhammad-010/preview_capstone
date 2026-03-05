@@ -13,7 +13,7 @@ export const useApi: typeof useFetch = <T>(url: string, opts?: UseFetchOptions<T
             if (response.status === 401) {
                 await nuxtApp.runWithContext(async () => {
                     await clear()
-                    await navigateTo('/auth', { replace: true })
+                    await navigateTo(APP_UNAUTHORIZED_REDIRECT, { replace: true })
                 })
             }
         },

@@ -177,7 +177,7 @@ const [
 ])
 
 useHead({
-    title: `Tenant - ${tenant.value.name}`,
+    title: computed(() => `Tenant - ${tenant.value ? tenant.value.name : 'Detail'}`),
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
     [':tenant_id']: {

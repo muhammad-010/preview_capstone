@@ -23,28 +23,13 @@ async function useUserForm(tId: number, id: number) {
     const showConfirmPassword = ref(false)
 
     const schema = z.object({
-        name: z
-            .string()
-            .min(1, 'Member name is required'),
-        email: z
-            .email('Invalid email'),
-        phone_number: z
-            .string()
-            .min(12, 'Phone number must be at least 12 digits')
-            .regex(/^0\d+$/, 'Phone number must start with 0 and contain only digits'),
-        password: z
-            .string()
-            .min(8, 'Minimum 8 characters')
-            .optional(),
-        password_confirm: z
-            .string()
-            .min(8, 'Minimum 8 characters')
-            .optional(),
-        status: z
-            .enum(STATUS_DROPDOWN),
-        tenant_role_id: z
-            .number()
-            .optional(),
+        name: zodStringRequired('Member name is required'),
+        email: zodEmailRequired(),
+        phone_number: zodPhoneNumberRequired(),
+        password: zodPasswordOptional(),
+        password_confirm: zodPasswordOptional(),
+        status: zodEnum(STATUS_DROPDOWN),
+        tenant_role_id: zodNumberOptional(),
     }).superRefine((data, ctx) => {
         if (isCreate) {
             if (!data.password) {
@@ -220,8 +205,22 @@ const {
                         <UInput
                             v-model="state.phone_number"
                             type="text"
+                            :maxlength="MAX_PHONE_NUMBER"
+                            :placeholder="PHONE_NUMBER_PLACEHOLDER"
+                            aria-describedby="char-count"
                             class="w-full"
-                        />
+                        >
+                            <template #trailing>
+                                <div
+                                    id="character-count"
+                                    class="text-xs text-muted"
+                                    aria-live="polite"
+                                    role="status"
+                                >
+                                    {{ state.phone_number?.length }}/{{ MAX_PHONE_NUMBER }}
+                                </div>
+                            </template>
+                        </UInput>
                     </UFormField>
 
                     <UFormField

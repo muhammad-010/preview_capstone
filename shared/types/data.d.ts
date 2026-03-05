@@ -12,7 +12,11 @@ export type ParticipantCategory = 'VIP' | 'Regular'
 
 export type SendChannel = 'email' | 'whatsapp'
 
-/** Represents YYYY-MM-DDTHH:mm:ssZ */
+/**
+ * Represents YYYY-MM-DDTHH:mm:ssZ on FE (since JS toISOString)
+ *
+ * Represents YYYY-MM-DDTHH:mm:ss+hh:mm from BE
+ * */
 export type ISOString = string
 
 /** HH:mm:ss */
