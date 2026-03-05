@@ -13,12 +13,12 @@ const dateModel = computed<DateValue | null>({
             return
         }
 
-        const iso = new Date(Date.UTC(
+        const iso = new Date(
             value.year,
             value.month - 1,
             value.day,
             0, 0, 0,
-        )).toISOString()
+        ).toISOString()
 
         model.value = iso
     },
@@ -29,9 +29,9 @@ const hourModel = computed<string>({
 
         const date = new Date(model.value)
 
-        const h = String(date.getUTCHours()).padStart(2, '0')
-        const m = String(date.getUTCMinutes()).padStart(2, '0')
-        const s = String(date.getUTCSeconds()).padStart(2, '0')
+        const h = String(date.getHours()).padStart(2, '0')
+        const m = String(date.getMinutes()).padStart(2, '0')
+        const s = String(date.getSeconds()).padStart(2, '0')
 
         return `${h}:${m}:${s}`
     },
@@ -44,9 +44,9 @@ const hourModel = computed<string>({
             ? new Date(model.value)
             : new Date()
 
-        date.setUTCHours(hour || 0)
-        date.setUTCMinutes(minute || 0)
-        date.setUTCSeconds(second || 0)
+        date.setHours(hour || 0)
+        date.setMinutes(minute || 0)
+        date.setSeconds(second || 0)
 
         model.value = date.toISOString()
     },
