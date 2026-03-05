@@ -230,8 +230,21 @@ const {
                         <UInput
                             v-model="state.owner_phone_number"
                             type="text"
+                            :maxlength="MAX_PHONE_NUMBER"
+                            aria-describedby="char-count"
                             class="w-full"
-                        />
+                        >
+                            <template #trailing>
+                                <div
+                                    id="character-count"
+                                    class="text-xs text-muted"
+                                    aria-live="polite"
+                                    role="status"
+                                >
+                                    {{ state.owner_phone_number?.length }}/{{ MAX_PHONE_NUMBER }}
+                                </div>
+                            </template>
+                        </UInput>
                     </UFormField>
 
                     <UFormField

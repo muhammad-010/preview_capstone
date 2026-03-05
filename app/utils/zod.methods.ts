@@ -40,8 +40,8 @@ export function zodEmailRequired() {
 export function zodPhoneNumberRequired() {
     return z
         .string()
-        .min(12, 'Phone number must be at least 12 digits')
-        .max(12, 'Phone number can not be more than 12 digits')
+        .min(10, 'Phone number must be at least 10 digits')
+        .max(13, 'Phone number can not be more than 13 digits')
         .regex(/^0\d+$/, 'Phone number must start with 0 and contain only digits')
 }
 
