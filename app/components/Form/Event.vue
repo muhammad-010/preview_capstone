@@ -33,30 +33,15 @@ async function useTenantEventForm(tId: number, id: number) {
     const activeSteps = ref(0)
 
     const schema = z.object({
-        name: z
-            .string()
-            .min(1, 'Event name is required'),
-        description: z
-            .string()
-            .optional(),
-        location: z
-            .string()
-            .min(1, 'Location is required'),
-        start_time: z
-            .iso
-            .datetime(),
-        end_time: z
-            .iso
-            .datetime(),
-        capacity: z
-            .number(),
-        confirmation_attendance: z
-            .boolean(),
-        status: z
-            .string()
-            .optional(),
-        assign_user_ids: z
-            .array(z.number()),
+        name: zodStringRequired('Event name is required'),
+        description: zodStringOptional(),
+        location: zodStringRequired('Location is required'),
+        start_time: zodISODatetime(),
+        end_time: zodISODatetime(),
+        capacity: zodNumberRequired(),
+        confirmation_attendance: zodBooleanRequired(),
+        status: zodStringOptional(),
+        assign_user_ids: zodArrayNumber(),
     })
     type Schema = z.output<typeof schema>
 

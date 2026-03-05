@@ -21,15 +21,9 @@ async function useForm(tId: number, eId: number, id: number) {
     const loading = ref(false)
 
     const schema = z.object({
-        name: z
-            .string()
-            .min(1, 'Participant name is required'),
-        email: z
-            .email('Invalid email'),
-        phone_number: z
-            .string()
-            .min(12, 'Phone number must be at least 12 digits')
-            .regex(/^0\d+$/, 'Phone number must start with 0 and contain only digits'),
+        name: zodStringRequired('Participant name is required'),
+        email: zodEmailRequired(),
+        phone_number: zodPhoneNumberRequired(),
     })
     type Schema = z.output<typeof schema>
 
