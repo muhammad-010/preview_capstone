@@ -5,14 +5,9 @@ const { $api } = useNuxtApp()
 const route = useRoute()
 const id = Number(route.params.event_id)
 const { tenantId, tenantName } = useUserState()
+const toast = useToast()
 
 async function useDetail(tId: number, id: number) {
-    const qrValue = ref('')
-    const participantName = ref('')
-    const attendanceCount = ref(0)
-    const confirmationAttendanceDialog = ref(false)
-    const checkInSuccessDialog = ref(false)
-    const toast = useToast()
     const { data } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
             ...res.data,
@@ -22,16 +17,38 @@ async function useDetail(tId: number, id: number) {
     const startDate = computed(() => formatShortDate(event.value.start_time))
     const startHour = computed(() => formatHour(event.value.start_time))
 
+    return {
+        event,
+        startDate,
+        startHour,
+    }
+}
+
+async function useScanQr(tId: number, id: number) {
+    const qrValue = ref('')
+    const pauseQr = ref(false)
+    const participantName = ref('')
+    const countAttendance = ref(0)
+    const confirmAttendanceDialog = ref(false)
+    const checkInSuccessDialog = ref(false)
+
     function resetRef() {
         qrValue.value = ''
-        attendanceCount.value = 0
-        confirmationAttendanceDialog.value = false
+        pauseQr.value = false
+        countAttendance.value = 0
+        confirmAttendanceDialog.value = false
         checkInSuccessDialog.value = false
     }
 
+    watch(checkInSuccessDialog, (value, oldValue) => {
+        if (!value && value !== oldValue) {
+            resetRef()
+        }
+    })
+
     function openCheckInSuccess() {
-        resetRef()
         checkInSuccessDialog.value = true
+        playSuccessSound()
         setTimeout(() => {
             checkInSuccessDialog.value = false
         }, 5000)
@@ -55,22 +72,17 @@ async function useDetail(tId: number, id: number) {
             })
             return
         }
-        if (import.meta.client) {
-            new Audio('/camera-shutter.mp3').play()
-        }
         qrValue.value = qrCode.rawValue
         try {
-            const { data } = await useApi(`/api/tenant/${tId}/event/${id}/participant/check-in`, {
+            const { data } = await $api(`/api/tenant/${tId}/event/${id}/participant/check-in`, {
                 method: 'POST',
-                transform: res => res.data,
                 body: {
                     token: qrValue.value,
                 },
             })
-            participantName.value = data.value?.participant.name || ''
-            const needConfirm = !!data.value?.confirmation_attendance
-            if (needConfirm) {
-                confirmationAttendanceDialog.value = true
+            participantName.value = data.participant.name || ''
+            if (data.confirmation_attendance) {
+                confirmAttendanceDialog.value = true
             }
             else {
                 openCheckInSuccess()
@@ -83,6 +95,8 @@ async function useDetail(tId: number, id: number) {
                 color: 'error',
             })
             console.error('Failed submitting QR', error)
+            playErrorSound()
+            resetRef()
         }
     }
 
@@ -97,7 +111,7 @@ async function useDetail(tId: number, id: number) {
                 method: 'POST',
                 body: {
                     token: qrValue.value,
-                    count_attendance: attendanceCount.value,
+                    count_attendance: countAttendance.value,
                 },
             })
             openCheckInSuccess()
@@ -109,36 +123,45 @@ async function useDetail(tId: number, id: number) {
                 color: 'error',
             })
             console.error('Failed confirming check-in', error)
+            playErrorSound()
+            resetRef()
         }
     }
 
     return {
         qrValue,
+        pauseQr,
         participantName,
-        confirmationAttendanceDialog,
-        attendanceCount,
+        confirmAttendanceDialog,
+        countAttendance,
         checkInSuccessDialog,
-        event,
-        startDate,
-        startHour,
         qrDetected,
         closeConfirmAttendance,
         confirmAttendance,
     }
 }
 
-const {
-    participantName,
-    confirmationAttendanceDialog,
-    attendanceCount,
-    checkInSuccessDialog,
-    event,
-    startDate,
-    startHour,
-    qrDetected,
-    closeConfirmAttendance,
-    confirmAttendance,
-} = await useDetail(tenantId.value, id)
+const [
+    {
+        event,
+        startDate,
+        startHour,
+    },
+
+    {
+        pauseQr,
+        participantName,
+        confirmAttendanceDialog,
+        countAttendance,
+        checkInSuccessDialog,
+        qrDetected,
+        closeConfirmAttendance,
+        confirmAttendance,
+    },
+] = await Promise.all([
+    useDetail(tenantId.value, id),
+    useScanQr(tenantId.value, id),
+])
 
 useHead({
     title: computed(() => `Event - ${event.value ? event.value.name : 'Detail'}`),
@@ -157,6 +180,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 <template>
     <div class="max-w-[60vw]">
         <CardScan
+            v-model:pause-qr="pauseQr"
             :event-name="event.name"
             :tenant="tenantName"
             :start-date="startDate"
@@ -183,7 +207,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             </template>
         </UModal>
 
-        <UModal v-model:open="confirmationAttendanceDialog">
+        <UModal v-model:open="confirmAttendanceDialog">
             <template #header="{ close }">
                 <div>
                     <h2 class="text-highlighted font-semibold">
@@ -205,7 +229,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                         size="xl"
                     >
                         <UInput
-                            v-model="attendanceCount"
+                            v-model="countAttendance"
                             size="xl"
                             type="number"
                             class="mb-8"

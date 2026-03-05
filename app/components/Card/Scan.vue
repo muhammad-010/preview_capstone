@@ -8,20 +8,36 @@ defineProps<{
     startHour: string
     location: string
 }>()
+const pauseQr = defineModel<boolean>('pause-qr', { default: false })
 const emit = defineEmits([EMIT_QR_DETECT])
 const toast = useToast()
 
 function onDetect(detectedBarCodes: DetectedBarcode[]) {
+    pauseQr.value = true
     emit(EMIT_QR_DETECT, detectedBarCodes)
 }
 
 function onError(error: Error) {
+    let desc = 'Failed to read QR'
+    switch (error.name) {
+        case 'NotAllowedError':
+            desc = 'Can not access camera'
+            break
+        case 'NotFoundError':
+            desc = 'No camera found'
+            break
+        case 'StreamApiNotSupportedError':
+            desc = 'Can not scan using this browser'
+            break
+        default:
+            break
+    }
     toast.add({
         title: 'Error',
-        description: 'Failed to read QR',
+        description: desc,
         color: 'error',
     })
-    console.error('Failed to read QR', error)
+    console.error(desc, error)
 }
 </script>
 
@@ -88,6 +104,7 @@ function onError(error: Error) {
 
         <div class="scanner">
             <QrcodeStream
+                :paused="pauseQr"
                 @error="onError"
                 @detect="onDetect"
             />
