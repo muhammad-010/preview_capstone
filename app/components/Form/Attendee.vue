@@ -164,6 +164,7 @@ const {
                             v-model="state.phone_number"
                             type="text"
                             :maxlength="MAX_PHONE_NUMBER"
+                            :placeholder="PHONE_NUMBER_PLACEHOLDER"
                             aria-describedby="char-count"
                             class="w-full"
                         >

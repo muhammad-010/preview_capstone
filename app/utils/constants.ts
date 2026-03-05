@@ -34,3 +34,4 @@ export const SCANNABLE_EVENT = [
 ]
 
 export const MAX_PHONE_NUMBER = 13
+export const PHONE_NUMBER_PLACEHOLDER = '08xxx'

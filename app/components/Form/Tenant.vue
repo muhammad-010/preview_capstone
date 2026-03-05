@@ -231,6 +231,7 @@ const {
                             v-model="state.owner_phone_number"
                             type="text"
                             :maxlength="MAX_PHONE_NUMBER"
+                            :placeholder="PHONE_NUMBER_PLACEHOLDER"
                             aria-describedby="char-count"
                             class="w-full"
                         >
