@@ -10,8 +10,9 @@ const { user, clear } = useUserSession()
 const { navigation, roleSlug } = useUserState()
 const isCollapsed = ref(false)
 const refNavbar = ref<HTMLElement | null>(null)
+const logoutConfirm = ref(false)
 
-async function onLogout() {
+async function logout() {
     try {
         await $api('/api/auth/logout', {
             method: 'POST',
@@ -21,6 +22,9 @@ async function onLogout() {
     }
     catch (error) {
         console.error('Login error:', error)
+    }
+    finally {
+        logoutConfirm.value = false
     }
 }
 </script>
@@ -77,7 +81,7 @@ async function onLogout() {
                         size="lg"
                         class="text-neutral-300! hover:bg-primary/50 dark:hover:bg-primary/25 cursor-pointer"
                         :class="{ 'ml-auto': !collapsed }"
-                        @click="onLogout"
+                        @click="logoutConfirm = true"
                     />
                 </div>
             </template>
@@ -137,6 +141,14 @@ async function onLogout() {
                 </div>
 
                 <slot />
+
+                <ModalConfirmNegativeAction
+                    v-model:open="logoutConfirm"
+                    title="Log Out Confirmation"
+                    body="Are you sure want to log out?"
+                    confirm-label="Yes, Log Me Out"
+                    @confirm="logout"
+                />
             </UContainer>
         </div>
     </UDashboardGroup>
