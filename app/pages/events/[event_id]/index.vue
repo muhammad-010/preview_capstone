@@ -2,6 +2,7 @@
 import { formatCapitalize } from '~~/shared/utils/format.methods'
 
 const { $api } = useNuxtApp()
+const router = useRouter()
 const route = useRoute()
 const id = Number(route.params.event_id)
 const { tenantId } = useUserState()
@@ -51,6 +52,45 @@ async function useDetail(tId: number, id: number) {
         totalCheckedIn,
         totalRegistered,
         totalNotCheckedIn,
+    }
+}
+
+async function useDeleteData(tId: number, id: number) {
+    const deleteConfirmation = ref(false)
+    const deleteLoading = ref(false)
+
+    async function deleteData() {
+        try {
+            deleteLoading.value = true
+            const data = await $api(`/api/tenant/${tId}/event/${id}`, {
+                method: 'DELETE',
+            })
+            if (data.success) {
+                toast.add({
+                    title: 'Success',
+                    description: 'An event has been deleted',
+                    color: 'success',
+                })
+                router.go(-1)
+            }
+        }
+        catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to delete event',
+                color: 'error',
+            })
+            console.error('Delete event error', error)
+        }
+        finally {
+            deleteLoading.value = false
+        }
+    }
+
+    return {
+        deleteConfirmation,
+        deleteLoading,
+        deleteData,
     }
 }
 
@@ -271,6 +311,12 @@ const [
     },
 
     {
+        deleteLoading,
+        deleteConfirmation,
+        deleteData,
+    },
+
+    {
         search,
         page,
         limit,
@@ -307,6 +353,7 @@ const [
     },
 ] = await Promise.all([
     useDetail(tenantId.value, id),
+    useDeleteData(tenantId.value, id),
     useList(tenantId.value, id),
     useImportFile(tenantId.value, id),
     usePrintQr(tenantId.value, id),
@@ -429,6 +476,31 @@ async function sendSelectedQr() {
                         </section>
                     </div>
                 </UCard>
+
+                <CardDangerZone>
+                    <section>
+                        <DetailSectionTitle title="Delete" />
+                        <p class="mb-2">
+                            Permanently delete this event and all associated data. This action cannot be undone
+                        </p>
+                        <UButton
+                            color="error"
+                            icon="lucide:trash"
+                            class="cursor-pointer"
+                            @click="deleteConfirmation = true"
+                        >
+                            Delete Event
+                        </UButton>
+                    </section>
+                </CardDangerZone>
+
+                <ModalConfirmNegativeAction
+                    v-model:open="deleteConfirmation"
+                    title="Delete Confirmation"
+                    :body="`Are you sure you want to delete ${event.name}? This action cannot be undone`"
+                    :loading="deleteLoading"
+                    @confirm="deleteData"
+                />
             </template>
 
             <template #attendees>

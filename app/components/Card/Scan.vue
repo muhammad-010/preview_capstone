@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { DetectedBarcode } from 'nuxt-qrcode'
 
+const defaultFacingModeOptions = [
+    { label: 'Rear Camera', value: 'environment' },
+    { label: 'Front Camera', value: 'user' },
+]
 defineProps<{
     eventName: string
     tenant: string
@@ -11,6 +15,9 @@ defineProps<{
 const pauseQr = defineModel<boolean>('pause-qr', { default: false })
 const emit = defineEmits([EMIT_QR_DETECT])
 const toast = useToast()
+const selectedFacingMode = ref('environment')
+const facingModeOptions = ref(defaultFacingModeOptions)
+const selectedConstraints = computed(() => ({ facingMode: selectedFacingMode.value }))
 
 function onDetect(detectedBarCodes: DetectedBarcode[]) {
     pauseQr.value = true
@@ -44,7 +51,7 @@ function onError(error: Error) {
 <template>
     <div>
         <UCard
-            class="mb-8 py-4 px-6"
+            class="mb-4 py-4 px-6"
             :ui="{
                 root: 'dark:bg-gradient-to-br dark:from-[#2f3f8f] dark:via-[#3b5bbf] dark:to-[#4f86e8] bg-gradient-to-br from-[#3b5bdb] via-[#4c6ef5] to-[#74c0fc] text-white',
             }"
@@ -102,9 +109,18 @@ function onError(error: Error) {
             </section>
         </UCard>
 
+        <div class="flex justify-center mb-4">
+            <USelect
+                v-model="selectedFacingMode"
+                class="shrink"
+                :items="facingModeOptions"
+            />
+        </div>
+
         <div class="scanner">
             <QrcodeStream
                 :paused="pauseQr"
+                :constraints="selectedConstraints"
                 @error="onError"
                 @detect="onDetect"
             />

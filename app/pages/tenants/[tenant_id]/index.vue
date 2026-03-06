@@ -44,7 +44,7 @@ async function useDeleteData(id: number) {
         catch (error) {
             toast.add({
                 title: 'Error',
-                description: 'Failed to delete new tenant',
+                description: 'Failed to delete tenant',
                 color: 'error',
             })
             console.error('Delete tenant error', error)
@@ -298,20 +298,18 @@ async function deactivateTenant() {
 
         <CardDangerZone>
             <section>
-                <div>
-                    <DetailSectionTitle title="Delete" />
-                    <p class="mb-2">
-                        Permanently delete this tenant and all associated data. This action cannot be undone
-                    </p>
-                    <UButton
-                        color="error"
-                        icon="lucide:trash"
-                        class="cursor-pointer"
-                        @click="deleteConfirmation = true"
-                    >
-                        Delete Tenant
-                    </UButton>
-                </div>
+                <DetailSectionTitle title="Delete" />
+                <p class="mb-2">
+                    Permanently delete this tenant and all associated data. This action cannot be undone
+                </p>
+                <UButton
+                    color="error"
+                    icon="lucide:trash"
+                    class="cursor-pointer"
+                    @click="deleteConfirmation = true"
+                >
+                    Delete Tenant
+                </UButton>
             </section>
         </CardDangerZone>
 
