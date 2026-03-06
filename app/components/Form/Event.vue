@@ -66,11 +66,12 @@ async function useTenantEventForm(tId: number, id: number) {
         try {
             const data = await $api(`/api/tenant/${tId}/event`, {
                 method: 'POST',
-                body: {
-                    ...payload.data,
-                    start_time: formatISOWithOffset(payload.data.start_time),
-                    end_time: formatISOWithOffset(payload.data.end_time),
-                },
+                // body: {
+                //     ...payload.data,
+                //     start_time: formatISOWithOffset(payload.data.start_time),
+                //     end_time: formatISOWithOffset(payload.data.end_time),
+                // },
+                body: payload.data,
             })
             if (data.success) {
                 toast.add({
@@ -95,6 +96,11 @@ async function useTenantEventForm(tId: number, id: number) {
         try {
             const data = await $api(`/api/tenant/${tId}/event/${id}`, {
                 method: 'PUT',
+                // body: {
+                //     ...payload.data,
+                //     start_time: formatISOWithOffset(payload.data.start_time),
+                //     end_time: formatISOWithOffset(payload.data.end_time),
+                // },
                 body: payload.data,
             })
             if (data.success) {
