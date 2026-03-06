@@ -6,9 +6,6 @@ export const useApi: typeof useFetch = <T>(url: string, opts?: UseFetchOptions<T
 
     return useFetch(url, {
         ...opts,
-        getCachedData() {
-            return undefined
-        },
         async onResponseError({ response }) {
             if (response.status === 401) {
                 await nuxtApp.runWithContext(async () => {
