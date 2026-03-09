@@ -12,6 +12,8 @@ export type ParticipantCategory = 'VIP' | 'Regular'
 
 export type SendChannel = 'email' | 'whatsapp'
 
+export type InvitationStatus = 'On Queue' | 'Success' | 'Failed'
+
 /**
  * Represents YYYY-MM-DDTHH:mm:ssZ on FE (since JS toISOString)
  *
@@ -137,6 +139,15 @@ export interface TenantEventForm {
 
 export type ParticipantPhone = Phone
 
+export interface ParticipantInvitationLog {
+    email?: {
+        status: InvitationStatus
+    }
+    whatsapp?: {
+        status: InvitationStatus
+    }
+}
+
 export interface Participant {
     participant_id?: number
     name: string
@@ -145,6 +156,7 @@ export interface Participant {
     status: ParticipantStatus
     check_in_time: ISOString
     number_of_attendance: number | null
+    latest_invitation_log?: ParticipantInvitationLog | null
 
     phone?: Phone
 }

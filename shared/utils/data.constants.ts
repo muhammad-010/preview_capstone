@@ -4,6 +4,7 @@ import type {
     ParticipantStatus,
     ParticipantCategory,
     SendChannel,
+    InvitationStatus,
 } from '../types/data'
 
 // STATUS
@@ -55,6 +56,17 @@ export const PARTICIPANT_STATUS_COLORS: Record<ParticipantStatus, 'success' | 'n
     [PARTICIPANT_STATUS_CHECKED_IN]: 'success',
     [PARTICIPANT_STATUS_PENDING]: 'neutral',
 } as const
+
+// PARTICIPANT_INVITATION_STATUS
+export const INVITATION_STATUS_ON_QUEUE = 'On Queue'
+export const INVITATION_STATUS_SUCCESS = 'Success'
+export const INVITATION_STATUS_FAILED = 'Failed'
+
+export const INVITATION_STATUS_COLORS: Record<InvitationStatus, 'warn' | 'success' | 'error'> = {
+    [INVITATION_STATUS_ON_QUEUE]: 'warn',
+    [INVITATION_STATUS_SUCCESS]: 'success',
+    [INVITATION_STATUS_FAILED]: 'error',
+}
 
 // PARTICIPANT_CATEGORY
 export const PARTICIPANT_CATEGORY_VIP = 'VIP'

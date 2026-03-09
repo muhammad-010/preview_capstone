@@ -122,6 +122,36 @@ function useColumns() {
     const UButton = resolveComponent('UButton')
     const UCheckbox = resolveComponent('UCheckbox')
     const tableRef = useTemplateRef('tableRef')
+
+    function qrSent(participant: Participant) {
+        if (!participant.latest_invitation_log) {
+            return h('span', { class: 'text-dimmed' }, 'Not Sent')
+        }
+
+        const qrSent = []
+        if (participant.latest_invitation_log.email) {
+            qrSent.push(
+                h(UBadge, {
+                    class: 'w-max',
+                    color: INVITATION_STATUS_COLORS[participant.latest_invitation_log.email.status],
+                    variant: 'subtle',
+                    label: `Email: ${participant.latest_invitation_log.email.status}`,
+                }),
+            )
+        }
+        if (participant.latest_invitation_log.whatsapp) {
+            qrSent.push(
+                h(UBadge, {
+                    class: 'w-max',
+                    color: INVITATION_STATUS_COLORS[participant.latest_invitation_log.whatsapp.status],
+                    variant: 'subtle',
+                    label: `Whatsapp: ${participant.latest_invitation_log.whatsapp.status}`,
+                }),
+            )
+        }
+        return qrSent
+    }
+
     const columns = [
         {
             id: 'select',
@@ -180,6 +210,11 @@ function useColumns() {
             },
         },
         {
+            accessorKey: 'latest_invitation_log',
+            header: 'QR Sent',
+            cell: ({ row }) => h('div', { class: 'flex flex-col gap-2' }, qrSent(row.original)),
+        },
+        {
             accessorKey: 'participant_id',
             header: 'Action',
             cell: ({ row }) => {
@@ -188,7 +223,7 @@ function useColumns() {
                         color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:pencil',
-                        to: `${props.eventId}/participant/${row.original.participant_id}/edit`,
+                        to: `/events/${props.eventId}/participant/${row.original.participant_id}/edit`,
                     }),
                     h(UButton, {
                         color: 'error',
