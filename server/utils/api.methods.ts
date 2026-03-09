@@ -35,6 +35,7 @@ export async function api<T>(
             throw createError({
                 statusCode: response.status,
                 statusMessage: response.statusText,
+                data: response._data,
             })
         },
     })<T>(path, {

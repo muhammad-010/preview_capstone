@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DetectedBarcode } from 'nuxt-qrcode'
+import { FetchError } from 'ofetch'
 
 const { $api } = useNuxtApp()
 const route = useRoute()
@@ -28,16 +29,20 @@ async function useScanQr(tId: number, id: number) {
     const qrValue = ref('')
     const pauseQr = ref(false)
     const participantName = ref('')
+    const errorMessage = ref<string>(ERROR_SCAN_QR_MESSAGE)
     const countAttendance = ref(0)
     const confirmAttendanceDialog = ref(false)
     const checkInSuccessDialog = ref(false)
+    const scanFailedDialog = ref(false)
 
     function resetRef() {
         qrValue.value = ''
+        errorMessage.value = ERROR_SCAN_QR_MESSAGE
         pauseQr.value = false
         countAttendance.value = 0
         confirmAttendanceDialog.value = false
         checkInSuccessDialog.value = false
+        scanFailedDialog.value = false
     }
 
     watch(checkInSuccessDialog, (value, oldValue) => {
@@ -51,6 +56,16 @@ async function useScanQr(tId: number, id: number) {
         playSuccessSound()
         setTimeout(() => {
             checkInSuccessDialog.value = false
+        }, 5000)
+    }
+
+    function openScanFailed(msg: string) {
+        errorMessage.value = msg
+        scanFailedDialog.value = true
+        playErrorSound()
+        setTimeout(() => {
+            scanFailedDialog.value = false
+            resetRef()
         }, 5000)
     }
 
@@ -88,15 +103,21 @@ async function useScanQr(tId: number, id: number) {
                 openCheckInSuccess()
             }
         }
+
         catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed submitting QR',
-                color: 'error',
-            })
-            console.error('Failed submitting QR', error)
-            playErrorSound()
-            resetRef()
+            if (error instanceof FetchError && error.response) {
+                openScanFailed(error.response._data.data.message)
+            }
+            else {
+                toast.add({
+                    title: 'Error',
+                    description: 'Failed submitting QR',
+                    color: 'error',
+                })
+                console.error('Failed submitting QR', error)
+                playErrorSound()
+                resetRef()
+            }
         }
     }
 
@@ -117,14 +138,19 @@ async function useScanQr(tId: number, id: number) {
             openCheckInSuccess()
         }
         catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed confirming check-in',
-                color: 'error',
-            })
-            console.error('Failed confirming check-in', error)
-            playErrorSound()
-            resetRef()
+            if (error instanceof FetchError && error.response) {
+                openScanFailed(error.response._data.data.message)
+            }
+            else {
+                toast.add({
+                    title: 'Error',
+                    description: 'Failed confirming check-in',
+                    color: 'error',
+                })
+                console.error('Failed confirming check-in', error)
+                playErrorSound()
+                resetRef()
+            }
         }
     }
 
@@ -132,9 +158,11 @@ async function useScanQr(tId: number, id: number) {
         qrValue,
         pauseQr,
         participantName,
+        errorMessage,
         confirmAttendanceDialog,
         countAttendance,
         checkInSuccessDialog,
+        scanFailedDialog,
         qrDetected,
         closeConfirmAttendance,
         confirmAttendance,
@@ -151,9 +179,11 @@ const [
     {
         pauseQr,
         participantName,
+        errorMessage,
         confirmAttendanceDialog,
         countAttendance,
         checkInSuccessDialog,
+        scanFailedDialog,
         qrDetected,
         closeConfirmAttendance,
         confirmAttendance,
@@ -203,6 +233,23 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     </div>
                     <h5>We’re excited to have you join us.</h5>
                     <h5>Enjoy the event, and don’t forget to connect with new friends!</h5>
+                </div>
+            </template>
+        </UModal>
+
+        <UModal v-model:open="scanFailedDialog">
+            <template #content>
+                <div class="flex flex-col justify-center items-center text-center p-12">
+                    <UIcon
+                        name="lucide:circle-x"
+                        class="text-error size-32 mb-8"
+                    />
+                    <div class="mb-6">
+                        <h2>
+                            {{ errorMessage }}
+                        </h2>
+                    </div>
+                    <h5>Please check your QR Code and try again.</h5>
                 </div>
             </template>
         </UModal>

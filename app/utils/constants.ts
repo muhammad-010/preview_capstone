@@ -35,3 +35,6 @@ export const SCANNABLE_EVENT = [
 
 export const MAX_PHONE_NUMBER = 13
 export const PHONE_NUMBER_PLACEHOLDER = '08xxx'
+
+// DEFAULT_ERROR_MESSAGE
+export const ERROR_SCAN_QR_MESSAGE = 'Failed To Scan QR Code'
