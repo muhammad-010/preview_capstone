@@ -507,14 +507,15 @@ async function sendSelectedQr() {
                 <div class="my-8">
                     <UCard>
                         <template #header>
-                            <div class="flex justify-between items-center">
+                            <div class="card-toolbar">
                                 <InputSearch
                                     v-model="search"
+                                    class="card-toolbar-left"
                                     @search="searchEvent"
                                     @clear="clearSearch"
                                 />
 
-                                <div class="flex gap-2">
+                                <div class="card-toolbar-actions">
                                     <!-- <UButton
                                         color="neutral"
                                         variant="outline"

@@ -149,10 +149,12 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
         <UCard class="my-8">
             <template #header>
-                <div class="flex justify-between items-center">
-                    <h3>Detailed Information</h3>
+                <div class="card-toolbar">
+                    <div class="card-toolbar-left">
+                        <h3>Detailed Information</h3>
+                    </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="card-toolbar-actions">
                         <UButton
                             color="primary"
                             icon="lucide:scan-qr-code"

@@ -82,14 +82,15 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
         <UCard>
             <template #header>
-                <div class="flex justify-between items-center">
+                <div class="card-toolbar">
                     <InputSearch
                         v-model="search"
+                        class="card-toolbar-left"
                         @search="searchData"
                         @clear="clearSearch"
                     />
 
-                    <div class="flex gap-2">
+                    <div class="card-toolbar-actions">
                         <!-- <UButton
                             color="neutral"
                             variant="outline"

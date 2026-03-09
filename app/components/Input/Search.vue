@@ -10,6 +10,7 @@ const emit = defineEmits([EMIT_INPUT_SEARCH, EMIT_INPUT_CLEAR])
     <UFieldGroup>
         <UInput
             v-model="model"
+            class="max-lg:w-full"
             type="text"
             placeholder="Search"
             :ui="{ trailing: 'pe-1' }"

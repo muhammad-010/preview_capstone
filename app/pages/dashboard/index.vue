@@ -54,16 +54,21 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
         <div>
             <UCard>
                 <template #header>
-                    <div class="flex justify-between items-center">
-                        <h3>Tenant Management</h3>
-                        <UButton
-                            color="primary"
-                            icon="lucide:plus"
-                            class="cursor-pointer"
-                            to="/tenants/add"
-                        >
-                            Add Tenant
-                        </UButton>
+                    <div class="card-toolbar">
+                        <div class="card-toolbar-left">
+                            <h3>Tenant Management</h3>
+                        </div>
+
+                        <div class="card-toolbar-actions">
+                            <UButton
+                                color="primary"
+                                icon="lucide:plus"
+                                class="cursor-pointer"
+                                to="/tenants/add"
+                            >
+                                Add Tenant
+                            </UButton>
+                        </div>
                     </div>
                 </template>
 
