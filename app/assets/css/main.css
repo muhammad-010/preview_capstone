@@ -63,6 +63,18 @@
                 cursor-pointer
                 transition-colors
     }
+
+    .card-toolbar {
+        @apply grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-4
+    }
+
+    .card-toolbar-left {
+        @apply max-lg:text-center
+    }
+
+    .card-toolbar-actions {
+        @apply flex flex-wrap gap-2 justify-center lg:justify-end
+    }
 }
 
 :root {

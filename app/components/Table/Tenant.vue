@@ -20,7 +20,10 @@ function useColumns() {
             accessorKey: 'name',
             header: 'Tenant Name',
             cell: ({ row }) => {
-                return h('div', {}, [
+                return h('div', {
+                    class: 'cursor-pointer',
+                    onClick: () => navigateTo(`/tenants/${row.original.tenant_id}`),
+                }, [
                     h('span', { class: 'font-semibold' }, row.original.name),
                     h('br'),
                     h('span', { class: 'text-sm' }, row.original.owner?.name || ''),
@@ -79,7 +82,7 @@ function useColumns() {
                         color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:info',
-                        to: `tenants/${row.original.tenant_id}`,
+                        to: `/tenants/${row.original.tenant_id}`,
                     }),
                 ])
             },

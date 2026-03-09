@@ -59,7 +59,7 @@ function useColumns(uId: number) {
                         variant: 'ghost',
                         disabled: uId === row.original.user_id,
                         icon: 'lucide:pencil',
-                        to: `members/${row.original.user_id}/edit`,
+                        to: `/members/${row.original.user_id}/edit`,
                     }),
                 ])
             },

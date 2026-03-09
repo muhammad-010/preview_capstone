@@ -51,52 +51,52 @@ function onError(error: Error) {
 <template>
     <div>
         <UCard
-            class="mb-4 py-4 px-6"
+            class="mb-2 lg:mb-4 py-4 px-6"
             :ui="{
                 root: 'dark:bg-gradient-to-br dark:from-[#2f3f8f] dark:via-[#3b5bbf] dark:to-[#4f86e8] bg-gradient-to-br from-[#3b5bdb] via-[#4c6ef5] to-[#74c0fc] text-white',
             }"
         >
-            <section class="text-center mb-8">
-                <h1 class="mb-8 text-4xl">
+            <section class="text-center mb-4 lg:mb-8">
+                <h1 class="mb-8 text-2xl lg:text-4xl">
                     {{ eventName }}
                 </h1>
-                <h4 class="text-2xl">
+                <h4 class="text-xl lg:text-2xl">
                     We're excited to have you here!
                 </h4>
             </section>
 
-            <section class="bg-primary-950/20 dark:bg-primary-50/15 rounded-xl grid grid-cols-3 gap-8 justify-items-center py-8 px-24 text-xl mb-8">
+            <section class="bg-primary-950/20 dark:bg-primary-50/15 rounded-xl grid grid-cols-3 gap-8 xl:justify-items-center p-8 text-lg lg:text-xl mb-4 lg:mb-8">
                 <div class="col-span-3 flex items-center">
                     <UIcon
                         name="lucide:building"
-                        class=" size-8"
+                        class="size-6 lg:size-8"
                     />
                     <span class="ml-2">
                         {{ tenant }}
                     </span>
                 </div>
-                <div class="flex items-center">
+                <div class="max-xl:col-span-3 flex items-center">
                     <UIcon
                         name="lucide:calendar"
-                        class=" size-8"
+                        class="size-6 lg:size-8"
                     />
                     <span class="ml-2">
                         {{ startDate }}
                     </span>
                 </div>
-                <div class="flex items-center">
+                <div class="max-xl:col-span-3 flex items-center">
                     <UIcon
                         name="lucide:clock"
-                        class=" size-8"
+                        class="size-6 lg:size-8"
                     />
                     <span class="ml-2">
                         {{ startHour }}
                     </span>
                 </div>
-                <div class="flex items-center">
+                <div class="max-xl:col-span-3 flex items-center">
                     <UIcon
                         name="lucide:map-pin"
-                        class=" size-8"
+                        class="size-6 lg:size-8"
                     />
                     <span class="ml-2">
                         {{ location }}
@@ -104,12 +104,12 @@ function onError(error: Error) {
                 </div>
             </section>
 
-            <section class="text-center">
+            <section class="text-center max-lg:text-sm">
                 Please scan your QR code below to check in
             </section>
         </UCard>
 
-        <div class="flex justify-center mb-4">
+        <div class="flex justify-center mb-2 lg:mb-4">
             <USelect
                 v-model="selectedFacingMode"
                 class="shrink"
@@ -132,7 +132,7 @@ function onError(error: Error) {
 .scanner {
   position: relative;
   width: 100%;
-  max-width: 450px;
+  max-width: 25rem;
   aspect-ratio: 1 / 1;
   margin: auto;
   border-radius: 16px;

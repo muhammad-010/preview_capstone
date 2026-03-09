@@ -22,7 +22,7 @@ function useColumns() {
                 color: 'neutral',
                 variant: 'ghost',
                 icon: 'lucide:info',
-                to: `my-events/${event.event_id}`,
+                to: `/my-events/${event.event_id}`,
             }),
 
         ]
@@ -32,7 +32,7 @@ function useColumns() {
                     color: 'primary',
                     icon: 'lucide:scan-qr-code',
                     disabled: !SCANNABLE_EVENT.includes(event.status),
-                    to: `scan-page/${event.event_id}`,
+                    to: `/scan-page/${event.event_id}`,
                 }),
             )
         }
@@ -44,7 +44,10 @@ function useColumns() {
             accessorKey: 'name',
             header: 'Event Name',
             cell: ({ row }) => {
-                return h('div', {}, [
+                return h('div', {
+                    class: 'cursor-pointer',
+                    onClick: () => navigateTo(`/my-events/${row.original.event_id}`),
+                }, [
                     h('span', { class: 'font-semibold' }, row.original.name),
                 ])
             },
