@@ -10,7 +10,7 @@ const overlay = ref(null)
         <Transition name="fade">
             <div
                 v-if="loading"
-                class="absolute inset-0 z-20 bg-primary-950/75 flex items-center justify-center"
+                class="absolute inset-0 z-20 bg-primary-50/75 dark:bg-primary-950/75 flex items-center justify-center"
             >
                 <UProgress
                     v-model="overlay"
