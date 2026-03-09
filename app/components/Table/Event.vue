@@ -21,7 +21,10 @@ function useColumns() {
             accessorKey: 'name',
             header: 'Event Name',
             cell: ({ row }) => {
-                return h('div', {}, [
+                return h('div', {
+                    class: 'cursor-pointer',
+                    onClick: () => navigateTo(`/events/${row.original.event_id}`),
+                }, [
                     h('span', { class: 'font-semibold' }, row.original.name),
                 ])
             },
@@ -72,13 +75,13 @@ function useColumns() {
                         color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:pencil',
-                        to: `events/${row.original.event_id}/edit`,
+                        to: `/events/${row.original.event_id}/edit`,
                     }),
                     h(UButton, {
                         color: 'neutral',
                         variant: 'ghost',
                         icon: 'lucide:info',
-                        to: `events/${row.original.event_id}`,
+                        to: `/events/${row.original.event_id}`,
                     }),
                 ])
             },

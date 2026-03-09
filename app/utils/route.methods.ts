@@ -43,7 +43,9 @@ export function buildLayoutProp(
                 }
             }
         }
-        item.to = to
+        if (!route.disabled) {
+            item.to = to
+        }
 
         if (match) {
             layoutProp.pageTitle = layoutProp.pageTitle ? layoutProp.pageTitle : route.title
