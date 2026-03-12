@@ -11,6 +11,7 @@ export const EMIT_INPUT_CLEAR = 'clear'
 export const EMIT_MODAL_CONFIRM = 'confirm'
 export const EMIT_TABLE_REFRESH = 'refresh'
 export const EMIT_QR_DETECT = 'qr-detect'
+export const EMIT_LOTTERY_DONE = 'lottery-done'
 
 // STATE
 export const STATE_LAYOUT_PAGE_TITLE = 'layout:pageTitle'

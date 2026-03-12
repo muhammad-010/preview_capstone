@@ -426,6 +426,17 @@ async function sendSelectedQr() {
 
                             <div class="flex items-center gap-2">
                                 <UButton
+                                    color="neutral"
+                                    variant="outline"
+                                    icon="lucide:gift"
+                                    class="cursor-pointer"
+                                    :disabled="!SCANNABLE_EVENT.includes(event.status)"
+                                    :to="`/lottery/${event.event_id}`"
+                                >
+                                    Draw Lottery
+                                </UButton>
+
+                                <UButton
                                     color="primary"
                                     icon="lucide:pencil"
                                     class="cursor-pointer"
