@@ -31,7 +31,7 @@ async function useScanQr(tId: number, id: number) {
     const participantName = ref('')
     const errorMessage = ref<string>(ERROR_SCAN_QR_MESSAGE)
     const countAttendance = ref(0)
-    const confirmAttendanceDialog = ref(true)
+    const confirmAttendanceDialog = ref(false)
     const checkInSuccessDialog = ref(false)
     const scanFailedDialog = ref(false)
 
