@@ -8,6 +8,32 @@ const id = Number(route.params.event_id)
 const { tenantId, tenantName } = useUserState()
 const toast = useToast()
 
+const isClient = import.meta.client
+let successAudio: HTMLAudioElement
+let errorAudio: HTMLAudioElement
+onMounted(() => {
+    window.addEventListener('pointerdown', () => {
+        successAudio = new Audio('/success-sound.mp3')
+        errorAudio = new Audio('/error-sound.mp3')
+        Promise.all([
+            successAudio.play().then(() => {
+                successAudio.pause()
+                successAudio.currentTime = 0
+            }),
+            errorAudio.play().then(() => {
+                errorAudio.pause()
+                errorAudio.currentTime = 0
+            }),
+        ])
+    }, { once: true })
+})
+function playSuccessSound() {
+    if (isClient && successAudio) successAudio.play()
+}
+function playErrorSound() {
+    if (isClient && errorAudio) errorAudio.play()
+}
+
 async function useDetail(tId: number, id: number) {
     const { data } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
@@ -27,13 +53,20 @@ async function useDetail(tId: number, id: number) {
 
 async function useScanQr(tId: number, id: number) {
     const qrValue = ref('')
-    const pauseQr = ref(false)
+    const pauseQr = ref(true)
     const participantName = ref('')
     const errorMessage = ref<string>(ERROR_SCAN_QR_MESSAGE)
     const countAttendance = ref(0)
     const confirmAttendanceDialog = ref(false)
     const checkInSuccessDialog = ref(false)
     const scanFailedDialog = ref(false)
+    const scanReminderDialog = ref(true)
+
+    watch(scanReminderDialog, (value) => {
+        if (!value) {
+            pauseQr.value = false
+        }
+    })
 
     function resetRef() {
         qrValue.value = ''
@@ -163,6 +196,7 @@ async function useScanQr(tId: number, id: number) {
         countAttendance,
         checkInSuccessDialog,
         scanFailedDialog,
+        scanReminderDialog,
         qrDetected,
         closeConfirmAttendance,
         confirmAttendance,
@@ -184,6 +218,7 @@ const [
         countAttendance,
         checkInSuccessDialog,
         scanFailedDialog,
+        scanReminderDialog,
         qrDetected,
         confirmAttendance,
     },
@@ -306,6 +341,27 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     >
                         Check In
                     </button>
+                </div>
+            </template>
+        </UModal>
+
+        <UModal v-model:open="scanReminderDialog">
+            <template #content>
+                <div class="flex flex-col justify-center items-center text-center p-12">
+                    <UIcon
+                        name="lucide:circle-alert"
+                        class="text-warning size-32 mb-8 rotate-180"
+                    />
+                    <div class="mb-6">
+                        <h2>
+                            You’re about to start the QR scanner.
+                        </h2>
+                    </div>
+                    <div class="mb-4">
+                        <h5>Ask participants to show their QR Code for scanning.</h5>
+                        <h5>Don't forget to double check participant name and their invitation ticket</h5>
+                    </div>
+                    <small>Click anywhere to close this dialog</small>
                 </div>
             </template>
         </UModal>
