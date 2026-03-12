@@ -73,6 +73,8 @@ export function participantFormToParticipant(data: ParticipantForm): Participant
         phone: {
             number: data.phone_number,
         },
+        max_attendance: data.max_attendance,
+        custom_attributes: [...(data.custom_attributes ?? [])],
     } as Participant
 }
 
@@ -83,6 +85,8 @@ export function participantToParticipantForm(data: Participant): ParticipantForm
         phone_number: data.phone
             ? data.phone.number
             : data.phone_number,
+        max_attendance: data.max_attendance,
+        custom_attributes: [...(data.custom_attributes ?? [])],
     } as ParticipantForm
 }
 

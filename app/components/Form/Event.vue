@@ -32,6 +32,11 @@ async function useTenantEventForm(tId: number, id: number) {
     const loading = ref(false)
     const activeSteps = ref(0)
 
+    const { data } = await useApi(`/api/tenant/${tId}/user/find`, {
+        transform: res => res.data,
+    })
+    const users = computed<User[]>(() => data.value?.users ?? [])
+
     const schema = z.object({
         name: zodStringRequired('Event name is required'),
         description: zodStringOptional(),
@@ -56,11 +61,6 @@ async function useTenantEventForm(tId: number, id: number) {
         status: 'Active',
         assign_user_ids: [],
     })
-
-    const { data } = await useApi(`/api/tenant/${tId}/user/find`, {
-        transform: res => res.data,
-    })
-    const users = computed<User[]>(() => data.value?.users ?? [])
 
     async function addData(payload: FormSubmitEvent<Schema>) {
         try {
