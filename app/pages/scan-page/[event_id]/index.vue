@@ -31,7 +31,7 @@ async function useScanQr(tId: number, id: number) {
     const participantName = ref('')
     const errorMessage = ref<string>(ERROR_SCAN_QR_MESSAGE)
     const countAttendance = ref(0)
-    const confirmAttendanceDialog = ref(false)
+    const confirmAttendanceDialog = ref(true)
     const checkInSuccessDialog = ref(false)
     const scanFailedDialog = ref(false)
 
@@ -185,7 +185,6 @@ const [
         checkInSuccessDialog,
         scanFailedDialog,
         qrDetected,
-        closeConfirmAttendance,
         confirmAttendance,
     },
 ] = await Promise.all([
@@ -194,7 +193,7 @@ const [
 ])
 
 useHead({
-    title: computed(() => `Event - ${event.value ? event.value.name : 'Detail'}`),
+    title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),
 })
 definePageMeta({
     layout: 'scan',
@@ -254,39 +253,59 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             </template>
         </UModal>
 
-        <UModal v-model:open="confirmAttendanceDialog">
-            <template #header="{ close }">
+        <UModal
+            v-model:open="confirmAttendanceDialog"
+            :dismissible="false"
+        >
+            <template #header>
                 <div>
                     <h2 class="text-highlighted font-semibold">
                         Confirm Your Attendance
                     </h2>
                 </div>
-                <UButton
-                    icon="lucide:x"
-                    color="neutral"
-                    variant="ghost"
-                    class="rounded-md ml-auto"
-                    @click="() => closeConfirmAttendance(close)"
-                />
             </template>
             <template #body>
-                <div class="flex flex-col justify-center items-center">
+                <div class="flex flex-col justify-center items-center p-4">
                     <UFormField
                         label="Number of guests"
-                        size="xl"
+                        class="text-lg"
                     >
                         <UInput
                             v-model="countAttendance"
-                            size="xl"
-                            type="number"
-                            class="mb-8"
-                        />
+                            :ui="{
+                                root: 'mb-8',
+                                base: 'px-4 py-4 text-5xl text-center gap-2',
+                                leading: 'ps-4',
+                                trailing: 'pe-4',
+                            }"
+                        >
+                            <template #leading>
+                                <UButton
+                                    color="neutral"
+                                    variant="link"
+                                    icon="lucide:minus"
+                                    size="xl"
+                                    :disabled="countAttendance === 0"
+                                    @click="countAttendance--"
+                                />
+                            </template>
+                            <template #trailing>
+                                <UButton
+                                    color="neutral"
+                                    variant="link"
+                                    icon="lucide:plus"
+                                    size="xl"
+                                    @click="countAttendance++"
+                                />
+                            </template>
+                        </UInput>
                     </UFormField>
-                    <UButton
-                        label="Check In"
-                        size="xl"
+                    <button
+                        class="cursor-pointer bg-primary text-white text-2xl font-semibold py-4 px-6 rounded-xl"
                         @click="confirmAttendance"
-                    />
+                    >
+                        Check In
+                    </button>
                 </div>
             </template>
         </UModal>
