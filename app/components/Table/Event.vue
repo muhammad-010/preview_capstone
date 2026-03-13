@@ -77,13 +77,13 @@ function useColumns() {
                         icon: 'lucide:pencil',
                         to: `/events/${row.original.event_id}/edit`,
                     }),
-                    h(UButton, {
-                        color: 'neutral',
-                        variant: 'ghost',
-                        icon: 'lucide:gift',
-                        disabled: !SCANNABLE_EVENT.includes(row.original.status),
-                        to: `/lottery/${row.original.event_id}`,
-                    }),
+                    // h(UButton, {
+                    //     color: 'neutral',
+                    //     variant: 'ghost',
+                    //     icon: 'lucide:gift',
+                    //     disabled: !SCANNABLE_EVENT.includes(row.original.status),
+                    //     to: `/lottery/${row.original.event_id}`,
+                    // }),
                     h(UButton, {
                         color: 'neutral',
                         variant: 'ghost',

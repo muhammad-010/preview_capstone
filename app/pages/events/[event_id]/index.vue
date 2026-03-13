@@ -466,7 +466,7 @@ async function sendSelectedQr() {
                             <h3>Detailed Information</h3>
 
                             <div class="flex items-center gap-2">
-                                <UButton
+                                <!-- <UButton
                                     color="neutral"
                                     variant="outline"
                                     icon="lucide:gift"
@@ -475,7 +475,7 @@ async function sendSelectedQr() {
                                     :to="`/lottery/${event.event_id}`"
                                 >
                                     Draw Lottery
-                                </UButton>
+                                </UButton> -->
 
                                 <UButton
                                     color="primary"
