@@ -199,6 +199,15 @@ function useColumns() {
             },
         },
         {
+            accessorKey: 'max_attendance',
+            header: 'Max Attendance',
+            cell: ({ row }) => {
+                return h('div', {}, [
+                    h('span', {}, row.original.max_attendance || '-'),
+                ])
+            },
+        },
+        {
             accessorKey: 'custom_attribute',
             header: 'Metadata',
             cell: ({ row }) => {
