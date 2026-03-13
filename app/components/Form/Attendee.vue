@@ -27,7 +27,7 @@ async function useForm(tId: number, eId: number, id: number) {
         email: zodEmailRequired(),
         phone_number: zodPhoneNumberRequired(),
         max_attendance: zodNumberOptional(),
-        custom_attributes: z.array(
+        custom_attribute: z.array(
             z.object({
                 custom_attribute_id: z.number(),
                 name: z.string().optional(),
@@ -37,12 +37,16 @@ async function useForm(tId: number, eId: number, id: number) {
     })
     type Schema = z.output<typeof schema>
 
-    const state = reactive<Partial<ParticipantForm>>(props.fields ?? {
+    const fields = props.fields
+    if (fields && (!fields.custom_attribute || !fields.custom_attribute.length)) {
+        fields.custom_attribute = structuredClone(customAttributes.value)
+    }
+    const state = reactive<Partial<ParticipantForm>>(fields ?? {
         name: '',
         email: '',
         phone_number: '',
         max_attendance: 0,
-        custom_attributes: [...customAttributes.value],
+        custom_attribute: structuredClone(customAttributes.value),
     })
 
     async function addData(payload: FormSubmitEvent<Schema>) {
@@ -51,7 +55,7 @@ async function useForm(tId: number, eId: number, id: number) {
                 method: 'POST',
                 body: {
                     ...payload.data,
-                    custom_attributes: formatCleanCustomAttribute(payload.data.custom_attributes ?? []),
+                    custom_attribute: formatCleanCustomAttribute(payload.data.custom_attribute ?? []),
                 },
             })
             if (data.success) {
@@ -79,7 +83,7 @@ async function useForm(tId: number, eId: number, id: number) {
                 method: 'PUT',
                 body: {
                     ...payload.data,
-                    custom_attributes: formatCleanCustomAttribute(payload.data.custom_attributes ?? []),
+                    custom_attribute: formatCleanCustomAttribute(payload.data.custom_attribute ?? []),
                 },
             })
             if (data.success) {
@@ -213,14 +217,14 @@ const {
                     </UFormField>
 
                     <UFormField
-                        v-for="(item, index) in state.custom_attributes"
+                        v-for="(item, index) in state.custom_attribute"
                         :key="index"
                         :label="`Custom Attribute: ${item.name}`"
-                        :name="`custom_attributes.${index}`"
+                        :name="`custom_attribute.${index}`"
                         class="my-2 w-full"
                     >
                         <UInput
-                            v-model="state.custom_attributes![index]!.value"
+                            v-model="state.custom_attribute![index]!.value"
                             type="string"
                             class="w-full"
                         />
