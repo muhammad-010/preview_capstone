@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { formatCapitalize } from '~~/shared/utils/format.methods'
-
 const { $api } = useNuxtApp()
 const router = useRouter()
 const route = useRoute()
@@ -12,12 +10,110 @@ const tabs = [
         slot: 'overview',
     },
     {
+        label: 'Custom Attributes',
+        slot: 'custom-attributes',
+    },
+    {
         label: 'Attendees',
         slot: 'attendees',
     },
 ]
 const toast = useToast()
-const { customAttributes } = await useCustomAttrFind(tenantId.value, id)
+const deleteCustomAttributeConfirmation = ref(false)
+const deleteCustomAttributeTarget = ref<CustomAttribute | null>(null)
+const newCustomAttribute = ref<CustomAttribute[]>([])
+const { customAttributes, refreshCustomAttributes }
+    = await useFindCustomAttribute(tenantId.value, id)
+const {
+    createCustomAttribute,
+    updateCustomAttribute,
+    deleteCustomAttribute,
+} = await useManageCustomAttribute(tenantId.value, id)
+
+function addNewCustomAttribute() {
+    newCustomAttribute.value.push({
+        name: '',
+    } as CustomAttribute)
+}
+
+function removeNewCustomAttribute(index: number) {
+    newCustomAttribute.value.splice(index, 1)
+}
+
+async function saveNewCustomAttribute(attr: CustomAttribute, index: number) {
+    try {
+        await createCustomAttribute(attr)
+        newCustomAttribute.value.splice(index, 1)
+        await refreshCustomAttributes()
+        toast.add({
+            title: 'Success',
+            description: 'A custom attribute has been created!',
+            color: 'success',
+        })
+    }
+    catch (error) {
+        toast.add({
+            title: 'Error',
+            description: 'Failed to add new custom attribute',
+            color: 'error',
+        })
+        console.error('Create custom attribute error', error)
+    }
+}
+
+async function editCustomAttribute(attr: CustomAttribute) {
+    try {
+        await updateCustomAttribute(attr)
+        await refreshCustomAttributes()
+        toast.add({
+            title: 'Success',
+            description: 'A custom attribute has been updated!',
+            color: 'success',
+        })
+    }
+    catch (error) {
+        toast.add({
+            title: 'Error',
+            description: 'Failed to update custom attribute',
+            color: 'error',
+        })
+        console.error('Update custom attribute error', error)
+    }
+}
+
+function confirmRemoveCustomAttribute(attr: CustomAttribute) {
+    deleteCustomAttributeTarget.value = attr
+    deleteCustomAttributeConfirmation.value = true
+}
+
+function closeConfirmRemoveCustomAttribute() {
+    deleteCustomAttributeTarget.value = null
+    deleteCustomAttributeConfirmation.value = false
+}
+
+async function removeCustomAttribute() {
+    if (!deleteCustomAttributeTarget.value) return
+    try {
+        await deleteCustomAttribute(deleteCustomAttributeTarget.value)
+        await refreshCustomAttributes()
+        toast.add({
+            title: 'Success',
+            description: 'A custom attribute has been deleted!',
+            color: 'success',
+        })
+    }
+    catch (error) {
+        toast.add({
+            title: 'Error',
+            description: 'Failed to delete custom attribute',
+            color: 'error',
+        })
+        console.error('Delete custom attribute error', error)
+    }
+    finally {
+        closeConfirmRemoveCustomAttribute()
+    }
+}
 
 async function useDetail(tId: number, id: number) {
     const statusColors = TENANT_EVENT_STATUS_COLORS
@@ -460,13 +556,16 @@ async function sendSelectedQr() {
                     />
                 </div>
 
-                <UCard class="mb-8">
-                    <template #header>
-                        <div class="flex justify-between items-center">
-                            <h3>Detailed Information</h3>
+                <div class="mb-8">
+                    <UCard>
+                        <template #header>
+                            <div class="card-toolbar">
+                                <div class="card-toolbar-left">
+                                    <h3>Detailed Information</h3>
+                                </div>
 
-                            <div class="flex items-center gap-2">
-                                <!-- <UButton
+                                <div class="card-toolbar-actions">
+                                    <!-- <UButton
                                     color="neutral"
                                     variant="outline"
                                     icon="lucide:gift"
@@ -477,57 +576,58 @@ async function sendSelectedQr() {
                                     Draw Lottery
                                 </UButton> -->
 
-                                <UButton
-                                    color="primary"
-                                    icon="lucide:pencil"
-                                    class="cursor-pointer"
-                                    :to="`/events/${event.event_id}/edit`"
-                                >
-                                    Edit Event
-                                </UButton>
+                                    <UButton
+                                        color="primary"
+                                        icon="lucide:pencil"
+                                        class="cursor-pointer"
+                                        :to="`/events/${event.event_id}/edit`"
+                                    >
+                                        Edit Event
+                                    </UButton>
+                                </div>
                             </div>
+                        </template>
+
+                        <div>
+                            <section class="grid md:grid-cols-2 gap-6 mb-8">
+                                <DetailSectionData
+                                    title="Start Time"
+                                    icon="lucide:clock"
+                                    :subtitle="event.start_time"
+                                />
+
+                                <DetailSectionData
+                                    title="End Time"
+                                    icon="lucide:clock-8"
+                                    :subtitle="event.end_time"
+                                />
+
+                                <DetailSectionData
+                                    title="Venue"
+                                    icon="lucide:map-pin"
+                                    :subtitle="event.location"
+                                />
+
+                                <DetailSectionData title="Status">
+                                    <UBadge
+                                        :color="statusColors[event.status]"
+                                        variant="subtle"
+                                        :label="event.status"
+                                    />
+                                </DetailSectionData>
+                            </section>
+
+                            <section>
+                                <DetailSectionData :title="checkInProgressLabel">
+                                    <UProgress
+                                        :model-value="event.participant_status?.total_checked_in"
+                                        :max="event.participant_status?.total_registered"
+                                    />
+                                </DetailSectionData>
+                            </section>
                         </div>
-                    </template>
-
-                    <div>
-                        <section class="grid md:grid-cols-2 gap-6 mb-8">
-                            <DetailSectionData
-                                title="Start Time"
-                                icon="lucide:clock"
-                                :subtitle="event.start_time"
-                            />
-
-                            <DetailSectionData
-                                title="End Time"
-                                icon="lucide:clock-8"
-                                :subtitle="event.end_time"
-                            />
-
-                            <DetailSectionData
-                                title="Venue"
-                                icon="lucide:map-pin"
-                                :subtitle="event.location"
-                            />
-
-                            <DetailSectionData title="Status">
-                                <UBadge
-                                    :color="statusColors[event.status]"
-                                    variant="subtle"
-                                    :label="event.status"
-                                />
-                            </DetailSectionData>
-                        </section>
-
-                        <section>
-                            <DetailSectionData :title="checkInProgressLabel">
-                                <UProgress
-                                    :model-value="event.participant_status?.total_checked_in"
-                                    :max="event.participant_status?.total_registered"
-                                />
-                            </DetailSectionData>
-                        </section>
-                    </div>
-                </UCard>
+                    </UCard>
+                </div>
 
                 <CardDangerZone>
                     <section>
@@ -553,6 +653,95 @@ async function sendSelectedQr() {
                     :loading="deleteLoading"
                     @confirm="deleteData"
                 />
+            </template>
+
+            <template #custom-attributes>
+                <div class="my-8">
+                    <UCard>
+                        <template #header>
+                            <div class="card-toolbar">
+                                <div class="card-toolbar-left">
+                                    <h3>Manage Custom Attributes</h3>
+                                </div>
+
+                                <div class="card-toolbar-actions">
+                                    <UButton
+                                        color="primary"
+                                        icon="lucide:plus"
+                                        class="cursor-pointer"
+                                        @click="addNewCustomAttribute"
+                                    >
+                                        Add Attributes
+                                    </UButton>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div
+                            v-for="(attr, i) in newCustomAttribute"
+                            :key="i"
+                            class="flex items-center my-4"
+                        >
+                            <UInput
+                                v-model="attr.name"
+                                class="flex-1"
+                            />
+
+                            <div class="flex justify-between gap-4 ml-4">
+                                <UButton
+                                    icon="lucide:save"
+                                    label="Create"
+                                    @click="saveNewCustomAttribute(attr, i)"
+                                />
+                                <UButton
+                                    color="neutral"
+                                    variant="outline"
+                                    icon="lucide:ban"
+                                    label="Cancel"
+                                    @click="removeNewCustomAttribute(i)"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            v-for="attr in customAttributes"
+                            :key="attr.custom_attribute_id"
+                            class="flex items-center my-4"
+                        >
+                            <UInput
+                                v-model="attr.name"
+                                class="flex-1"
+                            />
+
+                            <div class="flex justify-between gap-4 ml-4">
+                                <UButton
+                                    color="neutral"
+                                    variant="outline"
+                                    icon="lucide:pencil"
+                                    label="Update"
+                                    @click="editCustomAttribute(attr)"
+                                />
+                                <UButton
+                                    color="error"
+                                    variant="outline"
+                                    icon="lucide:trash"
+                                    label="Delete"
+                                    @click="confirmRemoveCustomAttribute(attr)"
+                                />
+                            </div>
+                        </div>
+                    </UCard>
+
+                    <ModalConfirmNegativeAction
+                        v-model:open="deleteCustomAttributeConfirmation"
+                        title="Delete Custom Attribute"
+                        :body="`Are you sure want to delete ${deleteCustomAttributeTarget?.name}? This action can not be undone.`"
+                        confirm-label="Yes, Delete Custom Attribute"
+                        :loading="printLoading"
+                        @cancel="closeConfirmRemoveCustomAttribute"
+                        @confirm="removeCustomAttribute"
+                    />
+                </div>
             </template>
 
             <template #attendees>

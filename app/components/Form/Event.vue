@@ -32,7 +32,7 @@ async function useTenantEventForm(tId: number, id: number) {
     const loading = ref(false)
     const activeSteps = ref(0)
 
-    const { users } = await useUserFind(tId)
+    const { users } = await useFindUser(tId)
 
     const schema = z.object({
         name: zodStringRequired('Event name is required'),
