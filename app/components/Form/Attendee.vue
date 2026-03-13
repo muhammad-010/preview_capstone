@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Form, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
-import { formatCleanCustomAttribute } from '~~/shared/utils/format.methods'
 
 const { $api } = useNuxtApp()
 const router = useRouter()
@@ -21,7 +20,7 @@ async function useForm(tId: number, eId: number, id: number) {
     const toast = useToast()
     const loading = ref(false)
 
-    const { customAttributes } = await useCustomAttrFind(tId, eId)
+    const { customAttributes } = await useFindCustomAttribute(tId, eId)
 
     const schema = z.object({
         name: zodStringRequired('Participant name is required'),
