@@ -39,14 +39,14 @@ async function useForm(tId: number, eId: number, id: number) {
 
     const fields = props.fields
     if (fields && (!fields.custom_attributes || !fields.custom_attributes.length)) {
-        fields.custom_attributes = [...customAttributes.value]
+        fields.custom_attributes = structuredClone(customAttributes.value)
     }
     const state = reactive<Partial<ParticipantForm>>(fields ?? {
         name: '',
         email: '',
         phone_number: '',
         max_attendance: 0,
-        custom_attributes: [...customAttributes.value],
+        custom_attributes: structuredClone(customAttributes.value),
     })
 
     async function addData(payload: FormSubmitEvent<Schema>) {
