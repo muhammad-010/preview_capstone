@@ -177,7 +177,7 @@ export interface ParticipantForm {
     email: string
     phone_number: string
     max_attendance: number
-    custom_attributes: CustomAttribute[] | null
+    custom_attribute: CustomAttribute[] | null
 }
 
 export interface ParticipantCheckIn {

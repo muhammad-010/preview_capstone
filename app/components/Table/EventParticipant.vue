@@ -199,7 +199,7 @@ function useColumns() {
             },
         },
         {
-            accessorKey: 'custom_attributes',
+            accessorKey: 'custom_attribute',
             header: 'Metadata',
             cell: ({ row }) => {
                 return h('div',
