@@ -13,6 +13,7 @@ export const APP_TENANT_ADMIN_ROUTES: string[] = [
     '/events',
     '/members',
     '/reports',
+    '/lottery',
 ]
 
 export const APP_POC_ADMIN_ROUTES: string[] = [
@@ -166,6 +167,24 @@ export const APP_ROUTES: AppRoute[] = [
                         to: '/members/:user_id/edit',
                     },
                 ],
+            },
+        ],
+    },
+    {
+        title: 'Lottery Page',
+        label: 'Lottery Page',
+        icon: 'lucide:gift',
+        to: '/lottery',
+        render: false,
+        disabled: true,
+        child: [
+            {
+                title: 'Roll Prize',
+                description: 'Roll prize from prize pool',
+                label: 'Roll Prize',
+                to: '/lottery/:event_id',
+                render: false,
+                disabled: true,
             },
         ],
     },

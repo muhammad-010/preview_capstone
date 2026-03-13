@@ -8,8 +8,8 @@ useHead({
     title: 'Participant - Add',
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
-    [':id']: {
-        param: route.params.id as string,
+    [':event_id']: {
+        param: route.params.event_id as string,
         label: event.value.name,
     },
 }))

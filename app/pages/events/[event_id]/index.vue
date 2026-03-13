@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { formatCapitalize } from '~~/shared/utils/format.methods'
-
 const { $api } = useNuxtApp()
 const router = useRouter()
 const route = useRoute()
@@ -12,11 +10,110 @@ const tabs = [
         slot: 'overview',
     },
     {
+        label: 'Custom Attributes',
+        slot: 'custom-attributes',
+    },
+    {
         label: 'Attendees',
         slot: 'attendees',
     },
 ]
 const toast = useToast()
+const deleteCustomAttributeConfirmation = ref(false)
+const deleteCustomAttributeTarget = ref<CustomAttribute | null>(null)
+const newCustomAttribute = ref<CustomAttribute[]>([])
+const { customAttributes, refreshCustomAttributes }
+    = await useFindCustomAttribute(tenantId.value, id)
+const {
+    createCustomAttribute,
+    updateCustomAttribute,
+    deleteCustomAttribute,
+} = await useManageCustomAttribute(tenantId.value, id)
+
+function addNewCustomAttribute() {
+    newCustomAttribute.value.push({
+        name: '',
+    } as CustomAttribute)
+}
+
+function removeNewCustomAttribute(index: number) {
+    newCustomAttribute.value.splice(index, 1)
+}
+
+async function saveNewCustomAttribute(attr: CustomAttribute, index: number) {
+    try {
+        await createCustomAttribute(attr)
+        newCustomAttribute.value.splice(index, 1)
+        await refreshCustomAttributes()
+        toast.add({
+            title: 'Success',
+            description: 'A custom attribute has been created!',
+            color: 'success',
+        })
+    }
+    catch (error) {
+        toast.add({
+            title: 'Error',
+            description: 'Failed to add new custom attribute',
+            color: 'error',
+        })
+        console.error('Create custom attribute error', error)
+    }
+}
+
+async function editCustomAttribute(attr: CustomAttribute) {
+    try {
+        await updateCustomAttribute(attr)
+        await refreshCustomAttributes()
+        toast.add({
+            title: 'Success',
+            description: 'A custom attribute has been updated!',
+            color: 'success',
+        })
+    }
+    catch (error) {
+        toast.add({
+            title: 'Error',
+            description: 'Failed to update custom attribute',
+            color: 'error',
+        })
+        console.error('Update custom attribute error', error)
+    }
+}
+
+function confirmRemoveCustomAttribute(attr: CustomAttribute) {
+    deleteCustomAttributeTarget.value = attr
+    deleteCustomAttributeConfirmation.value = true
+}
+
+function closeConfirmRemoveCustomAttribute() {
+    deleteCustomAttributeTarget.value = null
+    deleteCustomAttributeConfirmation.value = false
+}
+
+async function removeCustomAttribute() {
+    if (!deleteCustomAttributeTarget.value) return
+    try {
+        await deleteCustomAttribute(deleteCustomAttributeTarget.value)
+        await refreshCustomAttributes()
+        toast.add({
+            title: 'Success',
+            description: 'A custom attribute has been deleted!',
+            color: 'success',
+        })
+    }
+    catch (error) {
+        toast.add({
+            title: 'Error',
+            description: 'Failed to delete custom attribute',
+            color: 'error',
+        })
+        console.error('Delete custom attribute error', error)
+    }
+    finally {
+        closeConfirmRemoveCustomAttribute()
+    }
+}
 
 async function useDetail(tId: number, id: number) {
     const statusColors = TENANT_EVENT_STATUS_COLORS
@@ -100,15 +197,33 @@ async function useList(tId: number, id: number) {
     const page = ref(1)
     const limit = ref(5)
     const selectedIds = ref<number[]>([])
+    const filterDialog = ref(false)
+    const filterCustomAttribute = ref<CustomAttribute[]>([...customAttributes.value])
+
     const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
-        query: { query, page, limit },
-        watch: [page, limit],
+        query: computed(() => {
+            const cleanedFilterCustomAttribute = formatCleanCustomAttribute(filterCustomAttribute.value)
+            return {
+                query: query.value,
+                page: page.value,
+                limit: limit.value,
+                ...(cleanedFilterCustomAttribute.length
+                    ? {
+                            custom_attribute_ids: cleanedFilterCustomAttribute.map(attr => attr.custom_attribute_id).join(','),
+                            custom_attribute_values: cleanedFilterCustomAttribute.map(attr => attr.value).join(','),
+                        }
+                    : {}),
+            }
+        }),
+        watch: false,
     })
     const participants = computed<Participant[]>(() => data.value?.participant ?? [])
     const total = computed(() => data.value?.total_data ?? 0)
+    watch(page, () => refresh())
+    watch(limit, () => refresh())
 
-    function searchEvent() {
+    function searchParticipant() {
         page.value = 1
         query.value = search.value
         refresh()
@@ -121,18 +236,32 @@ async function useList(tId: number, id: number) {
         refresh()
     }
 
+    function applyFilter(close: () => void) {
+        close()
+        refresh()
+    }
+
+    function closeFilter(close: () => void) {
+        close()
+        filterCustomAttribute.value = filterCustomAttribute.value.map(attr => ({ ...attr, value: '' }))
+    }
+
     return {
         search,
         page,
         limit,
         selectedIds,
+        filterDialog,
+        filterCustomAttribute,
         toast,
         participants,
         total,
         pending,
         refresh,
-        searchEvent,
+        searchParticipant,
         clearSearch,
+        applyFilter,
+        closeFilter,
     }
 }
 
@@ -321,12 +450,16 @@ const [
         page,
         limit,
         selectedIds,
+        filterDialog,
+        filterCustomAttribute,
         participants,
         total,
         pending,
         refresh: refreshParticipants,
-        searchEvent,
+        searchParticipant,
         clearSearch,
+        applyFilter,
+        closeFilter,
     },
 
     {
@@ -396,7 +529,11 @@ async function sendSelectedQr() {
 
 <template>
     <div class="my-8">
-        <UTabs :items="tabs">
+        <UTabs
+            :items="tabs"
+            variant="link"
+            size="xl"
+        >
             <template #overview>
                 <div class="grid grid-cols-3 gap-4 my-8">
                     <CardTotal
@@ -419,63 +556,78 @@ async function sendSelectedQr() {
                     />
                 </div>
 
-                <UCard class="mb-8">
-                    <template #header>
-                        <div class="flex justify-between items-center">
-                            <h3>Detailed Information</h3>
+                <div class="mb-8">
+                    <UCard>
+                        <template #header>
+                            <div class="card-toolbar">
+                                <div class="card-toolbar-left">
+                                    <h3>Detailed Information</h3>
+                                </div>
 
-                            <div class="flex items-center gap-2">
-                                <UButton
-                                    color="primary"
-                                    icon="lucide:pencil"
+                                <div class="card-toolbar-actions">
+                                    <!-- <UButton
+                                    color="neutral"
+                                    variant="outline"
+                                    icon="lucide:gift"
                                     class="cursor-pointer"
-                                    :to="`/events/${event.event_id}/edit`"
+                                    :disabled="!SCANNABLE_EVENT.includes(event.status)"
+                                    :to="`/lottery/${event.event_id}`"
                                 >
-                                    Edit Event
-                                </UButton>
+                                    Draw Lottery
+                                </UButton> -->
+
+                                    <UButton
+                                        color="primary"
+                                        icon="lucide:pencil"
+                                        class="cursor-pointer"
+                                        :to="`/events/${event.event_id}/edit`"
+                                    >
+                                        Edit Event
+                                    </UButton>
+                                </div>
                             </div>
+                        </template>
+
+                        <div>
+                            <section class="grid md:grid-cols-2 gap-6 mb-8">
+                                <DetailSectionData
+                                    title="Start Time"
+                                    icon="lucide:clock"
+                                    :subtitle="event.start_time"
+                                />
+
+                                <DetailSectionData
+                                    title="End Time"
+                                    icon="lucide:clock-8"
+                                    :subtitle="event.end_time"
+                                />
+
+                                <DetailSectionData
+                                    title="Venue"
+                                    icon="lucide:map-pin"
+                                    :subtitle="event.location"
+                                />
+
+                                <DetailSectionData title="Status">
+                                    <UBadge
+                                        :color="statusColors[event.status]"
+                                        variant="subtle"
+                                        :label="event.status"
+                                    />
+                                </DetailSectionData>
+                            </section>
+
+                            <section>
+                                <DetailSectionData :title="checkInProgressLabel">
+                                    <UProgress
+                                        :model-value="event.participant_status?.total_checked_in"
+                                        :max="event.participant_status?.total_registered"
+                                    />
+                                </DetailSectionData>
+                            </section>
                         </div>
-                    </template>
-
-                    <div>
-                        <section class="grid md:grid-cols-2 gap-6 mb-8">
-                            <DetailSectionData
-                                title="Start Time"
-                                icon="lucide:clock"
-                                :subtitle="event.start_time"
-                            />
-
-                            <DetailSectionData
-                                title="End Time"
-                                icon="lucide:clock-8"
-                                :subtitle="event.end_time"
-                            />
-
-                            <DetailSectionData
-                                title="Venue"
-                                icon="lucide:map-pin"
-                                :subtitle="event.location"
-                            />
-
-                            <DetailSectionData title="Status">
-                                <UBadge
-                                    :color="statusColors[event.status]"
-                                    variant="subtle"
-                                    :label="event.status"
-                                />
-                            </DetailSectionData>
-                        </section>
-
-                        <section>
-                            <DetailSectionData :title="checkInProgressLabel">
-                                <UProgress
-                                    :model-value="event.participant_status?.total_checked_in"
-                                    :max="event.participant_status?.total_registered"
-                                />
-                            </DetailSectionData>
-                        </section>
-                    </div>
-                </UCard>
+                    </UCard>
+                </div>
 
                 <CardDangerZone>
                     <section>
@@ -503,6 +655,95 @@ async function sendSelectedQr() {
                 />
             </template>
 
+            <template #custom-attributes>
+                <div class="my-8">
+                    <UCard>
+                        <template #header>
+                            <div class="card-toolbar">
+                                <div class="card-toolbar-left">
+                                    <h3>Manage Custom Attributes</h3>
+                                </div>
+
+                                <div class="card-toolbar-actions">
+                                    <UButton
+                                        color="primary"
+                                        icon="lucide:plus"
+                                        class="cursor-pointer"
+                                        @click="addNewCustomAttribute"
+                                    >
+                                        Add Attributes
+                                    </UButton>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div
+                            v-for="(attr, i) in newCustomAttribute"
+                            :key="i"
+                            class="flex items-center my-4"
+                        >
+                            <UInput
+                                v-model="attr.name"
+                                class="flex-1"
+                            />
+
+                            <div class="flex justify-between gap-4 ml-4">
+                                <UButton
+                                    icon="lucide:save"
+                                    label="Create"
+                                    @click="saveNewCustomAttribute(attr, i)"
+                                />
+                                <UButton
+                                    color="neutral"
+                                    variant="outline"
+                                    icon="lucide:ban"
+                                    label="Cancel"
+                                    @click="removeNewCustomAttribute(i)"
+                                />
+                            </div>
+                        </div>
+
+                        <div
+                            v-for="attr in customAttributes"
+                            :key="attr.custom_attribute_id"
+                            class="flex items-center my-4"
+                        >
+                            <UInput
+                                v-model="attr.name"
+                                class="flex-1"
+                            />
+
+                            <div class="flex justify-between gap-4 ml-4">
+                                <UButton
+                                    color="neutral"
+                                    variant="outline"
+                                    icon="lucide:pencil"
+                                    label="Update"
+                                    @click="editCustomAttribute(attr)"
+                                />
+                                <UButton
+                                    color="error"
+                                    variant="outline"
+                                    icon="lucide:trash"
+                                    label="Delete"
+                                    @click="confirmRemoveCustomAttribute(attr)"
+                                />
+                            </div>
+                        </div>
+                    </UCard>
+
+                    <ModalConfirmNegativeAction
+                        v-model:open="deleteCustomAttributeConfirmation"
+                        title="Delete Custom Attribute"
+                        :body="`Are you sure want to delete ${deleteCustomAttributeTarget?.name}? This action can not be undone.`"
+                        confirm-label="Yes, Delete Custom Attribute"
+                        :loading="printLoading"
+                        @cancel="closeConfirmRemoveCustomAttribute"
+                        @confirm="removeCustomAttribute"
+                    />
+                </div>
+            </template>
+
             <template #attendees>
                 <div class="my-8">
                     <UCard>
@@ -511,19 +752,20 @@ async function sendSelectedQr() {
                                 <InputSearch
                                     v-model="search"
                                     class="card-toolbar-left"
-                                    @search="searchEvent"
+                                    @search="searchParticipant"
                                     @clear="clearSearch"
                                 />
 
                                 <div class="card-toolbar-actions">
-                                    <!-- <UButton
+                                    <UButton
                                         color="neutral"
                                         variant="outline"
                                         icon="lucide:filter"
                                         class="cursor-pointer"
+                                        @click="filterDialog = true"
                                     >
                                         Filter
-                                    </UButton> -->
+                                    </UButton>
                                     <UButton
                                         color="neutral"
                                         variant="outline"
@@ -548,7 +790,7 @@ async function sendSelectedQr() {
                                         class="cursor-pointer"
                                         @click="printConfirmation = true"
                                     >
-                                        Print QR
+                                        {{ `Print QR ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
                                     </UButton>
                                     <UButton
                                         color="neutral"
@@ -557,7 +799,7 @@ async function sendSelectedQr() {
                                         class="cursor-pointer"
                                         @click="sendConfirmation = true"
                                     >
-                                        Send QR
+                                        {{ `Send QR ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
                                     </UButton>
                                     <UButton
                                         color="primary"
@@ -587,38 +829,75 @@ async function sendSelectedQr() {
             </template>
         </UTabs>
 
-        <ModalConfirmNeutralAction
-            v-model:open="printConfirmation"
-            title="Print QR Confirmation"
-            :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
-            confirm-label="Yes, Print The QR"
-            :loading="printLoading"
-            @confirm="printSelectedQr"
-        />
+        <UModal v-model:open="filterDialog">
+            <template #header="{ close }">
+                <div class="flex justify-between items-center w-full">
+                    <h5>Filter Attendees</h5>
 
-        <ModalConfirmNeutralAction
-            v-model:open="sendConfirmation"
-            title="Send QR Confirmation"
-            confirm-label="Yes, Send The QR"
-            :loading="sendLoading"
-            @confirm="sendSelectedQr"
-        >
-            <div>
-                {{ `You will send ${selectedIds.length || 'All'} QR code of participants, Continue?` }}
-                <USeparator class="my-4" />
-                <UCheckboxGroup
-                    v-model="selectedSendChannel"
-                    :items="sendChannels"
-                    variant="card"
-                    indicator="end"
-                    :ui="{ fieldset: 'gap-2' }"
-                >
-                    <template #label="{ item: { id: scId } }">
-                        {{ formatCapitalize(scId.split(':')[1] || '') }}
-                    </template>
-                </UCheckboxGroup>
-            </div>
-        </ModalConfirmNeutralAction>
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="lucide:x"
+                        @click="() => closeFilter(close)"
+                    />
+                </div>
+            </template>
+
+            <template #body>
+                <DetailSectionTitle
+                    title="Custom Attributes"
+                    with-separator
+                />
+
+                <div class="px-4">
+                    <UFormField
+                        v-for="(item, index) in filterCustomAttribute"
+                        :key="index"
+                        :label="item.name"
+                        class="mb-4 w-full"
+                    >
+                        <UInput
+                            v-model="filterCustomAttribute![index]!.value"
+                            type="string"
+                            class="w-full"
+                        >
+                            <template #trailing>
+                                <UButton
+                                    v-if="filterCustomAttribute![index]!.value"
+                                    color="neutral"
+                                    variant="link"
+                                    size="sm"
+                                    icon="lucide:x"
+                                    @click="filterCustomAttribute![index]!.value = ''"
+                                />
+                            </template>
+                        </UInput>
+                    </UFormField>
+                </div>
+            </template>
+
+            <template #footer="{ close }">
+                <div class="flex justify-end items-center w-full">
+                    <div class="flex gap-2">
+                        <UButton
+                            color="neutral"
+                            variant="outline"
+                            icon="lucide:x"
+                            class="cursor-pointer"
+                            label="Cancel"
+                            @click="() => closeFilter(close)"
+                        />
+                        <UButton
+                            color="primary"
+                            icon="lucide:save"
+                            class="cursor-pointer"
+                            label="Apply Filter"
+                            @click="() => applyFilter(close)"
+                        />
+                    </div>
+                </div>
+            </template>
+        </UModal>
 
         <UModal v-model:open="importDialog">
             <template #header="{ close }">
@@ -676,7 +955,7 @@ async function sendSelectedQr() {
             </template>
 
             <template #footer>
-                <div class="flex justify-end items-center">
+                <div class="flex justify-end items-center w-full">
                     <div class="flex gap-2">
                         <UButton
                             color="neutral"
@@ -699,5 +978,38 @@ async function sendSelectedQr() {
                 </div>
             </template>
         </UModal>
+
+        <ModalConfirmNeutralAction
+            v-model:open="printConfirmation"
+            title="Print QR Confirmation"
+            :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
+            confirm-label="Yes, Print The QR"
+            :loading="printLoading"
+            @confirm="printSelectedQr"
+        />
+
+        <ModalConfirmNeutralAction
+            v-model:open="sendConfirmation"
+            title="Send QR Confirmation"
+            confirm-label="Yes, Send The QR"
+            :loading="sendLoading"
+            @confirm="sendSelectedQr"
+        >
+            <div>
+                {{ `You will send ${selectedIds.length || 'All'} QR code of participants, Continue?` }}
+                <USeparator class="my-4" />
+                <UCheckboxGroup
+                    v-model="selectedSendChannel"
+                    :items="sendChannels"
+                    variant="card"
+                    indicator="end"
+                    :ui="{ fieldset: 'gap-2' }"
+                >
+                    <template #label="{ item: { id: scId } }">
+                        {{ formatCapitalize(scId.split(':')[1] || '') }}
+                    </template>
+                </UCheckboxGroup>
+            </div>
+        </ModalConfirmNeutralAction>
     </div>
 </template>

@@ -137,6 +137,15 @@ export interface TenantEventForm {
     assign_user_ids: number[]
 }
 
+// CUSTOM ATTRIBUTES
+export interface CustomAttribute {
+    custom_attribute_id: number
+    name?: string
+    value?: string
+}
+
+// PARTICIPANT
+
 export type ParticipantPhone = Phone
 
 export interface ParticipantInvitationLog {
@@ -156,6 +165,8 @@ export interface Participant {
     status: ParticipantStatus
     check_in_time: ISOString
     number_of_attendance: number | null
+    max_attendance: number
+    custom_attribute: CustomAttribute[] | null
     latest_invitation_log?: ParticipantInvitationLog | null
 
     phone?: Phone
@@ -165,6 +176,8 @@ export interface ParticipantForm {
     name: string
     email: string
     phone_number: string
+    max_attendance: number
+    custom_attributes: CustomAttribute[] | null
 }
 
 export interface ParticipantCheckIn {

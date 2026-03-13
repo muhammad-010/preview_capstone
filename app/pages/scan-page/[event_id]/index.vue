@@ -8,6 +8,32 @@ const id = Number(route.params.event_id)
 const { tenantId, tenantName } = useUserState()
 const toast = useToast()
 
+const isClient = import.meta.client
+let successAudio: HTMLAudioElement
+let errorAudio: HTMLAudioElement
+onMounted(() => {
+    window.addEventListener('pointerdown', () => {
+        successAudio = new Audio('/success-sound.mp3')
+        errorAudio = new Audio('/error-sound.mp3')
+        Promise.all([
+            successAudio.play().then(() => {
+                successAudio.pause()
+                successAudio.currentTime = 0
+            }),
+            errorAudio.play().then(() => {
+                errorAudio.pause()
+                errorAudio.currentTime = 0
+            }),
+        ])
+    }, { once: true })
+})
+function playSuccessSound() {
+    if (isClient && successAudio) successAudio.play()
+}
+function playErrorSound() {
+    if (isClient && errorAudio) errorAudio.play()
+}
+
 async function useDetail(tId: number, id: number) {
     const { data } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
         transform: res => ({
@@ -27,13 +53,20 @@ async function useDetail(tId: number, id: number) {
 
 async function useScanQr(tId: number, id: number) {
     const qrValue = ref('')
-    const pauseQr = ref(false)
+    const pauseQr = ref(true)
     const participantName = ref('')
     const errorMessage = ref<string>(ERROR_SCAN_QR_MESSAGE)
     const countAttendance = ref(0)
     const confirmAttendanceDialog = ref(false)
     const checkInSuccessDialog = ref(false)
     const scanFailedDialog = ref(false)
+    const scanReminderDialog = ref(true)
+
+    watch(scanReminderDialog, (value) => {
+        if (!value) {
+            pauseQr.value = false
+        }
+    })
 
     function resetRef() {
         qrValue.value = ''
@@ -163,6 +196,7 @@ async function useScanQr(tId: number, id: number) {
         countAttendance,
         checkInSuccessDialog,
         scanFailedDialog,
+        scanReminderDialog,
         qrDetected,
         closeConfirmAttendance,
         confirmAttendance,
@@ -184,8 +218,8 @@ const [
         countAttendance,
         checkInSuccessDialog,
         scanFailedDialog,
+        scanReminderDialog,
         qrDetected,
-        closeConfirmAttendance,
         confirmAttendance,
     },
 ] = await Promise.all([
@@ -194,7 +228,7 @@ const [
 ])
 
 useHead({
-    title: computed(() => `Event - ${event.value ? event.value.name : 'Detail'}`),
+    title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),
 })
 definePageMeta({
     layout: 'scan',
@@ -254,39 +288,80 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             </template>
         </UModal>
 
-        <UModal v-model:open="confirmAttendanceDialog">
-            <template #header="{ close }">
+        <UModal
+            v-model:open="confirmAttendanceDialog"
+            :dismissible="false"
+        >
+            <template #header>
                 <div>
                     <h2 class="text-highlighted font-semibold">
                         Confirm Your Attendance
                     </h2>
                 </div>
-                <UButton
-                    icon="lucide:x"
-                    color="neutral"
-                    variant="ghost"
-                    class="rounded-md ml-auto"
-                    @click="() => closeConfirmAttendance(close)"
-                />
             </template>
             <template #body>
-                <div class="flex flex-col justify-center items-center">
+                <div class="flex flex-col justify-center items-center p-4">
                     <UFormField
                         label="Number of guests"
-                        size="xl"
+                        class="text-lg"
                     >
                         <UInput
                             v-model="countAttendance"
-                            size="xl"
-                            type="number"
-                            class="mb-8"
-                        />
+                            :ui="{
+                                root: 'mb-8',
+                                base: 'px-4 py-4 text-5xl text-center gap-2',
+                                leading: 'ps-4',
+                                trailing: 'pe-4',
+                            }"
+                        >
+                            <template #leading>
+                                <UButton
+                                    color="neutral"
+                                    variant="link"
+                                    icon="lucide:minus"
+                                    size="xl"
+                                    :disabled="countAttendance === 0"
+                                    @click="countAttendance--"
+                                />
+                            </template>
+                            <template #trailing>
+                                <UButton
+                                    color="neutral"
+                                    variant="link"
+                                    icon="lucide:plus"
+                                    size="xl"
+                                    @click="countAttendance++"
+                                />
+                            </template>
+                        </UInput>
                     </UFormField>
-                    <UButton
-                        label="Check In"
-                        size="xl"
+                    <button
+                        class="cursor-pointer bg-primary text-white text-2xl font-semibold py-4 px-6 rounded-xl"
                         @click="confirmAttendance"
+                    >
+                        Check In
+                    </button>
+                </div>
+            </template>
+        </UModal>
+
+        <UModal v-model:open="scanReminderDialog">
+            <template #content>
+                <div class="flex flex-col justify-center items-center text-center p-12">
+                    <UIcon
+                        name="lucide:circle-alert"
+                        class="text-warning size-32 mb-8 rotate-180"
                     />
+                    <div class="mb-6">
+                        <h2>
+                            You’re about to start the QR scanner.
+                        </h2>
+                    </div>
+                    <div class="mb-4">
+                        <h5>Ask participants to show their QR Code for scanning.</h5>
+                        <h5>Don't forget to double check participant name and their invitation ticket</h5>
+                    </div>
+                    <small>Click anywhere to close this dialog</small>
                 </div>
             </template>
         </UModal>

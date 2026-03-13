@@ -15,7 +15,6 @@ defineProps<{
         </h4>
         <USeparator
             v-if="withSeparator"
-            size="lg"
             class="mt-2 mb-6"
         />
     </div>

@@ -20,10 +20,20 @@ async function useForm(tId: number, eId: number, id: number) {
     const toast = useToast()
     const loading = ref(false)
 
+    const { customAttributes } = await useFindCustomAttribute(tId, eId)
+
     const schema = z.object({
         name: zodStringRequired('Participant name is required'),
         email: zodEmailRequired(),
         phone_number: zodPhoneNumberRequired(),
+        max_attendance: zodNumberOptional(),
+        custom_attributes: z.array(
+            z.object({
+                custom_attribute_id: z.number(),
+                name: z.string().optional(),
+                value: z.string().optional(),
+            }),
+        ).nullable().default([]),
     })
     type Schema = z.output<typeof schema>
 
@@ -31,13 +41,18 @@ async function useForm(tId: number, eId: number, id: number) {
         name: '',
         email: '',
         phone_number: '',
+        max_attendance: 0,
+        custom_attributes: [...customAttributes.value],
     })
 
     async function addData(payload: FormSubmitEvent<Schema>) {
         try {
             const data = await $api(`/api/tenant/${tId}/event/${eId}/participant`, {
                 method: 'POST',
-                body: payload.data,
+                body: {
+                    ...payload.data,
+                    custom_attributes: formatCleanCustomAttribute(payload.data.custom_attributes ?? []),
+                },
             })
             if (data.success) {
                 toast.add({
@@ -62,7 +77,10 @@ async function useForm(tId: number, eId: number, id: number) {
         try {
             const data = await $api(`/api/tenant/${tId}/event/${eId}/participant/${id}`, {
                 method: 'PUT',
-                body: payload.data,
+                body: {
+                    ...payload.data,
+                    custom_attributes: formatCleanCustomAttribute(payload.data.custom_attributes ?? []),
+                },
             })
             if (data.success) {
                 toast.add({
@@ -99,6 +117,7 @@ async function useForm(tId: number, eId: number, id: number) {
         loading,
         schema,
         state,
+        customAttributes,
         submitData,
     }
 }
@@ -132,7 +151,7 @@ const {
                         name="name"
 
                         required
-                        class="my-2 w-full col-span-2"
+                        class="my-2 w-full"
                     >
                         <UInput
                             v-model="state.name"
@@ -179,6 +198,32 @@ const {
                                 </div>
                             </template>
                         </UInput>
+                    </UFormField>
+
+                    <UFormField
+                        label="Max Attendance"
+                        name="max_attendance"
+                        class="my-2 w-full"
+                    >
+                        <UInput
+                            v-model="state.max_attendance"
+                            type="number"
+                            class="w-full"
+                        />
+                    </UFormField>
+
+                    <UFormField
+                        v-for="(item, index) in state.custom_attributes"
+                        :key="index"
+                        :label="`Custom Attribute: ${item.name}`"
+                        :name="`custom_attributes.${index}`"
+                        class="my-2 w-full"
+                    >
+                        <UInput
+                            v-model="state.custom_attributes![index]!.value"
+                            type="string"
+                            class="w-full"
+                        />
                     </UFormField>
                 </div>
             </UForm>

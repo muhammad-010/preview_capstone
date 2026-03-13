@@ -73,6 +73,18 @@ export type TenantEventUserFound = Result<{
     users: User[]
 }>
 
+// CUSTOM ATTRIBUTES
+
+export type CustomAttributeFound = Result<{
+    custom_attribute: CustomAttribute[]
+}>
+
+export type CustomAttributeAddResult = Result<
+    AddedData<number, 'custom_attribute_id'>
+>
+
+// PARTICIPANTS
+
 export type ParticipantListResult = Result<
     PaginatedData<Participant, 'participant'>
 >

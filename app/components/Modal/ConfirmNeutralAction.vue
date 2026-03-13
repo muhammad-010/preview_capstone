@@ -6,7 +6,7 @@ defineProps<{
     loading?: boolean
 }>()
 const open = defineModel<boolean>('open')
-const emit = defineEmits([EMIT_MODAL_CONFIRM])
+const emit = defineEmits([EMIT_MODAL_CONFIRM, EMIT_MODAL_CANCEL])
 const overlay = ref(null)
 </script>
 
@@ -35,7 +35,10 @@ const overlay = ref(null)
                 color="neutral"
                 variant="outline"
                 :disabled="loading"
-                @click="close"
+                @click="() => {
+                    close()
+                    emit(EMIT_MODAL_CANCEL)
+                }"
             />
             <UButton
                 :label="confirmLabel || 'Yes'"

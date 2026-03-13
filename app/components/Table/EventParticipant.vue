@@ -199,6 +199,22 @@ function useColumns() {
             },
         },
         {
+            accessorKey: 'custom_attributes',
+            header: 'Metadata',
+            cell: ({ row }) => {
+                return h('div',
+                    {},
+                    row.original.custom_attribute && row.original.custom_attribute.length
+                        ? row.original.custom_attribute
+                                .map(attr => h('div', {}, [
+                                    h('span', { class: 'font-semibold' }, attr.name ? `${attr.name}: ` : ''),
+                                    h('span', {}, attr.value),
+                                ]))
+                        : h('span', {}, '-'),
+                )
+            },
+        },
+        {
             accessorKey: 'status',
             header: 'Status',
             cell: ({ row }) => {

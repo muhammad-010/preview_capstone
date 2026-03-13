@@ -1,4 +1,4 @@
-import type { ISOString } from '../types/data'
+import type { ISOString, CustomAttribute } from '../types/data'
 
 const UNITS = [
     { value: 1e12, suffix: 'T' },
@@ -121,4 +121,8 @@ export function formatCapitalizeAll(s: string, sep: string) {
     return s.length <= 0
         ? s
         : s.split(sep).map(v => formatCapitalize(v))
+}
+
+export function formatCleanCustomAttribute(raw: CustomAttribute[]): CustomAttribute[] {
+    return raw.filter(attr => attr.value)
 }
