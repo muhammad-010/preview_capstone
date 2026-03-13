@@ -37,7 +37,11 @@ async function useForm(tId: number, eId: number, id: number) {
     })
     type Schema = z.output<typeof schema>
 
-    const state = reactive<Partial<ParticipantForm>>(props.fields ?? {
+    const fields = props.fields
+    if (fields && (!fields.custom_attributes || !fields.custom_attributes.length)) {
+        fields.custom_attributes = [...customAttributes.value]
+    }
+    const state = reactive<Partial<ParticipantForm>>(fields ?? {
         name: '',
         email: '',
         phone_number: '',
