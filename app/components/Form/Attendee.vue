@@ -21,10 +21,7 @@ async function useForm(tId: number, eId: number, id: number) {
     const toast = useToast()
     const loading = ref(false)
 
-    const { data } = await useApi(`/api/tenant/${tId}/event/${eId}/attribute/find`, {
-        transform: res => res.data,
-    })
-    const customAttributes = computed<CustomAttribute[]>(() => data.value?.custom_attribute ?? [])
+    const { customAttributes } = await useCustomAttrFind(tId, eId)
 
     const schema = z.object({
         name: zodStringRequired('Participant name is required'),

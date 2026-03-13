@@ -166,7 +166,7 @@ export interface Participant {
     check_in_time: ISOString
     number_of_attendance: number | null
     max_attendance: number
-    custom_attributes: CustomAttribute[] | null
+    custom_attribute: CustomAttribute[] | null
     latest_invitation_log?: ParticipantInvitationLog | null
 
     phone?: Phone

@@ -32,10 +32,7 @@ async function useTenantEventForm(tId: number, id: number) {
     const loading = ref(false)
     const activeSteps = ref(0)
 
-    const { data } = await useApi(`/api/tenant/${tId}/user/find`, {
-        transform: res => res.data,
-    })
-    const users = computed<User[]>(() => data.value?.users ?? [])
+    const { users } = await useUserFind(tId)
 
     const schema = z.object({
         name: zodStringRequired('Event name is required'),

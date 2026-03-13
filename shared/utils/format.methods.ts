@@ -124,5 +124,5 @@ export function formatCapitalizeAll(s: string, sep: string) {
 }
 
 export function formatCleanCustomAttribute(raw: CustomAttribute[]): CustomAttribute[] {
-    return raw.filter(attr => attr.value !== '')
+    return raw.filter(attr => attr.value)
 }

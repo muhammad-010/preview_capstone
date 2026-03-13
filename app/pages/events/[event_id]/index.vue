@@ -17,6 +17,7 @@ const tabs = [
     },
 ]
 const toast = useToast()
+const { customAttributes } = await useCustomAttrFind(tenantId.value, id)
 
 async function useDetail(tId: number, id: number) {
     const statusColors = TENANT_EVENT_STATUS_COLORS
@@ -100,15 +101,33 @@ async function useList(tId: number, id: number) {
     const page = ref(1)
     const limit = ref(5)
     const selectedIds = ref<number[]>([])
+    const filterDialog = ref(false)
+    const filterCustomAttribute = ref<CustomAttribute[]>([...customAttributes.value])
+
     const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
-        query: { query, page, limit },
-        watch: [page, limit],
+        query: computed(() => {
+            const cleanedFilterCustomAttribute = formatCleanCustomAttribute(filterCustomAttribute.value)
+            return {
+                query: query.value,
+                page: page.value,
+                limit: limit.value,
+                ...(cleanedFilterCustomAttribute.length
+                    ? {
+                            custom_attribute_ids: cleanedFilterCustomAttribute.map(attr => attr.custom_attribute_id).join(','),
+                            custom_attribute_values: cleanedFilterCustomAttribute.map(attr => attr.value).join(','),
+                        }
+                    : {}),
+            }
+        }),
+        watch: false,
     })
     const participants = computed<Participant[]>(() => data.value?.participant ?? [])
     const total = computed(() => data.value?.total_data ?? 0)
+    watch(page, () => refresh())
+    watch(limit, () => refresh())
 
-    function searchEvent() {
+    function searchParticipant() {
         page.value = 1
         query.value = search.value
         refresh()
@@ -121,18 +140,32 @@ async function useList(tId: number, id: number) {
         refresh()
     }
 
+    function applyFilter(close: () => void) {
+        close()
+        refresh()
+    }
+
+    function closeFilter(close: () => void) {
+        close()
+        filterCustomAttribute.value = filterCustomAttribute.value.map(attr => ({ ...attr, value: '' }))
+    }
+
     return {
         search,
         page,
         limit,
         selectedIds,
+        filterDialog,
+        filterCustomAttribute,
         toast,
         participants,
         total,
         pending,
         refresh,
-        searchEvent,
+        searchParticipant,
         clearSearch,
+        applyFilter,
+        closeFilter,
     }
 }
 
@@ -321,12 +354,16 @@ const [
         page,
         limit,
         selectedIds,
+        filterDialog,
+        filterCustomAttribute,
         participants,
         total,
         pending,
         refresh: refreshParticipants,
-        searchEvent,
+        searchParticipant,
         clearSearch,
+        applyFilter,
+        closeFilter,
     },
 
     {
@@ -396,7 +433,11 @@ async function sendSelectedQr() {
 
 <template>
     <div class="my-8">
-        <UTabs :items="tabs">
+        <UTabs
+            :items="tabs"
+            variant="link"
+            size="xl"
+        >
             <template #overview>
                 <div class="grid grid-cols-3 gap-4 my-8">
                     <CardTotal
@@ -522,19 +563,20 @@ async function sendSelectedQr() {
                                 <InputSearch
                                     v-model="search"
                                     class="card-toolbar-left"
-                                    @search="searchEvent"
+                                    @search="searchParticipant"
                                     @clear="clearSearch"
                                 />
 
                                 <div class="card-toolbar-actions">
-                                    <!-- <UButton
+                                    <UButton
                                         color="neutral"
                                         variant="outline"
                                         icon="lucide:filter"
                                         class="cursor-pointer"
+                                        @click="filterDialog = true"
                                     >
                                         Filter
-                                    </UButton> -->
+                                    </UButton>
                                     <UButton
                                         color="neutral"
                                         variant="outline"
@@ -559,7 +601,7 @@ async function sendSelectedQr() {
                                         class="cursor-pointer"
                                         @click="printConfirmation = true"
                                     >
-                                        Print QR
+                                        {{ `Print QR ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
                                     </UButton>
                                     <UButton
                                         color="neutral"
@@ -568,7 +610,7 @@ async function sendSelectedQr() {
                                         class="cursor-pointer"
                                         @click="sendConfirmation = true"
                                     >
-                                        Send QR
+                                        {{ `Send QR ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
                                     </UButton>
                                     <UButton
                                         color="primary"
@@ -598,38 +640,75 @@ async function sendSelectedQr() {
             </template>
         </UTabs>
 
-        <ModalConfirmNeutralAction
-            v-model:open="printConfirmation"
-            title="Print QR Confirmation"
-            :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
-            confirm-label="Yes, Print The QR"
-            :loading="printLoading"
-            @confirm="printSelectedQr"
-        />
+        <UModal v-model:open="filterDialog">
+            <template #header="{ close }">
+                <div class="flex justify-between items-center w-full">
+                    <h5>Filter Attendees</h5>
 
-        <ModalConfirmNeutralAction
-            v-model:open="sendConfirmation"
-            title="Send QR Confirmation"
-            confirm-label="Yes, Send The QR"
-            :loading="sendLoading"
-            @confirm="sendSelectedQr"
-        >
-            <div>
-                {{ `You will send ${selectedIds.length || 'All'} QR code of participants, Continue?` }}
-                <USeparator class="my-4" />
-                <UCheckboxGroup
-                    v-model="selectedSendChannel"
-                    :items="sendChannels"
-                    variant="card"
-                    indicator="end"
-                    :ui="{ fieldset: 'gap-2' }"
-                >
-                    <template #label="{ item: { id: scId } }">
-                        {{ formatCapitalize(scId.split(':')[1] || '') }}
-                    </template>
-                </UCheckboxGroup>
-            </div>
-        </ModalConfirmNeutralAction>
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="lucide:x"
+                        @click="() => closeFilter(close)"
+                    />
+                </div>
+            </template>
+
+            <template #body>
+                <DetailSectionTitle
+                    title="Custom Attributes"
+                    with-separator
+                />
+
+                <div class="px-4">
+                    <UFormField
+                        v-for="(item, index) in filterCustomAttribute"
+                        :key="index"
+                        :label="item.name"
+                        class="mb-4 w-full"
+                    >
+                        <UInput
+                            v-model="filterCustomAttribute![index]!.value"
+                            type="string"
+                            class="w-full"
+                        >
+                            <template #trailing>
+                                <UButton
+                                    v-if="filterCustomAttribute![index]!.value"
+                                    color="neutral"
+                                    variant="link"
+                                    size="sm"
+                                    icon="lucide:x"
+                                    @click="filterCustomAttribute![index]!.value = ''"
+                                />
+                            </template>
+                        </UInput>
+                    </UFormField>
+                </div>
+            </template>
+
+            <template #footer="{ close }">
+                <div class="flex justify-end items-center w-full">
+                    <div class="flex gap-2">
+                        <UButton
+                            color="neutral"
+                            variant="outline"
+                            icon="lucide:x"
+                            class="cursor-pointer"
+                            label="Cancel"
+                            @click="() => closeFilter(close)"
+                        />
+                        <UButton
+                            color="primary"
+                            icon="lucide:save"
+                            class="cursor-pointer"
+                            label="Apply Filter"
+                            @click="() => applyFilter(close)"
+                        />
+                    </div>
+                </div>
+            </template>
+        </UModal>
 
         <UModal v-model:open="importDialog">
             <template #header="{ close }">
@@ -687,7 +766,7 @@ async function sendSelectedQr() {
             </template>
 
             <template #footer>
-                <div class="flex justify-end items-center">
+                <div class="flex justify-end items-center w-full">
                     <div class="flex gap-2">
                         <UButton
                             color="neutral"
@@ -710,5 +789,38 @@ async function sendSelectedQr() {
                 </div>
             </template>
         </UModal>
+
+        <ModalConfirmNeutralAction
+            v-model:open="printConfirmation"
+            title="Print QR Confirmation"
+            :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
+            confirm-label="Yes, Print The QR"
+            :loading="printLoading"
+            @confirm="printSelectedQr"
+        />
+
+        <ModalConfirmNeutralAction
+            v-model:open="sendConfirmation"
+            title="Send QR Confirmation"
+            confirm-label="Yes, Send The QR"
+            :loading="sendLoading"
+            @confirm="sendSelectedQr"
+        >
+            <div>
+                {{ `You will send ${selectedIds.length || 'All'} QR code of participants, Continue?` }}
+                <USeparator class="my-4" />
+                <UCheckboxGroup
+                    v-model="selectedSendChannel"
+                    :items="sendChannels"
+                    variant="card"
+                    indicator="end"
+                    :ui="{ fieldset: 'gap-2' }"
+                >
+                    <template #label="{ item: { id: scId } }">
+                        {{ formatCapitalize(scId.split(':')[1] || '') }}
+                    </template>
+                </UCheckboxGroup>
+            </div>
+        </ModalConfirmNeutralAction>
     </div>
 </template>
