@@ -206,7 +206,10 @@ function useColumns() {
                     {},
                     row.original.custom_attribute && row.original.custom_attribute.length
                         ? row.original.custom_attribute
-                                .map(attr => h('div', {}, attr.value || '-'))
+                                .map(attr => h('div', {}, [
+                                    h('span', { class: 'font-semibold' }, attr.name ? `${attr.name}: ` : ''),
+                                    h('span', {}, attr.value),
+                                ]))
                         : h('span', {}, '-'),
                 )
             },
