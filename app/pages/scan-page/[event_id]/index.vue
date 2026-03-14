@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { FormError, FormSubmitEvent } from '@nuxt/ui'
 import type { DetectedBarcode } from 'nuxt-qrcode'
 import { FetchError } from 'ofetch'
 
@@ -9,13 +10,19 @@ const { tenantId, tenantName } = useUserState()
 const toast = useToast()
 
 const isClient = import.meta.client
+let checkinAudio: HTMLAudioElement
 let successAudio: HTMLAudioElement
 let errorAudio: HTMLAudioElement
 onMounted(() => {
     window.addEventListener('pointerdown', () => {
+        checkinAudio = new Audio('/checkin-sound.mp3')
         successAudio = new Audio('/success-sound.mp3')
         errorAudio = new Audio('/error-sound.mp3')
         Promise.all([
+            checkinAudio.play().then(() => {
+                checkinAudio.pause()
+                checkinAudio.currentTime = 0
+            }),
             successAudio.play().then(() => {
                 successAudio.pause()
                 successAudio.currentTime = 0
@@ -27,6 +34,9 @@ onMounted(() => {
         ])
     }, { once: true })
 })
+function playCheckinSound() {
+    if (isClient && checkinAudio) checkinAudio.play()
+}
 function playSuccessSound() {
     if (isClient && successAudio) successAudio.play()
 }
@@ -54,13 +64,19 @@ async function useDetail(tId: number, id: number) {
 async function useScanQr(tId: number, id: number) {
     const qrValue = ref('')
     const pauseQr = ref(true)
-    const participantName = ref('')
+    const participant = ref({
+        name: '',
+        maxAttendance: 0,
+        confirmAttendance: false,
+    })
     const errorMessage = ref<string>(ERROR_SCAN_QR_MESSAGE)
-    const countAttendance = ref(0)
+    const state = reactive({ count: 0 })
     const confirmAttendanceDialog = ref(false)
     const checkInSuccessDialog = ref(false)
     const scanFailedDialog = ref(false)
     const scanReminderDialog = ref(true)
+
+    type Schema = typeof state
 
     watch(scanReminderDialog, (value) => {
         if (!value) {
@@ -72,7 +88,7 @@ async function useScanQr(tId: number, id: number) {
         qrValue.value = ''
         errorMessage.value = ERROR_SCAN_QR_MESSAGE
         pauseQr.value = false
-        countAttendance.value = 0
+        state.count = 0
         confirmAttendanceDialog.value = false
         checkInSuccessDialog.value = false
         scanFailedDialog.value = false
@@ -84,7 +100,13 @@ async function useScanQr(tId: number, id: number) {
         }
     })
 
+    function openConfirmAttendanceDialog() {
+        confirmAttendanceDialog.value = true
+        playCheckinSound()
+    }
+
     function openCheckInSuccess() {
+        confirmAttendanceDialog.value = false
         checkInSuccessDialog.value = true
         playSuccessSound()
         setTimeout(() => {
@@ -128,15 +150,18 @@ async function useScanQr(tId: number, id: number) {
                     token: qrValue.value,
                 },
             })
-            participantName.value = data.participant.name || ''
+            participant.value = {
+                name: data.participant.name || '',
+                maxAttendance: data.participant.max_attendance || 0,
+                confirmAttendance: data.confirmation_attendance,
+            }
             if (data.confirmation_attendance) {
-                confirmAttendanceDialog.value = true
+                openConfirmAttendanceDialog()
             }
             else {
                 openCheckInSuccess()
             }
         }
-
         catch (error) {
             if (error instanceof FetchError && error.response) {
                 openScanFailed(error.response._data.data.message)
@@ -159,13 +184,20 @@ async function useScanQr(tId: number, id: number) {
         resetRef()
     }
 
-    async function confirmAttendance() {
+    function validateConfirmAttendance(state: Partial<Schema>): FormError[] {
+        const errors = []
+        if (!state.count) errors.push({ name: 'count', message: 'Guest count is required, minimum is 1' })
+        else if (state.count > participant.value.maxAttendance) errors.push({ name: 'count', message: `Can not more than ${participant.value.maxAttendance}` })
+        return errors
+    }
+
+    async function confirmAttendance(event: FormSubmitEvent<Schema>) {
         try {
             await $api(`/api/tenant/${tId}/event/${id}/participant/check-in/confirm`, {
                 method: 'POST',
                 body: {
                     token: qrValue.value,
-                    count_attendance: countAttendance.value,
+                    count_attendance: Number(event.data.count),
                 },
             })
             openCheckInSuccess()
@@ -181,8 +213,6 @@ async function useScanQr(tId: number, id: number) {
                     color: 'error',
                 })
                 console.error('Failed confirming check-in', error)
-                playErrorSound()
-                resetRef()
             }
         }
     }
@@ -190,15 +220,16 @@ async function useScanQr(tId: number, id: number) {
     return {
         qrValue,
         pauseQr,
-        participantName,
+        participant,
         errorMessage,
         confirmAttendanceDialog,
-        countAttendance,
+        state,
         checkInSuccessDialog,
         scanFailedDialog,
         scanReminderDialog,
         qrDetected,
         closeConfirmAttendance,
+        validateConfirmAttendance,
         confirmAttendance,
     }
 }
@@ -212,15 +243,16 @@ const [
 
     {
         pauseQr,
-        participantName,
+        participant,
         errorMessage,
         confirmAttendanceDialog,
-        countAttendance,
+        state,
         checkInSuccessDialog,
         scanFailedDialog,
         scanReminderDialog,
         qrDetected,
         confirmAttendance,
+        validateConfirmAttendance,
     },
 ] = await Promise.all([
     useDetail(tenantId.value, id),
@@ -253,41 +285,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             @qr-detect="qrDetected"
         />
 
-        <UModal v-model:open="checkInSuccessDialog">
-            <template #content>
-                <div class="flex flex-col justify-center items-center text-center p-12">
-                    <UIcon
-                        name="lucide:circle-check"
-                        class="text-success size-32 mb-8"
-                    />
-                    <div class="mb-6">
-                        <h2>
-                            Welcome to {{ event.name }}, {{ participantName }}!
-                        </h2>
-                    </div>
-                    <h5>We’re excited to have you join us.</h5>
-                    <h5>Enjoy the event, and don’t forget to connect with new friends!</h5>
-                </div>
-            </template>
-        </UModal>
-
-        <UModal v-model:open="scanFailedDialog">
-            <template #content>
-                <div class="flex flex-col justify-center items-center text-center p-12">
-                    <UIcon
-                        name="lucide:circle-x"
-                        class="text-error size-32 mb-8"
-                    />
-                    <div class="mb-6">
-                        <h2>
-                            {{ errorMessage }}
-                        </h2>
-                    </div>
-                    <h5>Please check your QR Code and try again.</h5>
-                </div>
-            </template>
-        </UModal>
-
         <UModal
             v-model:open="confirmAttendanceDialog"
             :dismissible="false"
@@ -295,52 +292,70 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             <template #header>
                 <div>
                     <h2 class="text-highlighted font-semibold">
-                        Confirm Your Attendance
+                        Confirm Attendance
                     </h2>
                 </div>
             </template>
             <template #body>
-                <div class="flex flex-col justify-center items-center p-4">
-                    <UFormField
-                        label="Number of guests"
-                        class="text-lg"
+                <div class="flex flex-col p-4">
+                    <div class="text-center mb-8">
+                        <div class="text-2xl">
+                            Please confirm guests attendance for {{ participant.name }}
+                        </div>
+                        <div class="text-xl">
+                            (Max {{ participant.maxAttendance }})
+                        </div>
+                    </div>
+
+                    <UForm
+                        :validate="validateConfirmAttendance"
+                        :state="state"
+                        class="flex flex-col justify-center"
+                        @submit="confirmAttendance"
                     >
-                        <UInput
-                            v-model="countAttendance"
-                            :ui="{
-                                root: 'mb-8',
-                                base: 'px-4 py-4 text-5xl text-center gap-2',
-                                leading: 'ps-4',
-                                trailing: 'pe-4',
-                            }"
+                        <UFormField
+                            label="Number of guests"
+                            name="count"
+                            required
+                            class="text-lg mb-8"
                         >
-                            <template #leading>
-                                <UButton
-                                    color="neutral"
-                                    variant="link"
-                                    icon="lucide:minus"
-                                    size="xl"
-                                    :disabled="countAttendance === 0"
-                                    @click="countAttendance--"
-                                />
-                            </template>
-                            <template #trailing>
-                                <UButton
-                                    color="neutral"
-                                    variant="link"
-                                    icon="lucide:plus"
-                                    size="xl"
-                                    @click="countAttendance++"
-                                />
-                            </template>
-                        </UInput>
-                    </UFormField>
-                    <button
-                        class="cursor-pointer bg-primary text-white text-2xl font-semibold py-4 px-6 rounded-xl"
-                        @click="confirmAttendance"
-                    >
-                        Check In
-                    </button>
+                            <UInput
+                                v-model="state.count"
+                                :ui="{
+                                    base: 'px-4 py-4 text-5xl text-center gap-2',
+                                    leading: 'ps-4',
+                                    trailing: 'pe-4',
+                                }"
+                            >
+                                <template #leading>
+                                    <UButton
+                                        color="neutral"
+                                        variant="link"
+                                        icon="lucide:minus"
+                                        size="xl"
+                                        :disabled="state.count === 0"
+                                        @click="state.count--"
+                                    />
+                                </template>
+                                <template #trailing>
+                                    <UButton
+                                        color="neutral"
+                                        variant="link"
+                                        icon="lucide:plus"
+                                        size="xl"
+                                        :disabled="state.count === participant.maxAttendance"
+                                        @click="state.count++"
+                                    />
+                                </template>
+                            </UInput>
+                        </UFormField>
+                        <button
+                            type="submit"
+                            class="cursor-pointer bg-primary text-white text-2xl font-semibold py-4 px-6 rounded-xl"
+                        >
+                            Check In
+                        </button>
+                    </UForm>
                 </div>
             </template>
         </UModal>
@@ -362,6 +377,41 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                         <h5>Don't forget to double check participant name and their invitation ticket</h5>
                     </div>
                     <small>Click anywhere to close this dialog</small>
+                </div>
+            </template>
+        </UModal>
+
+        <UModal v-model:open="checkInSuccessDialog">
+            <template #content>
+                <div class="flex flex-col justify-center items-center text-center p-12">
+                    <UIcon
+                        name="lucide:circle-check"
+                        class="text-success size-32 mb-8"
+                    />
+                    <div class="mb-6">
+                        <h2>
+                            Welcome to {{ event.name }}, {{ participant.name }}!
+                        </h2>
+                    </div>
+                    <h5>We’re excited to have you join us.</h5>
+                    <h5>Enjoy the event, and don’t forget to connect with new friends!</h5>
+                </div>
+            </template>
+        </UModal>
+
+        <UModal v-model:open="scanFailedDialog">
+            <template #content>
+                <div class="flex flex-col justify-center items-center text-center p-12">
+                    <UIcon
+                        name="lucide:circle-x"
+                        class="text-error size-32 mb-8"
+                    />
+                    <div class="mb-6">
+                        <h2>
+                            {{ errorMessage }}
+                        </h2>
+                    </div>
+                    <h5>Please check your QR Code and try again.</h5>
                 </div>
             </template>
         </UModal>

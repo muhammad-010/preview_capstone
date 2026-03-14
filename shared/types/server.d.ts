@@ -109,6 +109,7 @@ export type ParticipantCheckInResult = Result<{
     participant: {
         participant_id: number
         name: string
+        max_attendance: number
     }
     confirmation_attendance: boolean
 }>
