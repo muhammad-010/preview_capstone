@@ -186,6 +186,13 @@ function useColumns() {
             cell: ({ row }) => {
                 return h('div', {}, [
                     h('span', { class: 'font-semibold' }, row.original.name),
+                    ...(row.original.max_attendance
+                        ? [
+                                h('br'),
+                                h('span', { class: 'text-sm' }, `${row.original.max_attendance} Attendance${row.original.max_attendance > 1 ? 's' : ''}`),
+                            ]
+                        : []
+                    ),
                 ])
             },
         },
@@ -195,15 +202,6 @@ function useColumns() {
             cell: ({ row }) => {
                 return h('div', {}, [
                     h('span', {}, row.original.email || ''),
-                ])
-            },
-        },
-        {
-            accessorKey: 'max_attendance',
-            header: 'Max Attendance',
-            cell: ({ row }) => {
-                return h('div', {}, [
-                    h('span', {}, row.original.max_attendance || '-'),
                 ])
             },
         },
