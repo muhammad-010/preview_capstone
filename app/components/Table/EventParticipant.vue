@@ -186,6 +186,13 @@ function useColumns() {
             cell: ({ row }) => {
                 return h('div', {}, [
                     h('span', { class: 'font-semibold' }, row.original.name),
+                    ...(row.original.max_attendance
+                        ? [
+                                h('br'),
+                                h('span', { class: 'text-sm' }, `${row.original.max_attendance} Attendance${row.original.max_attendance > 1 ? 's' : ''}`),
+                            ]
+                        : []
+                    ),
                 ])
             },
         },
