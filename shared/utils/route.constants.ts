@@ -19,6 +19,7 @@ export const APP_TENANT_ADMIN_ROUTES: string[] = [
 export const APP_POC_ADMIN_ROUTES: string[] = [
     '/my-events',
     '/scan-page',
+    '/check-in',
 ]
 
 export const APP_ROUTES: AppRoute[] = [
@@ -188,6 +189,26 @@ export const APP_ROUTES: AppRoute[] = [
             },
         ],
     },
+    {
+        title: 'Check In',
+        label: 'Check In',
+        icon: 'lucide:scan-qr-code',
+        to: '/check-in',
+        render: false,
+        disabled: true,
+        child: [
+            {
+                title: 'Check-In Event',
+                description: 'Check-in attendee by scanning their QR Code',
+                label: 'Check-In Event',
+                to: '/check-in/:event_id',
+                render: false,
+                disabled: true,
+            },
+        ],
+    },
+
+    // OBSOLETE IN FAVOR OF /check-in
     {
         title: 'Scan Page',
         label: 'Scan Page',

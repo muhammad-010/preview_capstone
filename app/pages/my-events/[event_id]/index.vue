@@ -160,7 +160,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                             icon="lucide:scan-qr-code"
                             class="cursor-pointer"
                             :disabled="!SCANNABLE_EVENT.includes(event.status)"
-                            :to="`/scan-page/${event.event_id}`"
+                            :to="`/check-in/${event.event_id}`"
                         >
                             Start Scanning
                         </UButton>
