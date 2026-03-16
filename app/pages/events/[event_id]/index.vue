@@ -198,7 +198,7 @@ async function useList(tId: number, id: number) {
     const limit = ref(5)
     const selectedIds = ref<number[]>([])
     const filterDialog = ref(false)
-    const filterCustomAttribute = ref<CustomAttribute[]>([...customAttributes.value])
+    const filterCustomAttribute = ref<CustomAttribute[]>(structuredClone(customAttributes.value))
 
     const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
