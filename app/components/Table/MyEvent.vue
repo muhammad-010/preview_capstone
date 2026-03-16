@@ -32,7 +32,7 @@ function useColumns() {
                     color: 'primary',
                     icon: 'lucide:scan-qr-code',
                     disabled: !SCANNABLE_EVENT.includes(event.status),
-                    to: `/scan-page/${event.event_id}`,
+                    to: `/check-in/${event.event_id}`,
                 }),
             )
         }
