@@ -304,7 +304,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     <UForm
                         :validate="validateConfirmAttendance"
                         :state="state"
-                        class="flex flex-col justify-center"
+                        class="flex flex-col items-center"
                         @submit="confirmAttendance"
                     >
                         <UFormField
