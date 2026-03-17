@@ -15,7 +15,7 @@ const bg = {
         class="relative flex flex-col justify-center items-center h-screen max-w-full overflow-hidden"
     >
         <div
-            class="absolute inset-0 bg-cover bg-center blur-2xl scale-110"
+            class="absolute inset-0 bg-cover bg-center blur-2xl brightness-75 scale-110"
             :class="['bg-(image:--bg) lg:bg-(image:--lg-bg)']"
             :style="{
                 '--bg': `url(${bg.portrait})`,
