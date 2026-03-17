@@ -341,13 +341,11 @@ function useColumns() {
             header: 'Action',
             cell: ({ row }) => {
                 return h('div', { class: 'flex gap-2' }, [
-                    ...(row.original.status !== PARTICIPANT_STATUS_CHECKED_IN
-                        ? [h(UButton, {
-                                icon: 'lucide:scan-qr-code',
-                                onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
-                            })]
-                        : []
-                    ),
+                    h(UButton, {
+                        icon: 'lucide:circle-check',
+                        disabled: row.original.status === PARTICIPANT_STATUS_CHECKED_IN,
+                        onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
+                    }),
                     h(UButton, {
                         color: 'neutral',
                         variant: 'ghost',
