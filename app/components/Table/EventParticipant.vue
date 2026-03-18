@@ -6,8 +6,8 @@ type ToggleAllPageRowsSelected = (value?: boolean | undefined) => void
 
 const { $api } = useNuxtApp()
 const props = defineProps<{
-    data: Participant[]
     eventId: number
+    data: Participant[]
     total: number
     pending?: boolean
     withPagination?: boolean
@@ -16,6 +16,7 @@ const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
 const selected = defineModel<number[]>('selected', { default: () => [] })
 const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attribute', { default: () => [] })
+const filterCustomAttributeField = ref(structuredClone(toRaw(unref(filterCustomAttribute))))
 const cleanedFilterCustomAttribute = computed(() => formatCleanCustomAttribute(filterCustomAttribute.value))
 const filterCustomAttributeButtonLabel = computed(() => cleanedFilterCustomAttribute.value.map(attr => `${attr.name}: ${attr.value}`).join(', '))
 const emit = defineEmits([EMIT_TABLE_REFRESH])
@@ -77,22 +78,26 @@ function confirmResetSelection() {
     resetSelectionConfirmation.value = false
 }
 
+function refreshFilterCustomAttributeDialog() {
+    filterCustomAttribute.value = structuredClone(toRaw(unref(filterCustomAttributeField.value)))
+    emit(EMIT_TABLE_REFRESH)
+}
+
 function clearFilterCustomAttributeDialog(refresh: boolean) {
-    for (let index = 0; index < filterCustomAttribute.value.length; index++) {
-        filterCustomAttribute.value![index]!.value = ''
+    for (let index = 0; index < filterCustomAttributeField.value.length; index++) {
+        filterCustomAttributeField.value![index]!.value = ''
     }
-    if (refresh) emit(EMIT_TABLE_REFRESH)
+    if (refresh) refreshFilterCustomAttributeDialog()
 }
 
 function closeFilterCustomAttributeDialog(close: () => void) {
-    clearFilterCustomAttributeDialog(false)
     filterCustomAttributeDialog.value = false
     close()
 }
 
 function applyFilterCustomAttributeDialog(close: () => void) {
     close()
-    emit(EMIT_TABLE_REFRESH)
+    refreshFilterCustomAttributeDialog()
 }
 
 function setDeleteTarget(id: number, name: string) {
@@ -412,6 +417,7 @@ const { columns, tableRef } = useColumns()
                     variant="outline"
                     size="xs"
                     :label="filterCustomAttributeButtonLabel"
+                    @click="filterCustomAttributeDialog = true"
                 />
                 <UButton
                     v-if="cleanedFilterCustomAttribute.length"
@@ -550,24 +556,24 @@ const { columns, tableRef } = useColumns()
 
             <template #body>
                 <UFormField
-                    v-for="(item, index) in filterCustomAttribute"
+                    v-for="(item, index) in filterCustomAttributeField"
                     :key="index"
                     :label="item.name"
                     class="mb-4 w-full"
                 >
                     <UInput
-                        v-model="filterCustomAttribute![index]!.value"
+                        v-model="filterCustomAttributeField![index]!.value"
                         type="string"
                         class="w-full"
                     >
                         <template #trailing>
                             <UButton
-                                v-if="filterCustomAttribute![index]!.value"
+                                v-if="filterCustomAttributeField![index]!.value"
                                 color="neutral"
                                 variant="link"
                                 size="sm"
                                 icon="lucide:x"
-                                @click="filterCustomAttribute![index]!.value = ''"
+                                @click="filterCustomAttributeField![index]!.value = ''"
                             />
                         </template>
                     </UInput>
