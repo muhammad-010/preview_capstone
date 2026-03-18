@@ -417,6 +417,7 @@ const { columns, tableRef } = useColumns()
                     variant="outline"
                     size="xs"
                     :label="filterCustomAttributeButtonLabel"
+                    @click="filterCustomAttributeDialog = true"
                 />
                 <UButton
                     v-if="cleanedFilterCustomAttribute.length"
