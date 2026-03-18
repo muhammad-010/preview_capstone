@@ -18,6 +18,7 @@ const tabs = [
         slot: 'attendees',
     },
 ]
+const activeTab = useState(STATE_EVENT_DETAIL_ACTIVE_TAB, () => '0')
 const toast = useToast()
 const deleteCustomAttributeConfirmation = ref(false)
 const deleteCustomAttributeTarget = ref<CustomAttribute | null>(null)
@@ -513,6 +514,7 @@ async function sendSelectedQr() {
 <template>
     <div class="my-8">
         <UTabs
+            v-model="activeTab"
             :items="tabs"
             variant="link"
             size="xl"
