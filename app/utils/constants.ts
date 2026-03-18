@@ -21,6 +21,7 @@ export const STATE_LAYOUT_PAGE_BREADCRUMB = 'layout:pageBreadCrumb'
 export const STATE_USER_NAVIGATION = 'user:navigation'
 export const STATE_USER_ACTIVE_TENANT_INDEX = 'user:activeTenantIndex'
 export const STATE_CHECK_IN_EVENT_ID = 'checkIn:eventId'
+export const STATE_EVENT_DETAIL_ACTIVE_TAB = 'eventDetail:activeTab'
 
 // PAGINATION LIMIT
 export const PAGINATION_LIMIT = [5, 10, 25, 50]

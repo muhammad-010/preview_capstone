@@ -18,6 +18,7 @@ const tabs = [
         slot: 'attendees',
     },
 ]
+const activeTab = useState(STATE_EVENT_DETAIL_ACTIVE_TAB, () => '0')
 const toast = useToast()
 const deleteCustomAttributeConfirmation = ref(false)
 const deleteCustomAttributeTarget = ref<CustomAttribute | null>(null)
@@ -197,7 +198,6 @@ async function useList(tId: number, id: number) {
     const page = ref(1)
     const limit = ref(5)
     const selectedIds = ref<number[]>([])
-    const filterDialog = ref(false)
     const filterCustomAttribute = ref<CustomAttribute[]>(structuredClone(customAttributes.value))
 
     const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/participant`, {
@@ -236,22 +236,11 @@ async function useList(tId: number, id: number) {
         refresh()
     }
 
-    function applyFilter(close: () => void) {
-        close()
-        refresh()
-    }
-
-    function closeFilter(close: () => void) {
-        close()
-        filterCustomAttribute.value = filterCustomAttribute.value.map(attr => ({ ...attr, value: '' }))
-    }
-
     return {
         search,
         page,
         limit,
         selectedIds,
-        filterDialog,
         filterCustomAttribute,
         toast,
         participants,
@@ -260,8 +249,6 @@ async function useList(tId: number, id: number) {
         refresh,
         searchParticipant,
         clearSearch,
-        applyFilter,
-        closeFilter,
     }
 }
 
@@ -450,7 +437,6 @@ const [
         page,
         limit,
         selectedIds,
-        filterDialog,
         filterCustomAttribute,
         participants,
         total,
@@ -458,8 +444,6 @@ const [
         refresh: refreshParticipants,
         searchParticipant,
         clearSearch,
-        applyFilter,
-        closeFilter,
     },
 
     {
@@ -530,6 +514,7 @@ async function sendSelectedQr() {
 <template>
     <div class="my-8">
         <UTabs
+            v-model="activeTab"
             :items="tabs"
             variant="link"
             size="xl"
@@ -760,15 +745,6 @@ async function sendSelectedQr() {
                                     <UButton
                                         color="neutral"
                                         variant="outline"
-                                        icon="lucide:filter"
-                                        class="cursor-pointer"
-                                        @click="filterDialog = true"
-                                    >
-                                        Filter
-                                    </UButton>
-                                    <UButton
-                                        color="neutral"
-                                        variant="outline"
                                         icon="lucide:download"
                                         class="cursor-pointer"
                                     >
@@ -817,6 +793,7 @@ async function sendSelectedQr() {
                             v-model:limit="limit"
                             v-model:page="page"
                             v-model:selected="selectedIds"
+                            v-model:filter-custom-attribute="filterCustomAttribute"
                             :event-id="id"
                             :data="participants"
                             :total="total"
@@ -828,76 +805,6 @@ async function sendSelectedQr() {
                 </div>
             </template>
         </UTabs>
-
-        <UModal v-model:open="filterDialog">
-            <template #header="{ close }">
-                <div class="flex justify-between items-center w-full">
-                    <h5>Filter Attendees</h5>
-
-                    <UButton
-                        color="neutral"
-                        variant="ghost"
-                        icon="lucide:x"
-                        @click="() => closeFilter(close)"
-                    />
-                </div>
-            </template>
-
-            <template #body>
-                <DetailSectionTitle
-                    title="Custom Attributes"
-                    with-separator
-                />
-
-                <div class="px-4">
-                    <UFormField
-                        v-for="(item, index) in filterCustomAttribute"
-                        :key="index"
-                        :label="item.name"
-                        class="mb-4 w-full"
-                    >
-                        <UInput
-                            v-model="filterCustomAttribute![index]!.value"
-                            type="string"
-                            class="w-full"
-                        >
-                            <template #trailing>
-                                <UButton
-                                    v-if="filterCustomAttribute![index]!.value"
-                                    color="neutral"
-                                    variant="link"
-                                    size="sm"
-                                    icon="lucide:x"
-                                    @click="filterCustomAttribute![index]!.value = ''"
-                                />
-                            </template>
-                        </UInput>
-                    </UFormField>
-                </div>
-            </template>
-
-            <template #footer="{ close }">
-                <div class="flex justify-end items-center w-full">
-                    <div class="flex gap-2">
-                        <UButton
-                            color="neutral"
-                            variant="outline"
-                            icon="lucide:x"
-                            class="cursor-pointer"
-                            label="Cancel"
-                            @click="() => closeFilter(close)"
-                        />
-                        <UButton
-                            color="primary"
-                            icon="lucide:save"
-                            class="cursor-pointer"
-                            label="Apply Filter"
-                            @click="() => applyFilter(close)"
-                        />
-                    </div>
-                </div>
-            </template>
-        </UModal>
 
         <UModal v-model:open="importDialog">
             <template #header="{ close }">

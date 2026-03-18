@@ -15,12 +15,16 @@ const props = defineProps<{
 const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
 const selected = defineModel<number[]>('selected', { default: () => [] })
+const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attribute', { default: () => [] })
+const cleanedFilterCustomAttribute = computed(() => formatCleanCustomAttribute(filterCustomAttribute.value))
+const filterCustomAttributeButtonLabel = computed(() => cleanedFilterCustomAttribute.value.map(attr => `${attr.name}: ${attr.value}`).join(', '))
 const emit = defineEmits([EMIT_TABLE_REFRESH])
 const toast = useToast()
 const { tenantId } = useUserState()
 const rowSelection = ref<Record<string, boolean>>({})
 const selectAll = ref(false)
 const resetSelectionConfirmation = ref(false)
+const filterCustomAttributeDialog = ref(false)
 const deleteConfirmation = ref(false)
 const deleteTarget = ref({
     id: 0,
@@ -71,6 +75,24 @@ function confirmResetSelection() {
     clearSelection(false)
     resetFunction.value = undefined
     resetSelectionConfirmation.value = false
+}
+
+function clearFilterCustomAttributeDialog(refresh: boolean) {
+    for (let index = 0; index < filterCustomAttribute.value.length; index++) {
+        filterCustomAttribute.value![index]!.value = ''
+    }
+    if (refresh) emit(EMIT_TABLE_REFRESH)
+}
+
+function closeFilterCustomAttributeDialog(close: () => void) {
+    clearFilterCustomAttributeDialog(false)
+    filterCustomAttributeDialog.value = false
+    close()
+}
+
+function applyFilterCustomAttributeDialog(close: () => void) {
+    close()
+    emit(EMIT_TABLE_REFRESH)
 }
 
 function setDeleteTarget(id: number, name: string) {
@@ -341,13 +363,13 @@ function useColumns() {
             header: 'Action',
             cell: ({ row }) => {
                 return h('div', { class: 'flex gap-2' }, [
-                    ...(row.original.status !== PARTICIPANT_STATUS_CHECKED_IN
-                        ? [h(UButton, {
-                                icon: 'lucide:scan-qr-code',
-                                onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
-                            })]
-                        : []
-                    ),
+                    h(UButton, {
+                        color: row.original.status === PARTICIPANT_STATUS_CHECKED_IN ? 'neutral' : 'primary',
+                        variant: row.original.status === PARTICIPANT_STATUS_CHECKED_IN ? 'outline' : 'solid',
+                        disabled: row.original.status === PARTICIPANT_STATUS_CHECKED_IN,
+                        icon: 'lucide:circle-check',
+                        onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
+                    }),
                     h(UButton, {
                         color: 'neutral',
                         variant: 'ghost',
@@ -373,6 +395,35 @@ const { columns, tableRef } = useColumns()
 
 <template>
     <div>
+        <div class="flex flex-wrap gap-2 mb-4">
+            <span>Filter:</span>
+            <UFieldGroup>
+                <UButton
+                    color="neutral"
+                    variant="subtle"
+                    size="xs"
+                    :icon="`lucide:${cleanedFilterCustomAttribute.length ? 'pencil' : 'plus'}`"
+                    label="Metadata"
+                    @click="filterCustomAttributeDialog = true"
+                />
+                <UButton
+                    v-if="cleanedFilterCustomAttribute.length"
+                    color="neutral"
+                    variant="outline"
+                    size="xs"
+                    :label="filterCustomAttributeButtonLabel"
+                />
+                <UButton
+                    v-if="cleanedFilterCustomAttribute.length"
+                    color="error"
+                    variant="subtle"
+                    size="xs"
+                    icon="lucide:x"
+                    @click="() => clearFilterCustomAttributeDialog(true)"
+                />
+            </UFieldGroup>
+        </div>
+
         <UTable
             ref="tableRef"
             v-model:row-selection="rowSelection"
@@ -479,6 +530,69 @@ const { columns, tableRef } = useColumns()
                             class="cursor-pointer"
                         />
                     </UForm>
+                </div>
+            </template>
+        </UModal>
+
+        <UModal v-model:open="filterCustomAttributeDialog">
+            <template #header="{ close }">
+                <div class="flex justify-between items-center w-full">
+                    <h5>Filter Metadata</h5>
+
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="lucide:x"
+                        @click="() => closeFilterCustomAttributeDialog(close)"
+                    />
+                </div>
+            </template>
+
+            <template #body>
+                <UFormField
+                    v-for="(item, index) in filterCustomAttribute"
+                    :key="index"
+                    :label="item.name"
+                    class="mb-4 w-full"
+                >
+                    <UInput
+                        v-model="filterCustomAttribute![index]!.value"
+                        type="string"
+                        class="w-full"
+                    >
+                        <template #trailing>
+                            <UButton
+                                v-if="filterCustomAttribute![index]!.value"
+                                color="neutral"
+                                variant="link"
+                                size="sm"
+                                icon="lucide:x"
+                                @click="filterCustomAttribute![index]!.value = ''"
+                            />
+                        </template>
+                    </UInput>
+                </UFormField>
+            </template>
+
+            <template #footer="{ close }">
+                <div class="flex justify-end items-center w-full">
+                    <div class="flex gap-2">
+                        <UButton
+                            color="neutral"
+                            variant="outline"
+                            icon="lucide:x"
+                            class="cursor-pointer"
+                            label="Cancel"
+                            @click="() => closeFilterCustomAttributeDialog(close)"
+                        />
+                        <UButton
+                            color="primary"
+                            icon="lucide:save"
+                            class="cursor-pointer"
+                            label="Apply Filter"
+                            @click="() => applyFilterCustomAttributeDialog(close)"
+                        />
+                    </div>
                 </div>
             </template>
         </UModal>
