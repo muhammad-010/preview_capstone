@@ -562,6 +562,20 @@ async function sendSelectedQr() {
                                 </UButton> -->
 
                                     <UButton
+                                        color="neutral"
+                                        variant="outline"
+                                        icon="lucide:ticket"
+                                        class="cursor-pointer"
+                                        :to="`/guest/show-ticket/${event.event_id}`"
+                                        @click="navigateTo(`/guest/show-ticket/${event.event_id}`, {
+                                            external: true,
+                                            open: { target: '_blank' },
+                                        })"
+                                    >
+                                        Open Public Ticketing Page
+                                    </UButton>
+
+                                    <UButton
                                         color="primary"
                                         icon="lucide:pencil"
                                         class="cursor-pointer"

@@ -170,6 +170,7 @@ export interface Participant {
     latest_invitation_log?: ParticipantInvitationLog | null
 
     phone?: Phone
+    ticket_url?: string
 }
 
 export interface ParticipantForm {

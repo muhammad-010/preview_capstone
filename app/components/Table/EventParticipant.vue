@@ -324,10 +324,12 @@ function useColumns() {
         },
         {
             accessorKey: 'email',
-            header: 'Email',
+            header: 'Contact',
             cell: ({ row }) => {
                 return h('div', {}, [
                     h('span', {}, row.original.email || ''),
+                    h('br'),
+                    h('span', {}, row.original.phone_number || ''),
                 ])
             },
         },
