@@ -375,39 +375,15 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             </template>
         </UModal>
 
-        <UModal v-model:open="checkInSuccessDialog">
-            <template #content>
-                <div class="flex flex-col justify-center items-center text-center p-12">
-                    <UIcon
-                        name="lucide:circle-check"
-                        class="text-success size-32 mb-8"
-                    />
-                    <div class="mb-6">
-                        <h2>
-                            Welcome to {{ event.name }}, {{ participant.name }}!
-                        </h2>
-                    </div>
-                    <h5>We’re excited to have you join us.</h5>
-                    <h5>Enjoy the event, and don’t forget to connect with new friends!</h5>
-                </div>
-            </template>
-        </UModal>
+        <ModalCheckInSuccess
+            v-model:open="checkInSuccessDialog"
+            :event="event.name"
+            :participant="participant.name"
+        />
 
-        <UModal v-model:open="scanFailedDialog">
-            <template #content>
-                <div class="flex flex-col justify-center items-center text-center p-12">
-                    <UIcon
-                        name="lucide:circle-x"
-                        class="text-error size-32 mb-8"
-                    />
-                    <div class="mb-6">
-                        <h2>
-                            {{ errorMessage }}
-                        </h2>
-                    </div>
-                    <h5>Please check your QR Code and try again.</h5>
-                </div>
-            </template>
-        </UModal>
+        <ModalCheckInFailed
+            v-model:open="scanFailedDialog"
+            :message="errorMessage"
+        />
     </div>
 </template>

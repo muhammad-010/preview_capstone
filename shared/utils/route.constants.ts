@@ -2,6 +2,11 @@ import type { AppRoute } from '../types/app'
 
 export const APP_UNAUTHORIZED_REDIRECT = '/auth/login'
 
+export const APP_PUBLIC_ROUTE: string[] = [
+    '/auth',
+    '/guest',
+]
+
 export const APP_SUPER_ADMIN_ROUTES: string[] = [
     '/dashboard',
     '/tenants',

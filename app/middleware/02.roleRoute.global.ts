@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware((to, _) => {
-    if (to.path === '/' || to.path.startsWith('/auth')) {
+    if (to.path === '/' || APP_PUBLIC_ROUTE.some(path => to.path.startsWith(path))) {
         return
     }
     const firstSegment = `/${to.path.split('/').filter(Boolean)[0]}`

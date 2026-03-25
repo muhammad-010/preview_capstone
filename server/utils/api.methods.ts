@@ -1,7 +1,8 @@
 import { $fetch } from 'ofetch'
 import type { H3Event } from 'h3'
 
-export async function api<T>(
+async function _api<T>(
+    auth: boolean,
     event: H3Event,
     method: string,
     path: string,
@@ -18,11 +19,13 @@ export async function api<T>(
 
     const session = await getUserSession(event)
     const headers = new Headers(options.headers || {})
-    if (session?.secure?.access_token) {
-        headers.set('Authorization', `Bearer ${session.secure.access_token}`)
-    }
-    if (!path.startsWith('/auth')) {
-        const _ = await requireUserSession(event)
+    if (auth) {
+        if (session?.secure?.access_token) {
+            headers.set('Authorization', `Bearer ${session.secure.access_token}`)
+        }
+        if (!path.startsWith('/auth')) {
+            const _ = await requireUserSession(event)
+        }
     }
     return await $fetch.create({
         onResponseError({ response }) {
@@ -45,4 +48,22 @@ export async function api<T>(
         credentials: 'include',
         headers,
     })
+}
+
+export async function apiNoAuth<T>(
+    event: H3Event,
+    method: string,
+    path: string,
+    options: FetchOptions = {},
+): Promise<T> {
+    return await _api(false, event, method, path, options)
+}
+
+export async function api<T>(
+    event: H3Event,
+    method: string,
+    path: string,
+    options: FetchOptions = {},
+): Promise<T> {
+    return await _api(true, event, method, path, options)
 }
