@@ -16,9 +16,26 @@ const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
 const selected = defineModel<number[]>('selected', { default: () => [] })
 const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attribute', { default: () => [] })
+const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
 const filterCustomAttributeField = ref(structuredClone(toRaw(unref(filterCustomAttribute))))
 const cleanedFilterCustomAttribute = computed(() => formatCleanCustomAttribute(filterCustomAttribute.value))
 const filterCustomAttributeButtonLabel = computed(() => cleanedFilterCustomAttribute.value.map(attr => `${attr.name}: ${attr.value}`).join(', '))
+const filterCheckedInItems = [
+    {
+        label: 'All',
+        value: null,
+    },
+    {
+        label: 'Yes',
+        value: true,
+    },
+    {
+        label: 'No',
+        value: false,
+    },
+]
+const filterCheckedInField = ref<boolean | null>(null)
+const filterCheckedInLabel = computed(() => filterCheckedInItems.find(e => e.value === filterCheckedIn.value)?.label || 'Invalid Data')
 const emit = defineEmits([EMIT_TABLE_REFRESH])
 const toast = useToast()
 const { tenantId } = useUserState()
@@ -26,6 +43,7 @@ const rowSelection = ref<Record<string, boolean>>({})
 const selectAll = ref(false)
 const resetSelectionConfirmation = ref(false)
 const filterCustomAttributeDialog = ref(false)
+const filterCheckedInDialog = ref(false)
 const deleteConfirmation = ref(false)
 const deleteTarget = ref({
     id: 0,
@@ -98,6 +116,26 @@ function closeFilterCustomAttributeDialog(close: () => void) {
 function applyFilterCustomAttributeDialog(close: () => void) {
     close()
     refreshFilterCustomAttributeDialog()
+}
+
+function refreshFilterCheckedIn() {
+    filterCheckedIn.value = filterCheckedInField.value
+    emit(EMIT_TABLE_REFRESH)
+}
+
+function clearFilterCheckedIn(refresh: boolean) {
+    filterCheckedInField.value = null
+    if (refresh) refreshFilterCheckedIn()
+}
+
+function closeFilterCheckedInDialog(close: () => void) {
+    filterCheckedInDialog.value = false
+    close()
+}
+
+function applyFilterCheckedInDialog(close: () => void) {
+    close()
+    refreshFilterCheckedIn()
 }
 
 function setDeleteTarget(id: number, name: string) {
@@ -430,6 +468,33 @@ const { columns, tableRef } = useColumns()
                     @click="() => clearFilterCustomAttributeDialog(true)"
                 />
             </UFieldGroup>
+
+            <UFieldGroup>
+                <UButton
+                    color="neutral"
+                    variant="subtle"
+                    size="xs"
+                    :icon="`lucide:${filterCheckedIn !== null ? 'pencil' : 'plus'}`"
+                    label="Checked In"
+                    @click="filterCheckedInDialog = true"
+                />
+                <UButton
+                    v-if="filterCheckedIn !== null"
+                    color="neutral"
+                    variant="outline"
+                    size="xs"
+                    :label="filterCheckedInLabel"
+                    @click="filterCheckedInDialog = true"
+                />
+                <UButton
+                    v-if="filterCheckedIn !== null"
+                    color="error"
+                    variant="subtle"
+                    size="xs"
+                    icon="lucide:x"
+                    @click="clearFilterCheckedIn(true)"
+                />
+            </UFieldGroup>
         </div>
 
         <UTable
@@ -599,6 +664,50 @@ const { columns, tableRef } = useColumns()
                             class="cursor-pointer"
                             label="Apply Filter"
                             @click="() => applyFilterCustomAttributeDialog(close)"
+                        />
+                    </div>
+                </div>
+            </template>
+        </UModal>
+
+        <UModal v-model:open="filterCheckedInDialog">
+            <template #header="{ close }">
+                <div class="flex justify-between items-center w-full">
+                    <h5>Filter Checked In</h5>
+
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="lucide:x"
+                        @click="() => closeFilterCustomAttributeDialog(close)"
+                    />
+                </div>
+            </template>
+
+            <template #body>
+                <URadioGroup
+                    v-model="filterCheckedInField"
+                    :items="filterCheckedInItems"
+                />
+            </template>
+
+            <template #footer="{ close }">
+                <div class="flex justify-end items-center w-full">
+                    <div class="flex gap-2">
+                        <UButton
+                            color="neutral"
+                            variant="outline"
+                            icon="lucide:x"
+                            class="cursor-pointer"
+                            label="Cancel"
+                            @click="() => closeFilterCheckedInDialog(close)"
+                        />
+                        <UButton
+                            color="primary"
+                            icon="lucide:save"
+                            class="cursor-pointer"
+                            label="Apply Filter"
+                            @click="() => applyFilterCheckedInDialog(close)"
                         />
                     </div>
                 </div>

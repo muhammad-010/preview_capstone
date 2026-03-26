@@ -194,11 +194,14 @@ async function useDeleteData(tId: number, id: number) {
 
 async function useList(tId: number, id: number) {
     const search = ref('')
+    const searchPhoneNumber = ref('')
     const query = ref('')
+    const phoneNumber = ref('')
     const page = ref(1)
     const limit = ref(5)
     const selectedIds = ref<number[]>([])
     const filterCustomAttribute = ref<CustomAttribute[]>(structuredClone(toRaw(unref(customAttributes.value))))
+    const filterCheckedIn = ref<boolean | null>(null)
 
     const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/participant`, {
         transform: res => res.data,
@@ -208,12 +211,20 @@ async function useList(tId: number, id: number) {
                 query: query.value,
                 page: page.value,
                 limit: limit.value,
+                ...(filterCheckedIn.value !== null
+                    ? { is_checked_in: filterCheckedIn.value }
+                    : {}
+                ),
                 ...(cleanedFilterCustomAttribute.length
                     ? {
                             custom_attribute_ids: cleanedFilterCustomAttribute.map(attr => attr.custom_attribute_id).join(','),
                             custom_attribute_values: cleanedFilterCustomAttribute.map(attr => attr.value).join(','),
                         }
                     : {}),
+                ...(phoneNumber.value
+                    ? { phone_number: phoneNumber.value }
+                    : {}
+                ),
             }
         }),
         watch: false,
@@ -223,9 +234,69 @@ async function useList(tId: number, id: number) {
     watch(page, () => refresh())
     watch(limit, () => refresh())
 
+    async function exportData() {
+        try {
+            const { data } = await useApi(`/api/tenant/${tId}/event/${id}/participant/export`, {
+                method: 'POST',
+                transform: res => res.data,
+                body: {
+                    query: query.value,
+                    ...(filterCheckedIn.value !== null
+                        ? { is_checked_in: filterCheckedIn.value }
+                        : {}
+                    ),
+                    custom_attribute: [...formatCleanCustomAttribute(filterCustomAttribute.value)],
+                    ...(phoneNumber.value
+                        ? { phone_number: phoneNumber.value }
+                        : {}
+                    ),
+                },
+            })
+            if (data.value && data.value.filepath) {
+                const filename = data.value.filepath.split('/').pop()
+                if (!filename) {
+                    toast.add({
+                        title: 'Error',
+                        description: 'Cannot read filename',
+                        color: 'error',
+                    })
+                    console.error('Export participant error: can\'t read filename')
+                    return
+                }
+                await useDownload(
+                    `/api/${data.value?.filepath}`,
+                    filename,
+                )
+            }
+            else {
+                toast.add({
+                    title: 'Error',
+                    description: 'Cannot read filepath',
+                    color: 'error',
+                })
+                console.error('Export participant error: can\'t read filepath')
+                return
+            }
+        }
+        catch (error) {
+            toast.add({
+                title: 'Error',
+                description: 'Failed to export participant',
+                color: 'error',
+            })
+            console.error('Export participant error', error)
+        }
+    }
+
     function searchParticipant() {
         page.value = 1
         query.value = search.value
+        refresh()
+    }
+
+    function searchParticipantPhoneNumber() {
+        page.value = 1
+        phoneNumber.value = searchPhoneNumber.value
         refresh()
     }
 
@@ -236,19 +307,31 @@ async function useList(tId: number, id: number) {
         refresh()
     }
 
+    function clearSearchPhoneNumber() {
+        page.value = 1
+        searchPhoneNumber.value = ''
+        query.value = search.value
+        refresh()
+    }
+
     return {
         search,
+        searchPhoneNumber,
         page,
         limit,
         selectedIds,
         filterCustomAttribute,
+        filterCheckedIn,
         toast,
         participants,
         total,
         pending,
         refresh,
+        exportData,
         searchParticipant,
+        searchParticipantPhoneNumber,
         clearSearch,
+        clearSearchPhoneNumber,
     }
 }
 
@@ -434,16 +517,21 @@ const [
 
     {
         search,
+        searchPhoneNumber,
         page,
         limit,
         selectedIds,
         filterCustomAttribute,
+        filterCheckedIn,
         participants,
         total,
         pending,
         refresh: refreshParticipants,
+        exportData,
         searchParticipant,
+        searchParticipantPhoneNumber,
         clearSearch,
+        clearSearchPhoneNumber,
     },
 
     {
@@ -747,12 +835,23 @@ async function sendSelectedQr() {
                     <UCard>
                         <template #header>
                             <div class="card-toolbar">
-                                <InputSearch
-                                    v-model="search"
-                                    class="card-toolbar-left"
-                                    @search="searchParticipant"
-                                    @clear="clearSearch"
-                                />
+                                <div class="card-toolbar-left-wrapper">
+                                    <InputSearch
+                                        v-model="search"
+                                        class="card-toolbar-left"
+                                        placeholder="Search Name"
+                                        @search="searchParticipant"
+                                        @clear="clearSearch"
+                                    />
+
+                                    <InputSearch
+                                        v-model="searchPhoneNumber"
+                                        class="card-toolbar-left"
+                                        placeholder="Search Phone Number"
+                                        @search="searchParticipantPhoneNumber"
+                                        @clear="clearSearchPhoneNumber"
+                                    />
+                                </div>
 
                                 <div class="card-toolbar-actions">
                                     <UButton
@@ -760,6 +859,7 @@ async function sendSelectedQr() {
                                         variant="outline"
                                         icon="lucide:download"
                                         class="cursor-pointer"
+                                        @click="exportData"
                                     >
                                         Export
                                     </UButton>
@@ -807,6 +907,7 @@ async function sendSelectedQr() {
                             v-model:page="page"
                             v-model:selected="selectedIds"
                             v-model:filter-custom-attribute="filterCustomAttribute"
+                            v-model:filter-checked-in="filterCheckedIn"
                             :event-id="id"
                             :data="participants"
                             :total="total"
