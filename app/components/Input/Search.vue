@@ -12,7 +12,7 @@ const emit = defineEmits([EMIT_INPUT_SEARCH, EMIT_INPUT_CLEAR])
             v-model="model"
             class="max-lg:w-full"
             type="text"
-            placeholder="Search"
+            :placeholder="placeholder ?? 'Search'"
             :ui="{ trailing: 'pe-1' }"
             @keyup.enter="emit(EMIT_INPUT_SEARCH)"
         >

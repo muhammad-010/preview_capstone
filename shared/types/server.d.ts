@@ -114,6 +114,17 @@ export type ParticipantCheckInResult = Result<{
     confirmation_attendance: boolean
 }>
 
+export type ParticipantExportRequest = {
+    query: string
+    custom_attribute?: CustomAttribute[]
+    is_checked_in?: boolean
+    phone_number?: string
+}
+
+export type ParticipantExportResult = Result<{
+    filepath: string
+}>
+
 // USERS
 
 export type TenantMemberListresult = Result<
