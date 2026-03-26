@@ -13,6 +13,7 @@ export const EMIT_MODAL_CANCEL = 'cancel'
 export const EMIT_TABLE_REFRESH = 'refresh'
 export const EMIT_QR_DETECT = 'qr-detect'
 export const EMIT_LOTTERY_DONE = 'lottery-done'
+export const EMIT_MODAL_SELECT = 'select'
 
 // STATE
 export const STATE_LAYOUT_PAGE_TITLE = 'layout:pageTitle'
@@ -40,5 +41,9 @@ export const SCANNABLE_EVENT = [
 export const MAX_PHONE_NUMBER = 13
 export const PHONE_NUMBER_PLACEHOLDER = '08xxx'
 
-// DEFAULT_ERROR_MESSAGE
+// DEFAULT ERROR MESSAGE
 export const ERROR_SCAN_QR_MESSAGE = 'Failed To Scan QR Code'
+
+// CHECK IN METHOD
+export const CHECK_IN_METHOD_QR = 'check-in-qr'
+export const CHECK_IN_METHOD_MANUAL = 'check-in-manual'
