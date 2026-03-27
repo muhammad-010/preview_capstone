@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { FetchError } from 'ofetch'
 
+const { $api } = useNuxtApp()
 const route = useRoute()
 const id = Number(route.params.event_id)
 const errorMessage = ref('')
@@ -21,22 +22,23 @@ async function selectParticipant(participant: Participant | undefined) {
     if (!participant) return
 
     selectedParticipant.value = participant
-    await loadTicket(selectedParticipant.value?.ticket_url || '', selectedParticipant.value.participant_id || 0, true)
+    await loadTicket(selectedParticipant.value?.ticket_path || '', selectedParticipant.value.participant_id || 0, true)
 }
 
-async function loadTicket(url: string, pId: number, reload: boolean) {
+async function loadTicket(filepath: string, pId: number, reload: boolean) {
     if (!import.meta.client) {
         return
     }
-    else if (!url) {
-        openFailedDialog('Invalid url')
+    else if (!filepath) {
+        console.log(filepath)
+        openFailedDialog('Invalid ticket filepath')
         return
     }
 
     ticketDialog.value = true
     ticketLoading.value = true
     try {
-        const blob = await $fetch<Blob>(url, {
+        const blob = await $api<Blob>(`/api/${filepath}`, {
             responseType: 'blob',
         })
         ticketBlob.value = blob
@@ -45,7 +47,7 @@ async function loadTicket(url: string, pId: number, reload: boolean) {
     catch (error) {
         if (error instanceof FetchError && error.response?.status === 404 && pId && reload) {
             console.log('ticket not found, reloading once')
-            await reloadTicket(url, pId)
+            await reloadTicket(filepath, pId)
         }
         else {
             ticketError.value = true
@@ -56,11 +58,11 @@ async function loadTicket(url: string, pId: number, reload: boolean) {
     }
 }
 
-async function reloadTicket(url: string, pId: number) {
+async function reloadTicket(filepath: string, pId: number) {
     if (!import.meta.client) {
         return
     }
-    else if (!url) {
+    else if (!filepath) {
         openFailedDialog('Invalid url')
         return
     }
@@ -70,10 +72,10 @@ async function reloadTicket(url: string, pId: number) {
     }
 
     try {
-        await $fetch(`/api/public/event/${id}/participant/${pId}/invitation/print`, {
+        await $api(`/api/public/event/${id}/participant/${pId}/invitation/print`, {
             method: 'POST',
         })
-        await loadTicket(url, pId, false)
+        await loadTicket(filepath, pId, false)
     }
     catch {
         ticketError.value = true
