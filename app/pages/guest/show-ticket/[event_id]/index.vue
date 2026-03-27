@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Participant } from '~~/shared/types/data'
+import { FetchError } from 'ofetch'
 
 const route = useRoute()
 const id = Number(route.params.event_id)
@@ -21,10 +21,10 @@ async function selectParticipant(participant: Participant | undefined) {
     if (!participant) return
 
     selectedParticipant.value = participant
-    await loadTicket(selectedParticipant.value?.ticket_url || '')
+    await loadTicket(selectedParticipant.value?.ticket_url || '', selectedParticipant.value.participant_id || 0, true)
 }
 
-async function loadTicket(url: string) {
+async function loadTicket(url: string, pId: number, reload: boolean) {
     if (!import.meta.client) {
         return
     }
@@ -42,11 +42,41 @@ async function loadTicket(url: string) {
         ticketBlob.value = blob
         ticketUrl.value = URL.createObjectURL(blob)
     }
-    catch {
-        ticketError.value = true
+    catch (error) {
+        if (error instanceof FetchError && error.response?.status === 404 && pId && reload) {
+            console.log('ticket not found, reloading once')
+            await reloadTicket(url, pId)
+        }
+        else {
+            ticketError.value = true
+        }
     }
     finally {
         ticketLoading.value = false
+    }
+}
+
+async function reloadTicket(url: string, pId: number) {
+    if (!import.meta.client) {
+        return
+    }
+    else if (!url) {
+        openFailedDialog('Invalid url')
+        return
+    }
+    else if (!pId) {
+        openFailedDialog('Can not reload ticket, please contact admin')
+        return
+    }
+
+    try {
+        await $fetch(`/api/public/event/${id}/participant/${pId}/invitation/print`, {
+            method: 'POST',
+        })
+        await loadTicket(url, pId, false)
+    }
+    catch {
+        ticketError.value = true
     }
 }
 
@@ -101,13 +131,13 @@ definePageMeta({
                     <div class="w-full flex justify-center items-center min-h-125">
                         <USkeleton
                             v-if="ticketLoading"
-                            class="h-175 w-full"
+                            class="portrait:h-200 landscape:max-2xl:h-125 max-h-200 w-full"
                         />
 
                         <NuxtImg
                             v-else-if="ticketUrl"
                             :src="ticketUrl"
-                            class="max-h-175 object-contain rounded"
+                            class="portrait:max-h-200 landscape:max-2xl:max-h-125 max-h-200 object-contain rounded"
                         />
 
                         <div
