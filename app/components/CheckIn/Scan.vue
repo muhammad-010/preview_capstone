@@ -57,7 +57,7 @@ function onError(error: Error) {
 <template>
     <div class="flex flex-col items-center gap-4">
         <div
-            class="scanner"
+            class="scanner max-w-80 xl:max-w-100 2xl:max-w-120"
             :class="{
                 'mirror-camera': mirrorCamera,
             }"
@@ -90,7 +90,6 @@ function onError(error: Error) {
 .scanner {
   position: relative;
   width: 100%;
-  max-width: 30rem;
   aspect-ratio: 1 / 1;
   margin: auto;
   overflow: hidden;
