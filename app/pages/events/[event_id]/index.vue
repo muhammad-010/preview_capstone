@@ -236,9 +236,8 @@ async function useList(tId: number, id: number) {
 
     async function exportData() {
         try {
-            const { data } = await useApi(`/api/tenant/${tId}/event/${id}/participant/export`, {
+            const { data } = await $api(`/api/tenant/${tId}/event/${id}/participant/export`, {
                 method: 'POST',
-                transform: res => res.data,
                 body: {
                     query: query.value,
                     ...(filterCheckedIn.value !== null
@@ -252,8 +251,8 @@ async function useList(tId: number, id: number) {
                     ),
                 },
             })
-            if (data.value && data.value.filepath) {
-                const filename = data.value.filepath.split('/').pop()
+            if (data.filepath) {
+                const filename = data.filepath.split('/').pop()
                 if (!filename) {
                     toast.add({
                         title: 'Error',
@@ -264,7 +263,7 @@ async function useList(tId: number, id: number) {
                     return
                 }
                 await useDownload(
-                    `/api/${data.value?.filepath}`,
+                    `/api/${data.filepath}`,
                     filename,
                 )
             }
@@ -406,13 +405,12 @@ async function usePrintQr(tId: number, id: number) {
         const ids = selIds.length > 0 ? selIds : []
         try {
             printLoading.value = true
-            const { data } = await useApi(`/api/tenant/${tId}/event/${id}/participant/invitation/print`, {
+            const { data } = await $api(`/api/tenant/${tId}/event/${id}/participant/invitation/print`, {
                 method: 'POST',
-                transform: res => res.data,
                 body: ids.length ? { participant_ids: ids } : {},
             })
-            if (data.value && data.value.filepath) {
-                const filename = data.value.filepath.split('/').pop()
+            if (data.filepath) {
+                const filename = data.filepath.split('/').pop()
                 if (!filename) {
                     toast.add({
                         title: 'Error',
@@ -423,7 +421,7 @@ async function usePrintQr(tId: number, id: number) {
                     return
                 }
                 await useDownload(
-                    `/api/files/${data.value?.filepath}`,
+                    `/api/files/${data.filepath}`,
                     filename,
                 )
             }
