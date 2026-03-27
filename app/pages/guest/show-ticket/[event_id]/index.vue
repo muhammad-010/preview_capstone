@@ -30,7 +30,6 @@ async function loadTicket(filepath: string, pId: number, reload: boolean) {
         return
     }
     else if (!filepath) {
-        console.log(filepath)
         openFailedDialog('Invalid ticket filepath')
         return
     }
