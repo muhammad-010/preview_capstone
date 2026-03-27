@@ -11,7 +11,7 @@ export default defineEventHandler(async (event): Promise<ParticipantListResult> 
         res.data.participant = res.data.participant.map((participant) => {
             return {
                 ...participant,
-                ticket_url: process.env.EXTERNAL_API_URL + `/files/storage/event/${eventId}/participant/invitation/${participant.participant_id}.png`,
+                ticket_path: `files/storage/event/${eventId}/participant/invitation/${participant.participant_id}.png`,
             }
         })
         return res
