@@ -129,7 +129,7 @@ definePageMeta({
                     <div>
                         <h2>Download {{ selectedParticipant?.name || '' }}'s Ticket</h2>
                     </div>
-                    <div class="w-full flex justify-center items-center min-h-125">
+                    <div class="w-full flex justify-center items-center min-h-125 max-h-200 overflow-y-auto">
                         <USkeleton
                             v-if="ticketLoading"
                             class="portrait:h-200 landscape:max-2xl:h-125 max-h-200 w-full"
