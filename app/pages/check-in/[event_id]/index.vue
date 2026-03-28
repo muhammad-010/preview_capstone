@@ -521,7 +521,15 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             v-model:open="checkInSuccessDialog"
             :event="event.name"
             :participant="participant.name"
-        />
+        >
+            <template #title>
+                <h3>Check In Success!</h3>
+            </template>
+            <template #subtitle>
+                <h2>Name: {{ participant.name }}</h2>
+                <h2>Max Pax: {{ participant.maxAttendance }}</h2>
+            </template>
+        </ModalCheckInSuccess>
 
         <ModalCheckInFailed
             v-model:open="checkInFailedDialog"

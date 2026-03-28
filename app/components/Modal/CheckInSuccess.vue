@@ -17,12 +17,18 @@ const open = defineModel<boolean>('open', { default: false })
                     />
                 </slot>
                 <div class="mb-6">
-                    <h2>
-                        Welcome to {{ event }}, {{ participant }}!
-                    </h2>
+                    <slot name="title">
+                        <h2>
+                            Welcome to {{ event }}, {{ participant }}!
+                        </h2>
+                    </slot>
+                    <br>
+                    <slot name="subtitle" />
                 </div>
-                <h5>We’re excited to have you join us.</h5>
-                <h5>Enjoy the event, and don’t forget to connect with new friends!</h5>
+                <slot name="description">
+                    <h5>We’re excited to have you join us.</h5>
+                    <h5>Enjoy the event, and don’t forget to connect with new friends!</h5>
+                </slot>
             </div>
         </template>
     </UModal>
