@@ -4,7 +4,7 @@ const statusColors = STATUS_COLORS
 defineProps<{
     tenant: Tenant
 }>()
-const emit = defineEmits([EMIT_DETAIL_ACTIVATE, EMIT_DETAIL_DEACTIVATE])
+const emit = defineEmits([EMIT_DETAIL_ACTIVATE, EMIT_DETAIL_DEACTIVATE, EMIT_DETAIL_REFRESH])
 </script>
 
 <template>
@@ -16,19 +16,13 @@ const emit = defineEmits([EMIT_DETAIL_ACTIVATE, EMIT_DETAIL_DEACTIVATE])
                 </div>
 
                 <div class="card-toolbar-actions">
-                    <UButton
-                        v-if="tenant.status === STATUS_INACTIVE"
-                        color="success"
-                        variant="outline"
-                        icon="lucide:check"
-                        class="cursor-pointer"
-                        @click="emit(EMIT_DETAIL_ACTIVATE)"
-                    >
-                        Activate Tenant
-                    </UButton>
+                    <PageTenantActivate
+                        :tenant="tenant"
+                        @refresh="emit(EMIT_DETAIL_REFRESH)"
+                    />
 
                     <UButton
-                        v-else
+                        v-if="tenant.status === STATUS_ACTIVE"
                         color="error"
                         variant="outline"
                         icon="lucide:ban"

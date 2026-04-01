@@ -19,48 +19,6 @@ async function useDetail(id: number) {
     }
 }
 
-async function useActivateData(id: number) {
-    const activateConfirmation = ref(false)
-    const activateLoading = ref(false)
-
-    async function activateData() {
-        try {
-            activateLoading.value = true
-            const data = await $api(`/api/tenant/${id}/status`, {
-                method: 'PATCH',
-                body: {
-                    status: STATUS_ACTIVE,
-                } as ActivateDeactivate,
-            })
-            if (data.success) {
-                activateConfirmation.value = false
-                toast.add({
-                    title: 'Success',
-                    description: 'A tenant has been activated',
-                    color: 'success',
-                })
-            }
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to activate new tenant',
-                color: 'error',
-            })
-            console.error('Activate tenant error', error)
-        }
-        finally {
-            activateLoading.value = false
-        }
-    }
-
-    return {
-        activateConfirmation,
-        activateLoading,
-        activateData,
-    }
-}
-
 async function useDeactivateData(id: number) {
     const deactivateConfirmation = ref(false)
     const deactivateLoading = ref(false)
@@ -110,19 +68,12 @@ const [
     },
 
     {
-        activateLoading,
-        activateConfirmation,
-        activateData,
-    },
-
-    {
         deactivateLoading,
         deactivateConfirmation,
         deactivateData,
     },
 ] = await Promise.all([
     useDetail(id),
-    useActivateData(id),
     useDeactivateData(id),
 ])
 
@@ -135,11 +86,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         label: tenant.value.name,
     },
 }))
-
-async function activateTenant() {
-    await activateData()
-    await refresh()
-}
 
 async function deactivateTenant() {
     await deactivateData()
@@ -165,7 +111,7 @@ async function deactivateTenant() {
 
         <PageTenantDetail
             :tenant="tenant"
-            @activate="activateConfirmation = true"
+            @refresh="refresh"
             @deactivate="deactivateConfirmation = true"
         />
 
@@ -175,14 +121,6 @@ async function deactivateTenant() {
             :body="`Are you sure you want to deactivate ${tenant.name}? All services and access will be disabled for this tenant`"
             :loading="deactivateLoading"
             @confirm="deactivateTenant"
-        />
-
-        <ModalConfirmPositiveAction
-            v-model:open="activateConfirmation"
-            title="Activate Confirmation"
-            :body="`Are you sure you want to activate ${tenant.name}? All services and access will be enabled for this tenant`"
-            :loading="activateLoading"
-            @confirm="activateTenant"
         />
     </div>
 </template>
