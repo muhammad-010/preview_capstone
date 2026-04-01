@@ -222,7 +222,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     </div>
                 </template>
 
-                <TableMyEventParticipant
+                <PageMyEventParticipantTable
                     v-model:limit="limit"
                     v-model:page="page"
                     :event-id="id"

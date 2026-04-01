@@ -16,7 +16,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
 <template>
     <div class="my-8">
-        <FormTenant
+        <PageTenantForm
             :id="tenantId"
             :fields="tenant"
         />

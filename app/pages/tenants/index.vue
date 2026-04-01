@@ -90,7 +90,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 </div>
             </template>
 
-            <TableTenant
+            <PageTenantTable
                 v-model:limit="limit"
                 v-model:page="page"
                 :data="list"

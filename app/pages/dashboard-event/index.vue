@@ -70,7 +70,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     </div>
                 </template>
 
-                <TableEvent
+                <PageEventTable
                     :data="events"
                     :total="total"
                 />

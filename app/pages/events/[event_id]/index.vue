@@ -900,7 +900,7 @@ async function sendSelectedQr() {
                             </div>
                         </template>
 
-                        <TableEventParticipant
+                        <PageParticipantTable
                             v-model:limit="limit"
                             v-model:page="page"
                             v-model:selected="selectedIds"
