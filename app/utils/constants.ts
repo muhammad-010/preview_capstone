@@ -17,6 +17,7 @@ export const EMIT_MODAL_SELECT = 'select'
 export const EMIT_DETAIL_ACTIVATE = 'activate'
 export const EMIT_DETAIL_DEACTIVATE = 'deactivate'
 export const EMIT_DETAIL_DELETE = 'delete'
+export const EMIT_DETAIL_REFRESH = 'refresh'
 
 // STATE
 export const STATE_LAYOUT_PAGE_TITLE = 'layout:pageTitle'
