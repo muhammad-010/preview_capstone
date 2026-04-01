@@ -192,65 +192,6 @@ async function useList(tId: number, id: number) {
     }
 }
 
-async function usePrintQr(tId: number, id: number) {
-    const printConfirmation = ref(false)
-    const printLoading = ref(false)
-
-    async function printQr(selIds: number[]) {
-        const ids = selIds.length > 0 ? selIds : []
-        try {
-            printLoading.value = true
-            const { data } = await $api(`/api/tenant/${tId}/event/${id}/participant/invitation/print`, {
-                method: 'POST',
-                body: ids.length ? { participant_ids: ids } : {},
-            })
-            if (data.filepath) {
-                const filename = data.filepath.split('/').pop()
-                if (!filename) {
-                    toast.add({
-                        title: 'Error',
-                        description: 'Cannot read filename',
-                        color: 'error',
-                    })
-                    console.error('Print QR error: can\'t read filename')
-                    return
-                }
-                await useDownload(
-                    `/api/files/${data.filepath}`,
-                    filename,
-                )
-            }
-            else {
-                toast.add({
-                    title: 'Error',
-                    description: 'Cannot read filepath',
-                    color: 'error',
-                })
-                console.error('Print QR error: can\'t read filepath')
-                return
-            }
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to print QR',
-                color: 'error',
-            })
-            console.error('Print QR error', error)
-        }
-        finally {
-            printConfirmation.value = false
-            printLoading.value = false
-        }
-    }
-
-    return {
-        printConfirmation,
-        printLoading,
-        printQr,
-    }
-}
-
 async function useSendQr(tId: number, id: number) {
     const sendConfirmation = ref(false)
     const sendLoading = ref(false)
@@ -320,12 +261,6 @@ const [
     },
 
     {
-        printConfirmation,
-        printLoading,
-        printQr,
-    },
-
-    {
         sendConfirmation,
         sendLoading,
         sendChannels,
@@ -335,7 +270,6 @@ const [
 ] = await Promise.all([
     useDetail(tenantId.value, id),
     useList(tenantId.value, id),
-    usePrintQr(tenantId.value, id),
     useSendQr(tenantId.value, id),
 ])
 
@@ -355,11 +289,6 @@ async function refreshAll() {
         refreshDetail(),
         refreshParticipants(),
     ])
-}
-
-async function printSelectedQr() {
-    await printQr(selectedIds.value)
-    await refreshAll()
 }
 
 async function sendSelectedQr() {
@@ -449,16 +378,14 @@ async function sendSelectedQr() {
                                     <PageEventImport
                                         :tenant-id="tenantId"
                                         :event-id="id"
+                                        @refresh="refreshAll"
                                     />
-                                    <UButton
-                                        color="neutral"
-                                        variant="outline"
-                                        icon="lucide:qr-code"
-                                        class="cursor-pointer"
-                                        @click="printConfirmation = true"
-                                    >
-                                        {{ `Print QR ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
-                                    </UButton>
+                                    <PageEventPrintQr
+                                        :tenant-id="tenantId"
+                                        :event-id="id"
+                                        :selected-ids="selectedIds"
+                                        @refresh="refreshAll"
+                                    />
                                     <UButton
                                         color="neutral"
                                         variant="outline"
@@ -497,15 +424,6 @@ async function sendSelectedQr() {
                 </div>
             </template>
         </UTabs>
-
-        <ModalConfirmNeutralAction
-            v-model:open="printConfirmation"
-            title="Print QR Confirmation"
-            :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
-            confirm-label="Yes, Print The QR"
-            :loading="printLoading"
-            @confirm="printSelectedQr"
-        />
 
         <ModalConfirmNeutralAction
             v-model:open="sendConfirmation"
