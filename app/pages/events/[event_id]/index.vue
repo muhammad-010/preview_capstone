@@ -192,69 +192,6 @@ async function useList(tId: number, id: number) {
     }
 }
 
-async function useImportFile(tId: number, id: number) {
-    const importDialog = ref(false)
-    const downloadLoading = ref(false)
-    const uploadLoading = ref(false)
-    const uploadFile = ref<File | null>(null)
-
-    async function downloadTemplate() {
-        try {
-            downloadLoading.value = true
-            await useDownload(
-                `/api/files/${FILE_IMPORT_PARTICIPANT}`,
-                FILE_IMPORT_PARTICIPANT,
-            )
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to download template',
-                color: 'error',
-            })
-            console.error('Download template error', error)
-        }
-        finally {
-            downloadLoading.value = false
-        }
-    }
-
-    async function uploadTemplate() {
-        if (!uploadFile.value) return
-
-        const body = new FormData()
-        body.append('file', uploadFile.value)
-        try {
-            uploadLoading.value = true
-            await $api(`/api/tenant/${tId}/event/${id}/participant/bulk`, {
-                method: 'POST',
-                body,
-            })
-            importDialog.value = false
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to upload participants',
-                color: 'error',
-            })
-            console.error('Upload participants error', error)
-        }
-        finally {
-            uploadLoading.value = false
-        }
-    }
-
-    return {
-        importDialog,
-        downloadLoading,
-        uploadLoading,
-        uploadFile,
-        downloadTemplate,
-        uploadTemplate,
-    }
-}
-
 async function usePrintQr(tId: number, id: number) {
     const printConfirmation = ref(false)
     const printLoading = ref(false)
@@ -383,15 +320,6 @@ const [
     },
 
     {
-        importDialog,
-        downloadLoading,
-        uploadLoading,
-        uploadFile,
-        downloadTemplate,
-        uploadTemplate,
-    },
-
-    {
         printConfirmation,
         printLoading,
         printQr,
@@ -407,7 +335,6 @@ const [
 ] = await Promise.all([
     useDetail(tenantId.value, id),
     useList(tenantId.value, id),
-    useImportFile(tenantId.value, id),
     usePrintQr(tenantId.value, id),
     useSendQr(tenantId.value, id),
 ])
@@ -428,11 +355,6 @@ async function refreshAll() {
         refreshDetail(),
         refreshParticipants(),
     ])
-}
-
-async function uploadParticipants() {
-    await uploadTemplate()
-    await refreshAll()
 }
 
 async function printSelectedQr() {
@@ -524,15 +446,10 @@ async function sendSelectedQr() {
                                     >
                                         Export
                                     </UButton>
-                                    <UButton
-                                        color="neutral"
-                                        variant="outline"
-                                        icon="lucide:upload"
-                                        class="cursor-pointer"
-                                        @click="importDialog = true"
-                                    >
-                                        Import
-                                    </UButton>
+                                    <PageEventImport
+                                        :tenant-id="tenantId"
+                                        :event-id="id"
+                                    />
                                     <UButton
                                         color="neutral"
                                         variant="outline"
@@ -580,86 +497,6 @@ async function sendSelectedQr() {
                 </div>
             </template>
         </UTabs>
-
-        <UModal v-model:open="importDialog">
-            <template #header="{ close }">
-                <div class="flex justify-between items-center w-full">
-                    <h5>Import Attendee</h5>
-
-                    <UButton
-                        color="neutral"
-                        variant="ghost"
-                        icon="lucide:x"
-                        @click="close"
-                    />
-                </div>
-            </template>
-
-            <template #body>
-                <MiscLoadingOverlay :loading="downloadLoading">
-                    <UCard
-                        :ui="{
-                            root: 'bg-neutral-50 dark:bg-neutral-800',
-                        }"
-                        class="mb-4"
-                    >
-                        <div class="flex gap-4">
-                            <UIcon
-                                name="lucide:file-spreadsheet"
-                                class="size-8"
-                            />
-                            <div>
-                                <div class="mb-2">
-                                    <h5>Download Template</h5>
-                                    <small>Use our CSV template to ensure your data is formatted correctly</small>
-                                </div>
-                                <UButton
-                                    icon="lucide:download"
-                                    label="Download Template"
-                                    @click="downloadTemplate"
-                                />
-                            </div>
-                        </div>
-                    </UCard>
-                </MiscLoadingOverlay>
-
-                <MiscLoadingOverlay :loading="uploadLoading">
-                    <UFileUpload
-                        v-model="uploadFile"
-                        icon="lucide:file-spreadsheet"
-                        highlight
-                        label="Click to upload or Drop your files here"
-                        description="XLSX only"
-                        class="cursor-pointer"
-                        :accept="FILE_EXT_XLSX"
-                    />
-                </MiscLoadingOverlay>
-            </template>
-
-            <template #footer>
-                <div class="flex justify-end items-center w-full">
-                    <div class="flex gap-2">
-                        <UButton
-                            color="neutral"
-                            variant="outline"
-                            icon="lucide:x"
-                            class="cursor-pointer"
-                            label="Cancel"
-                            :disabled="downloadLoading || uploadLoading"
-                            @click="importDialog = false"
-                        />
-                        <UButton
-                            color="primary"
-                            icon="lucide:save"
-                            class="cursor-pointer"
-                            label="Upload"
-                            :disabled="downloadLoading || uploadLoading"
-                            @click="uploadParticipants"
-                        />
-                    </div>
-                </div>
-            </template>
-        </UModal>
 
         <ModalConfirmNeutralAction
             v-model:open="printConfirmation"
