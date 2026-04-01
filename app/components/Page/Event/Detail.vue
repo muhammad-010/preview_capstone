@@ -2,9 +2,9 @@
 const statusColors = TENANT_EVENT_STATUS_COLORS
 
 const props = defineProps<{
+    tenantId: number
     event: TenantEvent
 }>()
-const emit = defineEmits([EMIT_DETAIL_DELETE])
 
 const checkInProgressLabel = computed(() => `
     ${props.event.participant_status?.total_checked_in || 0}
@@ -105,14 +105,11 @@ const checkInProgressLabel = computed(() => `
             <p class="mb-2">
                 Permanently delete this event and all associated data. This action cannot be undone
             </p>
-            <UButton
-                color="error"
-                icon="lucide:trash"
-                class="cursor-pointer"
-                @click="emit(EMIT_DETAIL_DELETE)"
-            >
-                Delete Event
-            </UButton>
+            <PageEventDelete
+                :tenant-id="tenantId"
+                :event="event"
+                :reroute="true"
+            />
         </section>
     </CardDangerZone>
 </template>

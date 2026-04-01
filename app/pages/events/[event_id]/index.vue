@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { $api } = useNuxtApp()
-const router = useRouter()
 const route = useRoute()
 const id = Number(route.params.event_id)
 const { tenantId } = useUserState()
@@ -48,45 +47,6 @@ async function useDetail(tId: number, id: number) {
         totalCheckedIn,
         totalRegistered,
         totalNotCheckedIn,
-    }
-}
-
-async function useDeleteData(tId: number, id: number) {
-    const deleteConfirmation = ref(false)
-    const deleteLoading = ref(false)
-
-    async function deleteData() {
-        try {
-            deleteLoading.value = true
-            const data = await $api(`/api/tenant/${tId}/event/${id}`, {
-                method: 'DELETE',
-            })
-            if (data.success) {
-                toast.add({
-                    title: 'Success',
-                    description: 'An event has been deleted',
-                    color: 'success',
-                })
-                router.go(-1)
-            }
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to delete event',
-                color: 'error',
-            })
-            console.error('Delete event error', error)
-        }
-        finally {
-            deleteLoading.value = false
-        }
-    }
-
-    return {
-        deleteConfirmation,
-        deleteLoading,
-        deleteData,
     }
 }
 
@@ -404,12 +364,6 @@ const [
     },
 
     {
-        deleteLoading,
-        deleteConfirmation,
-        deleteData,
-    },
-
-    {
         search,
         searchPhoneNumber,
         page,
@@ -452,7 +406,6 @@ const [
     },
 ] = await Promise.all([
     useDetail(tenantId.value, id),
-    useDeleteData(tenantId.value, id),
     useList(tenantId.value, id),
     useImportFile(tenantId.value, id),
     usePrintQr(tenantId.value, id),
@@ -524,16 +477,8 @@ async function sendSelectedQr() {
                 </div>
 
                 <PageEventDetail
+                    :tenant-id="tenantId"
                     :event="event"
-                    @delete="deleteConfirmation = true"
-                />
-
-                <ModalConfirmNegativeAction
-                    v-model:open="deleteConfirmation"
-                    title="Delete Confirmation"
-                    :body="`Are you sure you want to delete ${event.name}? This action cannot be undone`"
-                    :loading="deleteLoading"
-                    @confirm="deleteData"
                 />
             </template>
 
