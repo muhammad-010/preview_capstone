@@ -8,6 +8,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
 <template>
     <div class="my-8">
-        <FormMember />
+        <PageMemberForm />
     </div>
 </template>

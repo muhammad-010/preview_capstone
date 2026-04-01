@@ -91,7 +91,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 </div>
             </template>
 
-            <TableEvent
+            <PageEventTable
                 v-model:limit="limit"
                 v-model:page="page"
                 :data="list"

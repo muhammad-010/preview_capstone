@@ -1,0 +1,96 @@
+<script setup lang="ts">
+const statusColors = STATUS_COLORS
+
+defineProps<{
+    tenant: Tenant
+}>()
+const emit = defineEmits([EMIT_DETAIL_REFRESH])
+</script>
+
+<template>
+    <UCard class="mb-8">
+        <template #header>
+            <div class="card-toolbar">
+                <div class="card-toolbar-left">
+                    <h3>Detailed Information</h3>
+                </div>
+
+                <div class="card-toolbar-actions">
+                    <PageTenantActivate
+                        :tenant="tenant"
+                        @refresh="emit(EMIT_DETAIL_REFRESH)"
+                    />
+
+                    <PageTenantDeactivate
+                        :tenant="tenant"
+                        @refresh="emit(EMIT_DETAIL_REFRESH)"
+                    />
+
+                    <UButton
+                        color="primary"
+                        icon="lucide:pencil"
+                        class="cursor-pointer"
+                        :to="`/tenants/${tenant.tenant_id}/edit`"
+                    >
+                        Edit Tenant
+                    </UButton>
+                </div>
+            </div>
+        </template>
+
+        <div>
+            <section class="grid md:grid-cols-2 gap-6 mb-8">
+                <DetailSectionData
+                    title="Name"
+                    icon="lucide:user"
+                    :subtitle="tenant.owner?.name || ''"
+                />
+
+                <DetailSectionData
+                    title="Email"
+                    icon="lucide:mail"
+                    :subtitle="tenant.owner?.email || ''"
+                />
+
+                <DetailSectionData
+                    title="Phone"
+                    icon="lucide:phone"
+                    :subtitle="tenant.owner?.phone.number || ''"
+                />
+
+                <DetailSectionData
+                    title="Join Date"
+                    icon="lucide:calendar"
+                    :subtitle="tenant.joined_at || ''"
+                />
+
+                <DetailSectionData
+                    title="Plan"
+                    icon="lucide:building"
+                    :subtitle="tenant.plan || ''"
+                />
+
+                <DetailSectionData title="Status">
+                    <UBadge
+                        :color="statusColors[tenant.status]"
+                        variant="subtle"
+                        :label="tenant.status"
+                    />
+                </DetailSectionData>
+            </section>
+        </div>
+    </UCard>
+
+    <CardDangerZone>
+        <section>
+            <DetailSectionTitle title="Delete" />
+            <p class="mb-2">
+                Permanently delete this tenant and all associated data. This action cannot be undone
+            </p>
+            <PageTenantDelete
+                :tenant="tenant"
+                :reroute="true"
+            />
+        </section>
+    </CardDangerZone>
+</template>

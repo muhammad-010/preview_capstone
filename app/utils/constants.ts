@@ -14,6 +14,7 @@ export const EMIT_TABLE_REFRESH = 'refresh'
 export const EMIT_QR_DETECT = 'qr-detect'
 export const EMIT_LOTTERY_DONE = 'lottery-done'
 export const EMIT_MODAL_SELECT = 'select'
+export const EMIT_DETAIL_REFRESH = 'refresh'
 
 // STATE
 export const STATE_LAYOUT_PAGE_TITLE = 'layout:pageTitle'

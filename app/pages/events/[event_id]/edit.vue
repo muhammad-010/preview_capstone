@@ -19,7 +19,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
 <template>
     <div class="my-8">
-        <FormEvent
+        <PageEventForm
             :id="eventId"
             :fields="event"
         />

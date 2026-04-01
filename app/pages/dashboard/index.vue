@@ -72,7 +72,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     </div>
                 </template>
 
-                <TableTenant
+                <PageTenantTable
                     :data="tenants"
                     :total="total"
                 />

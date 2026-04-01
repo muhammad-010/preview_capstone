@@ -23,7 +23,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
 <template>
     <div class="my-8">
-        <FormAttendee
+        <PageParticipantForm
             :id="participantId"
             :event-id="eventId"
             :fields="participant"
