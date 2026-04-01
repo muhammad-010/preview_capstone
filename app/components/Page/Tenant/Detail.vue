@@ -4,7 +4,7 @@ const statusColors = STATUS_COLORS
 defineProps<{
     tenant: Tenant
 }>()
-const emit = defineEmits([EMIT_DETAIL_ACTIVATE, EMIT_DETAIL_DEACTIVATE, EMIT_DETAIL_DELETE])
+const emit = defineEmits([EMIT_DETAIL_ACTIVATE, EMIT_DETAIL_DEACTIVATE])
 </script>
 
 <template>
@@ -99,14 +99,10 @@ const emit = defineEmits([EMIT_DETAIL_ACTIVATE, EMIT_DETAIL_DEACTIVATE, EMIT_DET
             <p class="mb-2">
                 Permanently delete this tenant and all associated data. This action cannot be undone
             </p>
-            <UButton
-                color="error"
-                icon="lucide:trash"
-                class="cursor-pointer"
-                @click="emit(EMIT_DETAIL_DELETE)"
-            >
-                Delete Tenant
-            </UButton>
+            <PageTenantDelete
+                :tenant="tenant"
+                :reroute="true"
+            />
         </section>
     </CardDangerZone>
 </template>

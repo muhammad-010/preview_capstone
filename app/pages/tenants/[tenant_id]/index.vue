@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { $api } = useNuxtApp()
-const router = useRouter()
 const route = useRoute()
 const id = Number(route.params.tenant_id)
 const toast = useToast()
@@ -17,45 +16,6 @@ async function useDetail(id: number) {
     return {
         tenant,
         refresh,
-    }
-}
-
-async function useDeleteData(id: number) {
-    const deleteConfirmation = ref(false)
-    const deleteLoading = ref(false)
-
-    async function deleteData() {
-        try {
-            deleteLoading.value = true
-            const data = await $api(`/api/tenant/${id}`, {
-                method: 'DELETE',
-            })
-            if (data.success) {
-                toast.add({
-                    title: 'Success',
-                    description: 'A tenant has been deleted',
-                    color: 'success',
-                })
-                router.go(-1)
-            }
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to delete tenant',
-                color: 'error',
-            })
-            console.error('Delete tenant error', error)
-        }
-        finally {
-            deleteLoading.value = false
-        }
-    }
-
-    return {
-        deleteConfirmation,
-        deleteLoading,
-        deleteData,
     }
 }
 
@@ -150,12 +110,6 @@ const [
     },
 
     {
-        deleteLoading,
-        deleteConfirmation,
-        deleteData,
-    },
-
-    {
         activateLoading,
         activateConfirmation,
         activateData,
@@ -168,7 +122,6 @@ const [
     },
 ] = await Promise.all([
     useDetail(id),
-    useDeleteData(id),
     useActivateData(id),
     useDeactivateData(id),
 ])
@@ -214,15 +167,6 @@ async function deactivateTenant() {
             :tenant="tenant"
             @activate="activateConfirmation = true"
             @deactivate="deactivateConfirmation = true"
-            @delete="deleteConfirmation = true"
-        />
-
-        <ModalConfirmNegativeAction
-            v-model:open="deleteConfirmation"
-            title="Delete Confirmation"
-            :body="`Are you sure you want to delete ${tenant.name}? This action cannot be undone`"
-            :loading="deleteLoading"
-            @confirm="deleteData"
         />
 
         <ModalConfirmNegativeAction
