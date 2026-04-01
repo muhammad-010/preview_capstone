@@ -192,46 +192,6 @@ async function useList(tId: number, id: number) {
     }
 }
 
-async function useSendQr(tId: number, id: number) {
-    const sendConfirmation = ref(false)
-    const sendLoading = ref(false)
-    const sendChannels = ref(SEND_CHANNEL_DROPDOWN)
-    const selectedSendChannel = ref<SendChannel[]>([])
-
-    async function sendQr(selIds: number[]) {
-        const ids = selIds.length > 0 ? selIds : []
-        try {
-            sendLoading.value = true
-            await $api(`/api/tenant/${tId}/event/${id}/participant/invitation/send`, {
-                method: 'POST',
-                body: ids.length
-                    ? { channel: selectedSendChannel.value, participant_ids: ids }
-                    : { channel: selectedSendChannel.value },
-            })
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to send QR',
-                color: 'error',
-            })
-            console.error('Send QR error', error)
-        }
-        finally {
-            sendConfirmation.value = false
-            sendLoading.value = false
-        }
-    }
-
-    return {
-        sendConfirmation,
-        sendLoading,
-        sendChannels,
-        selectedSendChannel,
-        sendQr,
-    }
-}
-
 const [
     {
         event,
@@ -259,18 +219,9 @@ const [
         clearSearch,
         clearSearchPhoneNumber,
     },
-
-    {
-        sendConfirmation,
-        sendLoading,
-        sendChannels,
-        selectedSendChannel,
-        sendQr,
-    },
 ] = await Promise.all([
     useDetail(tenantId.value, id),
     useList(tenantId.value, id),
-    useSendQr(tenantId.value, id),
 ])
 
 useHead({
@@ -289,11 +240,6 @@ async function refreshAll() {
         refreshDetail(),
         refreshParticipants(),
     ])
-}
-
-async function sendSelectedQr() {
-    await sendQr(selectedIds.value)
-    await refreshAll()
 }
 </script>
 
@@ -386,15 +332,12 @@ async function sendSelectedQr() {
                                         :selected-ids="selectedIds"
                                         @refresh="refreshAll"
                                     />
-                                    <UButton
-                                        color="neutral"
-                                        variant="outline"
-                                        icon="lucide:send"
-                                        class="cursor-pointer"
-                                        @click="sendConfirmation = true"
-                                    >
-                                        {{ `Send QR ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
-                                    </UButton>
+                                    <PageEventSendQr
+                                        :tenant-id="tenantId"
+                                        :event-id="id"
+                                        :selected-ids="selectedIds"
+                                        @refresh="refreshAll"
+                                    />
                                     <UButton
                                         color="primary"
                                         icon="lucide:plus"
@@ -424,29 +367,5 @@ async function sendSelectedQr() {
                 </div>
             </template>
         </UTabs>
-
-        <ModalConfirmNeutralAction
-            v-model:open="sendConfirmation"
-            title="Send QR Confirmation"
-            confirm-label="Yes, Send The QR"
-            :loading="sendLoading"
-            @confirm="sendSelectedQr"
-        >
-            <div>
-                {{ `You will send ${selectedIds.length || 'All'} QR code of participants, Continue?` }}
-                <USeparator class="my-4" />
-                <UCheckboxGroup
-                    v-model="selectedSendChannel"
-                    :items="sendChannels"
-                    variant="card"
-                    indicator="end"
-                    :ui="{ fieldset: 'gap-2' }"
-                >
-                    <template #label="{ item: { id: scId } }">
-                        {{ formatCapitalize(scId.split(':')[1] || '') }}
-                    </template>
-                </UCheckboxGroup>
-            </div>
-        </ModalConfirmNeutralAction>
     </div>
 </template>
