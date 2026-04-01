@@ -1,8 +1,6 @@
 <script setup lang="ts">
-const { $api } = useNuxtApp()
 const route = useRoute()
 const id = Number(route.params.tenant_id)
-const toast = useToast()
 
 async function useDetail(id: number) {
     const { data, refresh } = await useApi(`/api/tenant/${id}/detail`, {
@@ -19,63 +17,10 @@ async function useDetail(id: number) {
     }
 }
 
-async function useDeactivateData(id: number) {
-    const deactivateConfirmation = ref(false)
-    const deactivateLoading = ref(false)
-
-    async function deactivateData() {
-        try {
-            deactivateLoading.value = true
-            const data = await $api(`/api/tenant/${id}/status`, {
-                method: 'PATCH',
-                body: {
-                    status: STATUS_INACTIVE,
-                } as ActivateDeactivate,
-            })
-            if (data.success) {
-                deactivateConfirmation.value = false
-                toast.add({
-                    title: 'Success',
-                    description: 'A tenant has been deactivated',
-                    color: 'success',
-                })
-            }
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to deactivate new tenant',
-                color: 'error',
-            })
-            console.error('Deactivate tenant error', error)
-        }
-        finally {
-            deactivateLoading.value = false
-        }
-    }
-
-    return {
-        deactivateConfirmation,
-        deactivateLoading,
-        deactivateData,
-    }
-}
-
-const [
-    {
-        tenant,
-        refresh,
-    },
-
-    {
-        deactivateLoading,
-        deactivateConfirmation,
-        deactivateData,
-    },
-] = await Promise.all([
-    useDetail(id),
-    useDeactivateData(id),
-])
+const {
+    tenant,
+    refresh,
+} = await useDetail(id)
 
 useHead({
     title: computed(() => `Tenant - ${tenant.value ? tenant.value.name : 'Detail'}`),
@@ -86,11 +31,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         label: tenant.value.name,
     },
 }))
-
-async function deactivateTenant() {
-    await deactivateData()
-    await refresh()
-}
 </script>
 
 <template>
@@ -112,15 +52,6 @@ async function deactivateTenant() {
         <PageTenantDetail
             :tenant="tenant"
             @refresh="refresh"
-            @deactivate="deactivateConfirmation = true"
-        />
-
-        <ModalConfirmNegativeAction
-            v-model:open="deactivateConfirmation"
-            title="Deactivate Confirmation"
-            :body="`Are you sure you want to deactivate ${tenant.name}? All services and access will be disabled for this tenant`"
-            :loading="deactivateLoading"
-            @confirm="deactivateTenant"
         />
     </div>
 </template>

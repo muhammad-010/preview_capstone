@@ -4,7 +4,7 @@ const statusColors = STATUS_COLORS
 defineProps<{
     tenant: Tenant
 }>()
-const emit = defineEmits([EMIT_DETAIL_ACTIVATE, EMIT_DETAIL_DEACTIVATE, EMIT_DETAIL_REFRESH])
+const emit = defineEmits([EMIT_DETAIL_REFRESH])
 </script>
 
 <template>
@@ -21,16 +21,10 @@ const emit = defineEmits([EMIT_DETAIL_ACTIVATE, EMIT_DETAIL_DEACTIVATE, EMIT_DET
                         @refresh="emit(EMIT_DETAIL_REFRESH)"
                     />
 
-                    <UButton
-                        v-if="tenant.status === STATUS_ACTIVE"
-                        color="error"
-                        variant="outline"
-                        icon="lucide:ban"
-                        class="cursor-pointer"
-                        @click="emit(EMIT_DETAIL_DEACTIVATE)"
-                    >
-                        Deactivate Tenant
-                    </UButton>
+                    <PageTenantDeactivate
+                        :tenant="tenant"
+                        @refresh="emit(EMIT_DETAIL_REFRESH)"
+                    />
 
                     <UButton
                         color="primary"
