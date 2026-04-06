@@ -40,3 +40,25 @@ export interface TablePagination {
     /** items per page */
     pageSize: number
 }
+
+export interface BlockStyle {
+    key: string
+    label: string
+    type: string
+    value: string | boolean | number
+    options?: string[]
+}
+
+export interface Block {
+    id: string
+    label: string
+    data: string
+    style: BlockStyle[]
+    compiledStyle: string
+    html: (data: string, compiledStyle: string) => string
+    editableData?: boolean
+
+    uid: stirng
+    x: number
+    y: number
+}

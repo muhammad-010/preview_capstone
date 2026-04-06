@@ -121,6 +121,12 @@ export const APP_ROUTES: AppRoute[] = [
                         to: '/events/:event_id/edit',
                     },
                     {
+                        title: 'Edit Invitation Email',
+                        description: 'Change invitation email looks and feel',
+                        label: 'Edit',
+                        to: '/events/:event_id/invitation-email',
+                    },
+                    {
                         title: 'Add New Participant',
                         description: 'Assign new participant into the even',
                         label: 'Add',

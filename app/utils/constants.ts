@@ -48,3 +48,7 @@ export const ERROR_SCAN_QR_MESSAGE = 'Failed To Scan QR Code'
 // CHECK IN METHOD
 export const CHECK_IN_METHOD_QR = 'check-in-qr'
 export const CHECK_IN_METHOD_MANUAL = 'check-in-manual'
+
+// INVITATION EMAIL
+export const INVITATION_CANVAS_WIDTH = 600
+export const INVITATION_CANVAS_HEIGHT = 1750
