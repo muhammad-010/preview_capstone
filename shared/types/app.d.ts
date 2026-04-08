@@ -41,24 +41,68 @@ export interface TablePagination {
     pageSize: number
 }
 
+export type Orientation = 'portrait' | 'landscape'
+
+export interface Coordinate {
+    x: number
+    y: number
+}
+
+export type CoordinateKey = keyof Coordinate
+
+export interface BackgroundImage {
+    portrait: File | null
+    landscape: File | null
+    portraitDataURL: string
+    landscapeDataURL: string
+}
+
 export interface BlockStyle {
     key: string
-    label: string
-    type: string
     value: string | boolean | number
+    label?: string
+    type?: string
     options?: string[]
 }
 
+export interface BlockData {
+    key: string
+    value: string
+    label?: string
+}
+
 export interface Block {
+    uid: string
     id: string
     label: string
-    data: string
+    data: BlockData[]
     style: BlockStyle[]
+    portraitPos: Coordinate
+    landscapePos: Coordinate
     compiledStyle: string
-    html: (data: string, compiledStyle: string) => string
-    editableData?: boolean
+    html: (data: BlockData[], compiledStyle: string) => string
+    editableData: boolean
+}
 
-    uid: stirng
-    x: number
-    y: number
+export interface CanvasSize {
+    width: number
+    height: number
+    label: string
+    orientation: Orientation
+}
+
+export interface SavedBlockSettings {
+    id: string
+    style: BlockStyle[]
+    data: BlockData[]
+    portraitPos: Coordinate
+    landscapePos: Coordinate
+    compiledStyle: string
+}
+
+export interface SavedSetttings {
+    bgPortraitDataURL: string
+    bgLandscapeDataURL: string
+    customBlock: SavedBlockSettings[]
+    staticBlock: SavedBlockSettings[]
 }
