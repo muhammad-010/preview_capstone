@@ -760,7 +760,10 @@ function preview() {
                             </div>
                         </div>
 
-                        <div class="mb-4">
+                        <div
+                            v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_PORTRAIT)"
+                            class="mb-4"
+                        >
                             <h4 class="text-sm font-medium mb-2">
                                 Portrait Position
                             </h4>
@@ -784,7 +787,10 @@ function preview() {
                             </div>
                         </div>
 
-                        <div class="mb-4">
+                        <div
+                            v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_LANDSCAPE)"
+                            class="mb-4"
+                        >
                             <h4 class="text-sm font-medium mb-2">
                                 Landscape Position
                             </h4>
