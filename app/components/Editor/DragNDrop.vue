@@ -4,7 +4,9 @@ const props = defineProps<{
     customBlocks: Block[]
     staticBlocks: Block[]
     htmlPreviewFn: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
+    canvasSizeOptions: CanvasSize[]
     defaultOrientation: Orientation
+    defaultCanvasSize?: string
     rotateable?: boolean
     withPreview?: boolean
     previewPath?: string
@@ -20,18 +22,9 @@ const EVENT_MOUSEMOVE = 'mousemove'
 const EVENT_MOUSEUP = 'mouseup'
 
 // CANVAS SETTINGS
-const canvasSizeOptions = computed(() => {
-    switch (props.editorMode) {
-        case EDITOR_MODE_CHECK_IN_PAGE:
-            return CANVAS_SIZE_PRESETS_CHECK_IN_PAGE
-        case EDITOR_MODE_INVITATION_EMAIL:
-            return CANVAS_SIZE_PRESETS_INVITATION_EMAIL
-        default:
-            return CANVAS_SIZE_PRESETS_DEFAULT
-    }
-})
-const selectedCanvasSizeLabel = ref(canvasSizeOptions.value[0]!.label)
-const selectedCanvasSize = computed(() => canvasSizeOptions.value.find(size => size.label === selectedCanvasSizeLabel.value) || canvasSizeOptions.value[0]!)
+const selectedCanvasSizeLabel = ref(props.defaultCanvasSize || props.canvasSizeOptions[0]!.label)
+const selectedCanvasSize = computed(() => props.canvasSizeOptions.find(size => size.label === selectedCanvasSizeLabel.value) || props.canvasSizeOptions[0]!)
+const canvasOrientation = ref<Orientation>(props.defaultOrientation)
 const shouldFlipCanvas = computed(() => canvasOrientation.value !== selectedCanvasSize.value!.orientation)
 const canvasWidth = computed(() => {
     const size = selectedCanvasSize.value!
@@ -43,17 +36,12 @@ const canvasHeight = computed(() => {
 })
 const canvasScalePercentage = ref(Math.round((props.defaultScale || EDITOR_CANVAS_SCALE) * 100))
 const canvasScale = computed(() => canvasScalePercentage.value / 100)
-const canvasOrientation = ref<Orientation>(props.defaultOrientation)
 const canvasOrientationSelections = props.rotateable
     ? [
             EDITOR_CANVAS_PORTRAIT,
             EDITOR_CANVAS_LANDSCAPE,
         ]
     : [props.defaultOrientation]
-onMounted(() => {
-    const size = selectedCanvasSize.value
-    canvasOrientation.value = size.height >= size.width ? EDITOR_CANVAS_PORTRAIT : EDITOR_CANVAS_LANDSCAPE
-})
 watch(selectedCanvasSizeLabel, () => {
     canvasOrientation.value = selectedCanvasSize.value!.orientation
 })
@@ -530,6 +518,7 @@ function preview() {
                             <USelect
                                 v-model="selectedCanvasSizeLabel"
                                 :items="canvasSizeOptions"
+                                value-key="label"
                                 class="w-full"
                             />
                         </UFormField>

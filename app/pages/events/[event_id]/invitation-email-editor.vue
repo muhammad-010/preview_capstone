@@ -15,6 +15,7 @@ definePageMeta({
         :static-blocks="[]"
         :html-preview-fn="invitationEmailHtml"
         :default-orientation="EDITOR_CANVAS_PORTRAIT"
+        :canvas-size-options="CANVAS_SIZE_PRESETS_INVITATION_EMAIL"
         page-title="Invitation Email Key Visual Editor"
     />
 </template>
