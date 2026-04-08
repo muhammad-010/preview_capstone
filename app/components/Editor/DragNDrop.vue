@@ -263,21 +263,21 @@ function removeBlock(uid: string) {
 function duplicateBlock(item: Block) {
     const style = structuredClone(toRaw(item.style))
     const data = structuredClone(toRaw(item.data))
-    const portraitSettings = structuredClone(toRaw(item.portraitPos))
-    portraitSettings.x = item.portraitPos.x + 5
-    portraitSettings.y = item.portraitPos.y + 5
-    const landscapeSettings = structuredClone(toRaw(item.landscapePos))
-    landscapeSettings.x = item.landscapePos.x + 5
-    landscapeSettings.y = item.landscapePos.y + 5
+    const portraitPos = structuredClone(toRaw(item.portraitPos))
+    portraitPos.x = item.portraitPos.x + 5
+    portraitPos.y = item.portraitPos.y + 5
+    const landscapePos = structuredClone(toRaw(item.landscapePos))
+    landscapePos.x = item.landscapePos.x + 5
+    landscapePos.y = item.landscapePos.y + 5
     const newItem = {
         ...item,
         data,
         uid: crypto.randomUUID(),
         style,
-        portraitSettings,
-        landscapeSettings,
-        compiledStyle: compileBlockStyle(item),
-    }
+        portraitPos,
+        landscapePos,
+    } as Block
+    newItem.compiledStyle = compileBlockStyle(newItem)
     blockContainer.value.push(newItem)
 }
 
