@@ -4,34 +4,6 @@ const props = defineProps<{
     blockSettings: SavedBlockSettings[]
 }>()
 
-const BLOCK_TEXT_DEFAULT: Block = {
-    uid: '',
-    id: 'text',
-    label: 'Text',
-    data: [{ key: 'text', label: 'Text', value: 'Hello World' }],
-    style: [
-        { key: 'textColor', label: 'Text Color', type: 'color', value: '#000000' },
-        { key: 'fontFamily', label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana'] },
-        { key: 'fontSans', label: 'Sans Serif Fallback', type: 'checkbox', value: true },
-        { key: 'fontSize', label: 'Font Size', type: 'number', value: '1' },
-        { key: 'fontBold', label: 'Bold', type: 'checkbox', value: false },
-        { key: 'fontItalic', label: 'Italic', type: 'checkbox', value: false },
-    ],
-    portraitPos: {
-        x: 0,
-        y: 0,
-    },
-    landscapePos: {
-        x: 0,
-        y: 0,
-    },
-    compiledStyle: 'color: #000000; font-family: Arial, sans-serif; font-size: 1rem; font-weight: normal; font-style: normal;',
-    html: (data: BlockData[], compiledStyle: string) => {
-        return `<p style="${compiledStyle}">${data.find(d => d.key === 'text')?.value || ''}</p>`
-    },
-    editableData: true,
-}
-
 const availabelBlocks = ref<Block[]>([BLOCK_TEXT_DEFAULT])
 const renderableBlocks = computed(() => {
     return props.blockSettings

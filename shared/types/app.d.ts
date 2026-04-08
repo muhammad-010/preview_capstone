@@ -41,6 +41,8 @@ export interface TablePagination {
     pageSize: number
 }
 
+export type EditorMode = 'invitation-email' | 'check-in-page'
+
 export type Orientation = 'portrait' | 'landscape'
 
 export interface Coordinate {

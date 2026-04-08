@@ -1,54 +1,64 @@
 <script setup lang="ts">
-const canvasScalePercentage = ref(Math.round(EDITOR_CANVAS_SCALE * 100))
-const canvasScale = computed(() => canvasScalePercentage.value / 100)
-const canvasOrientation = ref<Orientation>(EDITOR_CANVAS_HEIGHT >= EDITOR_CANVAS_WIDTH ? EDITOR_CANVAS_PORTRAIT : EDITOR_CANVAS_LANDSCAPE)
-const canvasOrientationSelections = ref([
-    EDITOR_CANVAS_PORTRAIT,
-    EDITOR_CANVAS_LANDSCAPE,
-])
+const props = defineProps<{
+    editorMode: EditorMode
+    customBlocks: Block[]
+    staticBlocks: Block[]
+    htmlPreviewFn: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
+    defaultOrientation: Orientation
+    rotateable?: boolean
+    withPreview?: boolean
+    previewPath?: string
+    previewKey?: string
+    pageTitle?: string
+    defaultScale?: number
+}>()
 
-const CANVAS_SIZE_PRESETS: CanvasSize[] = [
-    { width: 600, height: 1750, label: '600x1750 (Email)', orientation: EDITOR_CANVAS_PORTRAIT },
-    { width: 360, height: 640, label: '360x640 (Android)', orientation: EDITOR_CANVAS_PORTRAIT },
-    { width: 390, height: 844, label: '390x844 (iPhone)', orientation: EDITOR_CANVAS_PORTRAIT },
-    { width: 1024, height: 768, label: '1024x768 (Tablet)', orientation: EDITOR_CANVAS_LANDSCAPE },
-    { width: 1366, height: 768, label: '1366x768 (Laptop)', orientation: EDITOR_CANVAS_LANDSCAPE },
-    { width: 1920, height: 1080, label: '1920x1080 (HD)', orientation: EDITOR_CANVAS_LANDSCAPE },
-]
+const DRAGGABLE_BLOCK_WIDTH = 208
+const DRAGGABLE_BLOCK_HEIGHT = 44
+const DRAG_DATATRANSFER_COPY = 'copy'
+const EVENT_MOUSEMOVE = 'mousemove'
+const EVENT_MOUSEUP = 'mouseup'
 
-const selectedCanvasSizeLabel = ref(CANVAS_SIZE_PRESETS[0]!.label)
-const selectedCanvasSize = computed(() => CANVAS_SIZE_PRESETS.find(size => size.label === selectedCanvasSizeLabel.value) || CANVAS_SIZE_PRESETS[0]!)
-const canvasSizeOptions = CANVAS_SIZE_PRESETS.map(size => size.label)
-
+// CANVAS SETTINGS
+const canvasSizeOptions = computed(() => {
+    switch (props.editorMode) {
+        case EDITOR_MODE_CHECK_IN_PAGE:
+            return CANVAS_SIZE_PRESETS_CHECK_IN_PAGE
+        case EDITOR_MODE_INVITATION_EMAIL:
+            return CANVAS_SIZE_PRESETS_INVITATION_EMAIL
+        default:
+            return CANVAS_SIZE_PRESETS_DEFAULT
+    }
+})
+const selectedCanvasSizeLabel = ref(canvasSizeOptions.value[0]!.label)
+const selectedCanvasSize = computed(() => canvasSizeOptions.value.find(size => size.label === selectedCanvasSizeLabel.value) || canvasSizeOptions.value[0]!)
+const shouldFlipCanvas = computed(() => canvasOrientation.value !== selectedCanvasSize.value!.orientation)
 const canvasWidth = computed(() => {
     const size = selectedCanvasSize.value!
-    const shouldFlip = canvasOrientation.value !== size.orientation
-    return shouldFlip ? size.height : size.width
+    return shouldFlipCanvas.value ? size.height : size.width
 })
-
 const canvasHeight = computed(() => {
     const size = selectedCanvasSize.value!
-    const shouldFlip = canvasOrientation.value !== size.orientation
-    return shouldFlip ? size.width : size.height
+    return shouldFlipCanvas.value ? size.width : size.height
 })
-
+const canvasScalePercentage = ref(Math.round((props.defaultScale || EDITOR_CANVAS_SCALE) * 100))
+const canvasScale = computed(() => canvasScalePercentage.value / 100)
+const canvasOrientation = ref<Orientation>(props.defaultOrientation)
+const canvasOrientationSelections = props.rotateable
+    ? [
+            EDITOR_CANVAS_PORTRAIT,
+            EDITOR_CANVAS_LANDSCAPE,
+        ]
+    : [props.defaultOrientation]
+onMounted(() => {
+    const size = selectedCanvasSize.value
+    canvasOrientation.value = size.height >= size.width ? EDITOR_CANVAS_PORTRAIT : EDITOR_CANVAS_LANDSCAPE
+})
 watch(selectedCanvasSizeLabel, () => {
-    const size = selectedCanvasSize.value!
-    canvasOrientation.value = size.orientation
+    canvasOrientation.value = selectedCanvasSize.value!.orientation
 })
 
-const availableBlocks = ref<Block[]>([
-    BLOCK_TEXT_DEFAULT,
-    BLOCK_IMAGE_DEFAULT,
-])
-
-const staticBlocks = ref<Block[]>([
-    STATIC_BLOCK_QR_CODE,
-    STATIC_BLOCK_INPUT,
-])
-
-const blockContainer = ref<Block[]>([])
-
+// BACKGROUND IMAGE
 const bgImage = ref<BackgroundImage>({
     portrait: null,
     landscape: null,
@@ -70,15 +80,27 @@ function bgImageToDataURL(orientation: Orientation) {
     reader.readAsDataURL(file)
 }
 
-watch(() => bgImage.value.portrait, () => bgImageToDataURL('portrait'))
-watch(() => bgImage.value.landscape, () => bgImageToDataURL('landscape'))
+watch(() => bgImage.value.portrait, () => bgImageToDataURL(EDITOR_CANVAS_PORTRAIT))
+watch(() => bgImage.value.landscape, () => bgImageToDataURL(EDITOR_CANVAS_LANDSCAPE))
 
+function onBgImageUpload(e: Event, orientation: Orientation) {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (!file) return
+    bgImage.value[orientation] = file
+}
+
+function clearBgImage(orientation: Orientation) {
+    bgImage.value[orientation] = null
+}
+
+// BLOCKS
+const blockContainer = ref<Block[]>([])
 const activeStaticBlocks = ref<string[]>([])
 
 function syncStaticBlock(item: Block) {
-    if (!['qr-code', 'input-card'].includes(item.id)) return
+    if (!STATIC_BLOCK_IDS.includes(item.id)) return
 
-    const staticBlock = staticBlocks.value.find(b => b.id === item.id)
+    const staticBlock = props.staticBlocks.find(b => b.id === item.id)
     if (!staticBlock) return
 
     staticBlock.style = structuredClone(toRaw(item.style))
@@ -90,31 +112,23 @@ function syncStaticBlock(item: Block) {
     staticBlock.landscapePos.y = item.landscapePos.y
 }
 
-/* ---------------- DRAG FREE POSITION & DRAG ADD BLOCKS ---------------- */
+// DRAG BLOCKS
 const dragging = ref<string | null>(null)
 const draggingBlock = ref<string | null>(null)
 const offset = ref<Coordinate>({ x: 0, y: 0 })
 const tempPosition = ref<Coordinate>({ x: 0, y: 0 })
 
-function percentToPx(n: number, size: number) {
-    return (n / 100) * size
-}
-
-function pxToPercent(n: number, size: number) {
-    return (n / size) * 100
-}
-
 function startDrag(e: MouseEvent, item: Block) {
     dragging.value = item.uid
     selectedUid.value = item.uid
 
-    const orientation = canvasOrientation.value === 'portrait' ? item.portraitPos : item.landscapePos
+    const pos = canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? item.portraitPos : item.landscapePos
     offset.value = {
-        x: e.clientX - percentToPx(orientation.x, canvasWidth.value) * canvasScale.value,
-        y: e.clientY - percentToPx(orientation.y, canvasHeight.value) * canvasScale.value,
+        x: e.clientX - percentToPx(pos.x, canvasWidth.value) * canvasScale.value,
+        y: e.clientY - percentToPx(pos.y, canvasHeight.value) * canvasScale.value,
     }
 
-    tempPosition.value = { x: orientation.x, y: orientation.y }
+    tempPosition.value = { x: pos.x, y: pos.y }
 }
 
 function onMouseMove(e: MouseEvent) {
@@ -123,8 +137,8 @@ function onMouseMove(e: MouseEvent) {
     const newXPx = (e.clientX - offset.value.x) / canvasScale.value
     const newYPx = (e.clientY - offset.value.y) / canvasScale.value
 
-    const maxXPercent = Math.max(0, ((canvasWidth.value - 208) / canvasWidth.value) * 100)
-    const maxYPercent = Math.max(0, ((canvasHeight.value - 44) / canvasHeight.value) * 100)
+    const maxXPercent = Math.max(0, ((canvasWidth.value - DRAGGABLE_BLOCK_WIDTH) / canvasWidth.value) * 100)
+    const maxYPercent = Math.max(0, ((canvasHeight.value - DRAGGABLE_BLOCK_HEIGHT) / canvasHeight.value) * 100)
 
     const newX = Math.max(0, Math.min(pxToPercent(newXPx, canvasWidth.value), maxXPercent))
     const newY = Math.max(0, Math.min(pxToPercent(newYPx, canvasHeight.value), maxYPercent))
@@ -135,26 +149,26 @@ function onMouseMove(e: MouseEvent) {
 function onBlockDragStart(e: DragEvent, blockId: string) {
     draggingBlock.value = blockId
     if (!e.dataTransfer) return
-    e.dataTransfer.effectAllowed = 'copy'
+    e.dataTransfer.effectAllowed = DRAG_DATATRANSFER_COPY
 }
 
 function onCanvasDragOver(e: DragEvent) {
     if (!draggingBlock.value) return
     e.preventDefault()
     if (!e.dataTransfer) return
-    e.dataTransfer.dropEffect = 'copy'
+    e.dataTransfer.dropEffect = DRAG_DATATRANSFER_COPY
 }
 
 function onCanvasDrop(e: DragEvent) {
     if (!draggingBlock.value) return
     e.preventDefault()
 
-    const block = availableBlocks.value.find(b => b.id === draggingBlock.value)
+    const block = props.customBlocks.find(b => b.id === draggingBlock.value)
     if (!block) return
 
     const canvasRect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const xPx = Math.max(0, Math.min((e.clientX - canvasRect.left) / canvasScale.value, canvasWidth.value - 208))
-    const yPx = Math.max(0, Math.min((e.clientY - canvasRect.top) / canvasScale.value, canvasHeight.value - 44))
+    const xPx = Math.max(0, Math.min((e.clientX - canvasRect.left) / canvasScale.value, canvasWidth.value - DRAGGABLE_BLOCK_WIDTH))
+    const yPx = Math.max(0, Math.min((e.clientY - canvasRect.top) / canvasScale.value, canvasHeight.value - DRAGGABLE_BLOCK_HEIGHT))
     const x = Math.round(pxToPercent(xPx, canvasWidth.value))
     const y = Math.round(pxToPercent(yPx, canvasHeight.value))
     const uid = crypto.randomUUID()
@@ -166,12 +180,12 @@ function onCanvasDrop(e: DragEvent) {
         data: structuredClone(toRaw(block.data)),
         style: structuredClone(toRaw(block.style)),
         portraitPos: {
-            x: canvasOrientation.value === 'portrait' ? x : 0,
-            y: canvasOrientation.value === 'portrait' ? y : 0,
+            x: canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? x : 0,
+            y: canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? y : 0,
         },
         landscapePos: {
-            x: canvasOrientation.value === 'landscape' ? x : 0,
-            y: canvasOrientation.value === 'landscape' ? y : 0,
+            x: canvasOrientation.value === EDITOR_CANVAS_LANDSCAPE ? x : 0,
+            y: canvasOrientation.value === EDITOR_CANVAS_LANDSCAPE ? y : 0,
         },
         compiledStyle: block.compiledStyle,
         html: block.html,
@@ -188,11 +202,11 @@ function stopDrag() {
     const item = blockContainer.value.find(i => i.uid === dragging.value)
     if (!item) return
 
-    const pos = canvasOrientation.value === 'portrait' ? item.portraitPos : item.landscapePos
+    const pos = canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? item.portraitPos : item.landscapePos
     pos.x = Math.round(tempPosition.value.x)
     pos.y = Math.round(tempPosition.value.y)
 
-    if (['qr-code', 'input-card'].includes(item.id)) {
+    if (STATIC_BLOCK_IDS.includes(item.id)) {
         syncStaticBlock(item)
     }
 
@@ -200,67 +214,27 @@ function stopDrag() {
 }
 
 onMounted(() => {
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('mouseup', stopDrag)
+    window.addEventListener(EVENT_MOUSEMOVE, onMouseMove)
+    window.addEventListener(EVENT_MOUSEUP, stopDrag)
 })
 
 onBeforeUnmount(() => {
-    window.removeEventListener('mousemove', onMouseMove)
-    window.removeEventListener('mouseup', stopDrag)
+    window.removeEventListener(EVENT_MOUSEMOVE, onMouseMove)
+    window.removeEventListener(EVENT_MOUSEUP, stopDrag)
 })
 
-/* ---------------- SELECT ---------------- */
+// BLOCK MANIPULATIONS
 const selectedUid = ref<string | null>(null)
-
 const selectedItem = computed(() =>
     blockContainer.value.find(i => i.uid === selectedUid.value),
 )
-
 const itemPosition = computed(() => (item: Block) => {
     if (dragging.value === item.uid) {
         return tempPosition.value
     }
-    const pos = canvasOrientation.value === 'portrait' ? item.portraitPos : item.landscapePos
+    const pos = canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? item.portraitPos : item.landscapePos
     return { x: pos.x, y: pos.y }
 })
-
-/* ---------------- ACTIONS ---------------- */
-function getStyleValue(style: BlockStyle[], key: string): string | boolean | number | undefined {
-    return style.find(s => s.key === key)?.value
-}
-
-function compileBlockStyle(id: string, style: BlockStyle[]) {
-    if (id === 'text') {
-        const fontFamily = getStyleValue(style, 'fontSans')
-            ? `${getStyleValue(style, 'fontFamily')}, sans-serif`
-            : `${getStyleValue(style, 'fontFamily')}, serif`
-        const fontSize = String(getStyleValue(style, 'fontSize'))
-        const fontWeight = getStyleValue(style, 'fontBold') ? 'bold' : 'normal'
-        const fontStyle = getStyleValue(style, 'fontItalic') ? 'italic' : 'normal'
-        return `color:${getStyleValue(style, 'textColor')}; font-family:${fontFamily}; font-size:${fontSize}rem; font-weight:${fontWeight}; font-style:${fontStyle};`
-    }
-
-    if (id === 'image') {
-        const width = String(getStyleValue(style, 'width'))
-        const same = getStyleValue(style, 'heightSameAsWidth')
-        const height = same ? `${width}px` : `${getStyleValue(style, 'height')}px`
-        return `width:${width}px; height:${height};`
-    }
-
-    if (id === 'qr-code') {
-        const size = String(getStyleValue(style, 'size'))
-        return `width:${size}rem; height:${size}rem;`
-    }
-
-    if (id === 'input-card') {
-        const buttonColor = String(getStyleValue(style, 'buttonColor'))
-        const titleFontSize = String(getStyleValue(style, 'titleFontSize'))
-        const inputFontSize = String(getStyleValue(style, 'inputFontSize'))
-        return `button-color:${buttonColor}; title-font-size:${titleFontSize}rem; input-font-size:${inputFontSize}rem;`
-    }
-
-    return ''
-}
 
 function toggleStaticBlock(id: string) {
     const index = activeStaticBlocks.value.indexOf(id)
@@ -273,42 +247,32 @@ function toggleStaticBlock(id: string) {
     else {
         // Add
         activeStaticBlocks.value.push(id)
-        const block = staticBlocks.value.find(b => b.id === id)
-        if (block) {
-            const style = structuredClone(toRaw(block.style))
-            const data = structuredClone(toRaw(block.data))
-            blockContainer.value.push({
-                uid: id, // Use id as uid for static
-                id: block.id,
-                label: block.label,
-                data,
-                style,
-                portraitPos: structuredClone(toRaw(block.portraitPos)),
-                landscapePos: structuredClone(toRaw(block.landscapePos)),
-                compiledStyle: block.compiledStyle,
-                html: block.html,
-                editableData: block.editableData,
-            })
-            selectedUid.value = id
-        }
+        const block = props.staticBlocks.find(b => b.id === id)
+        if (!block) return
+
+        const style = structuredClone(toRaw(block.style))
+        const data = structuredClone(toRaw(block.data))
+        blockContainer.value.push({
+            uid: id, // Use id as uid for static
+            id: block.id,
+            label: block.label,
+            data,
+            style,
+            portraitPos: structuredClone(toRaw(block.portraitPos)),
+            landscapePos: structuredClone(toRaw(block.landscapePos)),
+            compiledStyle: block.compiledStyle,
+            html: block.html,
+            editableData: block.editableData,
+        })
+        selectedUid.value = id
     }
 }
 
-function onBgImageUpload(e: Event, orientation: Orientation) {
-    const file = (e.target as HTMLInputElement).files?.[0]
-    if (!file) return
-    bgImage.value[orientation] = file
-}
-
-function clearBgImage(orientation: Orientation) {
-    bgImage.value[orientation] = null
-}
-
-function removeCard(uid: string) {
+function removeBlock(uid: string) {
     blockContainer.value = blockContainer.value.filter(i => i.uid !== uid)
 }
 
-function duplicateCard(item: Block) {
+function duplicateBlock(item: Block) {
     const style = structuredClone(toRaw(item.style))
     const data = structuredClone(toRaw(item.data))
     const portraitSettings = structuredClone(toRaw(item.portraitPos))
@@ -324,7 +288,7 @@ function duplicateCard(item: Block) {
         style,
         portraitSettings,
         landscapeSettings,
-        compiledStyle: compileBlockStyle(item.id, style),
+        compiledStyle: compileBlockStyle(item),
     }
     blockContainer.value.push(newItem)
 }
@@ -340,10 +304,10 @@ function setStyleValue(style: BlockStyle[], key: string, value: string | boolean
     }
 
     if (selectedItem.value) {
-        selectedItem.value.compiledStyle = compileBlockStyle(selectedItem.value.id, style)
+        selectedItem.value.compiledStyle = compileBlockStyle(selectedItem.value)
     }
 
-    if (selectedItem.value && ['qr-code', 'input-card'].includes(selectedItem.value.id)) {
+    if (selectedItem.value && STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
         syncStaticBlock(selectedItem.value)
     }
 }
@@ -356,7 +320,7 @@ function updateBlockData(key: string, value: string) {
         dataItem.value = value
     }
 
-    if (['qr-code', 'input-card'].includes(selectedItem.value.id)) {
+    if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
         syncStaticBlock(selectedItem.value)
     }
 }
@@ -365,154 +329,56 @@ function updatePosition(key: CoordinateKey, value: number, orientation?: Orienta
     if (!selectedItem.value) return
 
     const targetOrientation = orientation || canvasOrientation.value
-    const settings = targetOrientation === 'portrait' ? selectedItem.value.portraitPos : selectedItem.value.landscapePos
+    const settings = targetOrientation === EDITOR_CANVAS_PORTRAIT ? selectedItem.value.portraitPos : selectedItem.value.landscapePos
     settings[key] = value
-    if (['qr-code', 'input-card'].includes(selectedItem.value.id)) {
+    if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
         syncStaticBlock(selectedItem.value)
     }
 }
 
-/* ---------------- HTML GENERATION ---------------- */
+// HTML GENERATION
+const generatedHtml = ref('')
+const loadingPreview = ref(false)
+let previewTimeout: ReturnType<typeof setTimeout>
+
 function renderBlock(block: Block) {
     if (!block) return ''
-    const pos = canvasOrientation.value === 'portrait' ? block.portraitPos : block.landscapePos
+    const absoluteStyle = getAbsoluteDivStyle(block, canvasOrientation.value === EDITOR_CANVAS_PORTRAIT)
     return `
-    <div style="position:absolute;left:${pos.x}%;top:${pos.y}%; transform: translate(-50%, -50%);">
+    <div style="${absoluteStyle}">
         ${block.html(block.data, block.compiledStyle)}
     </div>
     `
 }
 
-function _invitationHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
-    return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            @page {
-                size: ${width}px ${height}px;
-                margin: 0;
-            }
-            body {
-                margin: 0;
-                padding: 0;
-                display: flex;
-                justify-content: center;
-                align-items: flex-start;
-            }
-            .page {
-                width: ${width}px;
-                height: ${height}px;
-                position: relative;
-            }
-            .background {
-                background-image: url(${bgImage.portraitDataURL});
-                background-size: cover;
-                background-position: center;
-            }
-            .viewport {
-                width: 100vw;
-                display: flex;
-                justify-content: center;
-            }
-            .scaler {
-                transform-origin: top center;
-                transform: scale(calc(100vw / ${width}));
-            }
-        </style>
-    </head>
-    <body>
-        <div class="viewport">
-            <div class="scaler">
-                <div class="page background">
-                    ${content}
-                    ${staticContent}
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>
-    `
-}
-
-function scanPageHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
-    return `
-    <!DOCTYPE html>
-    <html>
+function getPreviewHTML(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+    if (!props.htmlPreviewFn) {
+        const image = height >= width ? bgImage.portraitDataURL : bgImage.landscapeDataURL
+        return `
+        <!DOCTYPE html>
+        <html>
         <head>
             <style>
                 .container {
-                    position: relative;
-                    height: ${height}px;
-                    width: ${width}px;
-                    overflow: hidden;
-                }
-                .bg-blur {
-                    position: absolute;
-                    inset: 0;
-                    background-image: var(--bg);
-                    background-size: cover;
-                    background-position: center;
-                    filter: blur(40px) brightness(0.75);
-                    transform: scale(1.1);
-                }
-                .bg-main {
-                    position: absolute;
-                    inset: 0;
-                    background-image: var(--bg);
+                    background-image: url(${image});
                     background-size: contain;
                     background-position: center;
-                    background-repeat: no-repeat;
-                }
-                .content {
-                    z-index: 1;
-                }
-                .container.is-lg .bg-blur {
-                    background-image: var(--lg-bg);
-                }
-                .container.is-lg .bg-main {
-                    background-image: var(--lg-bg);
+                    background-no-repeat: no-repeat;
                 }
             </style>
         </head>
         <body style="margin:0;padding:0;">
-            <div class="container ${width >= 1024 ? 'is-lg' : ''}">
-                <div
-                    class="bg-blur"
-                    style="--bg: url(${bgImage.portraitDataURL}); --lg-bg: url(${bgImage.landscapeDataURL});"
-                ></div>
-
-                <div
-                    class="bg-main"
-                    style="--bg: url(${bgImage.portraitDataURL}); --lg-bg: url(${bgImage.landscapeDataURL});"
-                ></div>
-
-                <div class="content">
-                    ${content}
-                    ${staticContent}
-                </div>
+            <div class="container" style="position:relative;width:${canvasWidth.value}px;height:${canvasHeight.value}px;">
+                ${content}
+                ${staticContent}
             </div>
         </body>
-    </html>
-    `
+        </html>
+        `
+    }
+
+    return props.htmlPreviewFn(bgImage, width, height, content, staticContent)
 }
-
-// const generatedHtml = computed(() => {
-//     const content = blockContainer.value.map((block) => {
-//         if (!block) return ''
-//         return renderBlock(block)
-//     }).join('\n')
-//     const staticContent = activeStaticBlocks.value.map((id) => {
-//         const block = staticBlocks.value.find(b => b.id === id)
-//         if (!block) return ''
-//         return renderBlock(block)
-//     }).join('\n')
-//     const bgImg = bgImage.value
-//     const width = canvasWidth.value
-//     const height = canvasHeight.value
-
-//     return scanPageHtml(bgImg, width, height, content, staticContent)
-// })
 
 function refreshGeneratedHtml() {
     const content = blockContainer.value.map((block) => {
@@ -520,21 +386,14 @@ function refreshGeneratedHtml() {
         return renderBlock(block)
     }).join('\n')
     const staticContent = activeStaticBlocks.value.map((id) => {
-        const block = staticBlocks.value.find(b => b.id === id)
+        const block = props.staticBlocks.find(b => b.id === id)
         if (!block) return ''
         return renderBlock(block)
     }).join('\n')
-    const bgImg = bgImage.value
-    const width = canvasWidth.value
-    const height = canvasHeight.value
 
-    generatedHtml.value = scanPageHtml(bgImg, width, height, content, staticContent)
+    generatedHtml.value = getPreviewHTML(bgImage.value, canvasWidth.value, canvasHeight.value, content, staticContent)
     loadingPreview.value = false
 }
-
-const generatedHtml = ref('')
-const loadingPreview = ref(false)
-let previewTimeout: ReturnType<typeof setTimeout>
 
 watch([
     blockContainer,
@@ -552,11 +411,14 @@ watch([
     }, 500)
 }, { deep: true })
 
+// PREVIEW
 function saveToLocalStorage() {
+    if (!props.previewKey) return
+
     const customBlock: SavedBlockSettings[] = []
     const staticBlock: SavedBlockSettings[] = []
 
-    const customBlockList = blockContainer.value.filter(b => !['qr-code', 'input-card'].includes(b.id))
+    const customBlockList = blockContainer.value.filter(b => !STATIC_BLOCK_IDS.includes(b.id))
     for (let i = 0; i < customBlockList.length; i++) {
         const block = customBlockList[i]
         if (!block) continue
@@ -567,11 +429,11 @@ function saveToLocalStorage() {
             data: block.data.map(b => ({ key: b.key, value: b.value })),
             portraitPos: structuredClone(toRaw(block.portraitPos)),
             landscapePos: structuredClone(toRaw(block.landscapePos)),
-            compiledStyle: compileBlockStyle(block.id, block.style),
+            compiledStyle: compileBlockStyle(block),
         })
     }
 
-    const staticBlockList = staticBlocks.value
+    const staticBlockList = props.staticBlocks
     for (let i = 0; i < staticBlockList.length; i++) {
         const block = staticBlockList[i]
         if (!block) continue
@@ -582,7 +444,7 @@ function saveToLocalStorage() {
             data: block.data.map(b => ({ key: b.key, value: b.value })),
             portraitPos: structuredClone(toRaw(block.portraitPos)),
             landscapePos: structuredClone(toRaw(block.landscapePos)),
-            compiledStyle: compileBlockStyle(block.id, block.style),
+            compiledStyle: compileBlockStyle(block),
         })
     }
 
@@ -593,25 +455,21 @@ function saveToLocalStorage() {
         staticBlock,
     } as SavedSetttings
 
-    localStorage.setItem('editor-config', JSON.stringify(settings))
+    localStorage.setItem(props.previewKey, JSON.stringify(settings))
 }
 
 function preview() {
-    if (!import.meta.client) return
+    if (!import.meta.client || !props.previewPath) return
 
     saveToLocalStorage()
-    window.open('/check-in', '_blank', 'noopener,noreferrer')
+    window.open(props.previewPath, '_blank', 'noopener,noreferrer')
 }
-
-definePageMeta({
-    layout: 'clean',
-})
 </script>
 
 <template>
     <div class="flex flex-col p-8">
         <div class="flex justify-between mb-4">
-            <h2>Editor</h2>
+            <h2>{{ pageTitle || 'Editor' }}</h2>
             <div class="flex gap-4">
                 <UButton
                     class="cursor-pointer"
@@ -621,8 +479,9 @@ definePageMeta({
                 />
 
                 <UButton
+                    v-if="withPreview && previewPath"
                     class="cursor-pointer"
-                    label="Preview"
+                    label="Preview Page"
                     @click="preview"
                 />
 
@@ -660,6 +519,7 @@ definePageMeta({
                             <USelect
                                 v-model="canvasOrientation"
                                 :items="canvasOrientationSelections"
+                                :disabled="!rotateable"
                                 class="w-full"
                             />
                         </UFormField>
@@ -683,7 +543,7 @@ definePageMeta({
                     </template>
                     <div class="space-y-2">
                         <div
-                            v-for="card in availableBlocks"
+                            v-for="card in customBlocks"
                             :key="card.id"
                             class="py-2 px-4 border border-slate-950/25 dark:border-slate-50/25 hover:bg-slate-100 dark:hover:bg-slate-950 rounded cursor-move w-52"
                             draggable="true"
@@ -696,7 +556,10 @@ definePageMeta({
                 </UCard>
 
                 <!-- STATIC BLOCKS -->
-                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                <UCard
+                    v-if="staticBlocks.length"
+                    :ui="{ body: 'p-2 sm:p-3' }"
+                >
                     <template #header>
                         <h3>Static Blocks</h3>
                     </template>
@@ -770,7 +633,7 @@ definePageMeta({
                                         ]"
                                     >
                                         <div class="flex justify-between">
-                                            {{ availableBlocks.find(c => c.id === item.id)?.label || staticBlocks.find(c => c.id === item.id)?.label }}
+                                            {{ customBlocks.find(c => c.id === item.id)?.label || staticBlocks.find(c => c.id === item.id)?.label }}
 
                                             <div
                                                 v-if="!['qr-code', 'input-card'].includes(item.id)"
@@ -779,13 +642,13 @@ definePageMeta({
                                                 <UButton
                                                     size="xs"
                                                     label="Dup"
-                                                    @click.stop="duplicateCard(item)"
+                                                    @click.stop="duplicateBlock(item)"
                                                 />
                                                 <UButton
                                                     size="xs"
                                                     color="error"
                                                     label="Del"
-                                                    @click.stop="removeCard(item.uid)"
+                                                    @click.stop="removeBlock(item.uid)"
                                                 />
                                             </div>
                                         </div>
@@ -829,7 +692,10 @@ definePageMeta({
                         </div>
                     </template>
 
-                    <div class="mb-4">
+                    <div
+                        v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_PORTRAIT)"
+                        class="mb-4"
+                    >
                         <h4 class="text-sm font-medium mb-2">
                             Portrait Background Image
                         </h4>
@@ -847,7 +713,10 @@ definePageMeta({
                         </UFieldGroup>
                     </div>
 
-                    <div class="mb-4">
+                    <div
+                        v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_LANDSCAPE)"
+                        class="mb-4"
+                    >
                         <h4 class="text-sm font-medium mb-2">
                             Landscape Background Image
                         </h4>
@@ -947,7 +816,7 @@ definePageMeta({
                             <template v-if="selectedItem.style[index]">
                                 <UCheckbox
                                     v-if="field.type === 'checkbox'"
-                                    :model-value="Boolean(getStyleValue(selectedItem.style, field.key))"
+                                    :model-value="Boolean(getBlockStyleValue(selectedItem.style, field.key))"
                                     :label="field.label"
                                     @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
                                 />
@@ -959,7 +828,7 @@ definePageMeta({
                                 >
                                     <USelect
                                         v-if="field.type === 'select' && field.options"
-                                        :model-value="String(getStyleValue(selectedItem.style, field.key))"
+                                        :model-value="String(getBlockStyleValue(selectedItem.style, field.key))"
                                         :items="field.options"
                                         class="w-full"
                                         @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
@@ -973,7 +842,7 @@ definePageMeta({
                                         >
                                             <template #leading>
                                                 <span
-                                                    :style="{ backgroundColor: String(getStyleValue(selectedItem.style, field.key)) }"
+                                                    :style="{ backgroundColor: String(getBlockStyleValue(selectedItem.style, field.key)) }"
                                                     class="size-3 rounded-full"
                                                 />
                                             </template>
@@ -981,7 +850,7 @@ definePageMeta({
 
                                         <template #content>
                                             <UColorPicker
-                                                :model-value="String(getStyleValue(selectedItem.style, field.key))"
+                                                :model-value="String(getBlockStyleValue(selectedItem.style, field.key))"
                                                 @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e || '#000000')"
                                             />
                                         </template>
@@ -990,7 +859,7 @@ definePageMeta({
                                     <UInput
                                         v-else-if="field.type === 'number'"
                                         type="number"
-                                        :model-value="Number(getStyleValue(selectedItem.style, field.key))"
+                                        :model-value="Number(getBlockStyleValue(selectedItem.style, field.key))"
                                         class="w-full"
                                         :step="0.1"
                                         @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
@@ -999,7 +868,7 @@ definePageMeta({
                                     <UInput
                                         v-else
                                         :type="field.type"
-                                        :model-value="String(getStyleValue(selectedItem.style, field.key))"
+                                        :model-value="String(getBlockStyleValue(selectedItem.style, field.key))"
                                         class="w-full"
                                         @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
                                     />
