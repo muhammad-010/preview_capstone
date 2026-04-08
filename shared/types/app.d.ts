@@ -40,3 +40,71 @@ export interface TablePagination {
     /** items per page */
     pageSize: number
 }
+
+export type EditorMode = 'invitation-email' | 'check-in-page'
+
+export type Orientation = 'portrait' | 'landscape'
+
+export interface Coordinate {
+    x: number
+    y: number
+}
+
+export type CoordinateKey = keyof Coordinate
+
+export interface BackgroundImage {
+    portrait: File | null
+    landscape: File | null
+    portraitDataURL: string
+    landscapeDataURL: string
+}
+
+export interface BlockStyle {
+    key: string
+    value: string | boolean | number
+    label?: string
+    type?: string
+    options?: string[]
+}
+
+export interface BlockData {
+    key: string
+    value: string
+    label?: string
+}
+
+export interface Block {
+    uid: string
+    id: string
+    label: string
+    data: BlockData[]
+    style: BlockStyle[]
+    portraitPos: Coordinate
+    landscapePos: Coordinate
+    compiledStyle: string
+    html: (data: BlockData[], compiledStyle: string) => string
+    editableData: boolean
+}
+
+export interface CanvasSize {
+    width: number
+    height: number
+    label: string
+    orientation: Orientation
+}
+
+export interface SavedBlockSettings {
+    id: string
+    style: BlockStyle[]
+    data: BlockData[]
+    portraitPos: Coordinate
+    landscapePos: Coordinate
+    compiledStyle: string
+}
+
+export interface SavedSetttings {
+    bgPortraitDataURL: string
+    bgLandscapeDataURL: string
+    customBlock: SavedBlockSettings[]
+    staticBlock: SavedBlockSettings[]
+}
