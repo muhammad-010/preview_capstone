@@ -9,14 +9,6 @@ export const EDITOR_CANVAS_LANDSCAPE = 'landscape'
 export const PREVIEW_EDITOR_INVITATION_EMAIL = 'preview-invitation-email'
 export const PREVIEW_EDITOR_CHECK_IN_PAGE = 'preview-check-in-page'
 
-export const CANVAS_SIZE_PRESETS_DEFAULT: CanvasSize[] = [
-    { width: 360, height: 640, label: '360x640 (Android)', orientation: EDITOR_CANVAS_PORTRAIT },
-    { width: 390, height: 844, label: '390x844 (iPhone)', orientation: EDITOR_CANVAS_PORTRAIT },
-    { width: 1024, height: 768, label: '1024x768 (Tablet)', orientation: EDITOR_CANVAS_LANDSCAPE },
-    { width: 1366, height: 768, label: '1366x768 (Laptop)', orientation: EDITOR_CANVAS_LANDSCAPE },
-    { width: 1920, height: 1080, label: '1920x1080 (HD)', orientation: EDITOR_CANVAS_LANDSCAPE },
-]
-
 export const CANVAS_SIZE_PRESETS_INVITATION_EMAIL: CanvasSize[] = [
     { width: 600, height: 1750, label: '600x1750 (Email)', orientation: EDITOR_CANVAS_PORTRAIT },
 ]
