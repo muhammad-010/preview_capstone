@@ -84,7 +84,7 @@ export type CustomAttributeFound = Result<{
 }>
 
 export type CustomAttributeAddResult = Result<
-    AddedData<number, 'attribute_id'>
+    AddedData<number, 'custom_attribute_id'>
 >
 
 // PARTICIPANTS

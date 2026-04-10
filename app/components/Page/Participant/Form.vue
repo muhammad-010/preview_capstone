@@ -29,7 +29,7 @@ const schema = z.object({
     max_attendance: zodNumberOptional(),
     custom_attribute: z.array(
         z.object({
-            attribute_id: z.number(),
+            custom_attribute_id: z.number(),
             name: z.string().optional(),
             value: z.string().optional(),
         }),

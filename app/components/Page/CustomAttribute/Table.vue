@@ -83,7 +83,7 @@ function useColumns() {
             header: 'Name',
         },
         {
-            accessorKey: 'attribute_id',
+            accessorKey: 'custom_attribute_id',
             header: 'Action',
             meta: {
                 class: {
@@ -103,7 +103,7 @@ function useColumns() {
                                 {
                                     name: row.original.name || '',
                                 } as CustomAttributeForm,
-                                row.original.attribute_id),
+                                row.original.custom_attribute_id),
                         }),
                     ]),
                     h(UTooltip, { text: 'Delete', delayDuration: 0 }, [
@@ -111,7 +111,7 @@ function useColumns() {
                             color: 'error',
                             variant: 'ghost',
                             icon: 'lucide:trash',
-                            onClick: () => openDeleteConfirmation(row.original.attribute_id || 0, row.original.name || ''),
+                            onClick: () => openDeleteConfirmation(row.original.custom_attribute_id || 0, row.original.name || ''),
                         }),
                     ]),
                 ])

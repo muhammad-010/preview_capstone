@@ -30,7 +30,7 @@ const { data, pending, refresh } = useApi(`/api/tenant/${props.tenantId}/event/$
             ),
             ...(cleanedFilterCustomAttribute.length
                 ? {
-                        custom_attribute_ids: cleanedFilterCustomAttribute.map(attr => attr.attribute_id).join(','),
+                        custom_attribute_ids: cleanedFilterCustomAttribute.map(attr => attr.custom_attribute_id).join(','),
                         custom_attribute_values: cleanedFilterCustomAttribute.map(attr => attr.value).join(','),
                     }
                 : {}),
