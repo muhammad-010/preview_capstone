@@ -34,7 +34,6 @@ export interface Phone {
 }
 
 // AUTH
-
 export interface AuthSessionAssignedTenant {
     id: number
     name: string
@@ -55,7 +54,6 @@ export interface AuthSession {
 }
 
 // TENANTS
-
 export type TenantOwnerPhone = Phone
 
 export interface TenantOwner {
@@ -95,7 +93,6 @@ export interface TenantForm {
 }
 
 // EVENTS
-
 export interface TenantEventCapacity {
     total: number
     used: number
@@ -139,6 +136,23 @@ export interface TenantEventForm {
     assign_user_ids: number[]
 }
 
+// EVENT SESSIONS
+export interface TenantEventSession {
+    event_session_id: number
+    name: string
+    start_time: ISOString
+    end_time: ISOString
+    location: string
+    participant_status?: TenantEventParticipantStatus
+}
+
+export interface TenantEventSessionForm {
+    name: string
+    start_time: ISOString
+    end_time: ISOString
+    location: string
+}
+
 // CUSTOM ATTRIBUTES
 export interface CustomAttribute {
     custom_attribute_id: number
@@ -151,7 +165,6 @@ export interface CustomAttributeForm {
 }
 
 // PARTICIPANT
-
 export type ParticipantPhone = Phone
 
 export interface ParticipantInvitationLog {
@@ -199,7 +212,6 @@ export interface ParticipantCheckIn {
 }
 
 // USERS
-
 export type UserPhone = Phone
 
 export interface User {

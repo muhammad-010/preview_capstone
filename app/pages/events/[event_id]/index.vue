@@ -8,6 +8,10 @@ const tabs = [
         slot: 'overview',
     },
     {
+        label: 'Sessions',
+        slot: 'sessions',
+    },
+    {
         label: 'Attendees',
         slot: 'attendees',
     },
@@ -65,6 +69,13 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             <template #overview>
                 <PageEventOverview
                     ref="overviewRef"
+                    :tenant-id="tenantId"
+                    :event-id="id"
+                />
+            </template>
+
+            <template #sessions>
+                <PageSessionList
                     :tenant-id="tenantId"
                     :event-id="id"
                 />
