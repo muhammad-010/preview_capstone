@@ -8,21 +8,38 @@ const tabs = [
         slot: 'overview',
     },
     {
-        label: 'Custom Attributes',
-        slot: 'custom-attributes',
-    },
-    {
         label: 'Attendees',
         slot: 'attendees',
+    },
+    {
+        label: 'Settings',
+        slot: 'settings',
     },
 ]
 const activeTab = useState(STATE_EVENT_DETAIL_ACTIVE_TAB, () => '0')
 const { customAttributes, refreshCustomAttributes } = await useFindCustomAttribute(tenantId.value, id)
 const { event } = await useEventInfo(tenantId.value, id)
 
+const settings = [
+    {
+        label: 'Custom Attributes',
+        slot: 'custom-attributes',
+    },
+]
+
 const overviewRef = ref()
 function refreshDetail() {
     overviewRef.value.refresh()
+}
+
+const participantRef = ref()
+function refreshParticipant() {
+    participantRef.value.refresh()
+}
+
+function onRefreshCustomAttributeList() {
+    refreshCustomAttributes()
+    refreshParticipant()
 }
 
 useHead({
@@ -41,6 +58,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         <UTabs
             v-model="activeTab"
             :items="tabs"
+            :unmount-on-hide="false"
             variant="link"
             size="xl"
         >
@@ -52,22 +70,38 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                 />
             </template>
 
-            <template #custom-attributes>
-                <PageCustomAttributeList
-                    :tenant-id="tenantId"
-                    :event-id="id"
-                    :custom-attributes="customAttributes"
-                    @refresh="refreshCustomAttributes"
-                />
-            </template>
-
             <template #attendees>
                 <PageParticipantList
+                    ref="participantRef"
                     :tenant-id="tenantId"
                     :event-id="id"
                     :custom-attributes="customAttributes"
                     @refresh="refreshDetail"
                 />
+            </template>
+
+            <template #settings>
+                <UAccordion
+                    :items="settings"
+                    :unmount-on-hide="false"
+                    :ui="{ trigger: 'text-lg font-bold cursor-pointer', trailingIcon: 'hidden' }"
+                >
+                    <template #leading>
+                        <UIcon
+                            name="lucide:chevron-down"
+                            size="5"
+                            class="shrink-0 group-data-[state=open]:rotate-180 transition-transform duration-200"
+                        />
+                    </template>
+                    <template #custom-attributes>
+                        <PageCustomAttributeList
+                            :tenant-id="tenantId"
+                            :event-id="id"
+                            :custom-attributes="customAttributes"
+                            @refresh="onRefreshCustomAttributeList"
+                        />
+                    </template>
+                </UAccordion>
             </template>
         </UTabs>
     </div>
