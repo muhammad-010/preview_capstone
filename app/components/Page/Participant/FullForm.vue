@@ -4,8 +4,8 @@ defineProps<{
     eventId: number
 }>()
 const emit = defineEmits([EMIT_TABLE_REFRESH])
-const target = defineModel<ParticipantForm | undefined>('fields', { default: undefined })
-const targetId = defineModel<number | undefined>('id', { default: undefined })
+const fields = defineModel<ParticipantForm | undefined>('fields', { default: undefined })
+const id = defineModel<number | undefined>('id', { default: undefined })
 const router = useRouter()
 const formRef = ref()
 const formLoading = ref(false)
@@ -29,7 +29,7 @@ async function saveForm() {
     <div class="my-8">
         <CardForm
             title="Participant Information"
-            :subtitle="targetId ? 'Update current participant details' : 'Enter the details for the new participant'"
+            :subtitle="id ? 'Update current participant details' : 'Enter the details for the new participant'"
             :loading="formLoading"
             @cancel="router.back()"
             @save="saveForm"
@@ -40,8 +40,8 @@ async function saveForm() {
                 v-model:success="formSuccess"
                 :tenant-id="tenantId"
                 :event-id="eventId"
-                :participant-id="targetId"
-                :fields="target"
+                :participant-id="id"
+                :fields="fields"
             />
         </CardForm>
     </div>

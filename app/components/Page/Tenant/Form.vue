@@ -154,7 +154,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Company Name"
                 name="name"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.name"
@@ -167,7 +167,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Admin Name"
                 name="owner_name"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.owner_name"
@@ -180,7 +180,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Admin Email"
                 name="owner_email"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.owner_email"
@@ -193,7 +193,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Phone Number"
                 name="owner_phone_number"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.owner_phone_number"
@@ -220,7 +220,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Admin Password"
                 name="owner_password"
                 :required="isCreate"
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.owner_password"
@@ -247,7 +247,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Confirm Password"
                 name="owner_password_confirm"
                 :required="isCreate"
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.owner_password_confirm"
@@ -275,7 +275,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 name="plan"
                 required
                 readonly
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInputMenu
                     v-model="state.plan_id"
@@ -289,7 +289,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Account Status"
                 name="status"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInputMenu
                     v-model="state.status"
@@ -301,7 +301,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
             <!-- <UFormField
                         label="Billing Address"
                         name="billingAddress"
-                        class="my-2 w-full"
+                        :class="`${isModal ? '' : 'my-2'} w-full`"
                     >
                         <UInput
                             v-model="state.billingAddress"

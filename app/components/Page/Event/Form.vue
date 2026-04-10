@@ -130,7 +130,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                         label="Event Name"
                         name="name"
                         required
-                        class="my-2 w-full"
+                        :class="`${isModal ? '' : 'my-2'} w-full`"
                     >
                         <UInput
                             v-model="state.name"
@@ -143,7 +143,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                         label="Venue"
                         name="location"
                         required
-                        class="my-2 w-full"
+                        :class="`${isModal ? '' : 'my-2'} w-full`"
                     >
                         <UInput
                             v-model="state.location"
@@ -156,7 +156,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                         label="Start Time"
                         name="start_time"
                         required
-                        class="my-2 w-full"
+                        :class="`${isModal ? '' : 'my-2'} w-full`"
                     >
                         <InputDateTime
                             v-model="state.start_time"
@@ -167,7 +167,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                         label="End Time"
                         name="end_time"
                         required
-                        class="my-2 w-full"
+                        :class="`${isModal ? '' : 'my-2'} w-full`"
                     >
                         <InputDateTime
                             v-model="state.end_time"
@@ -177,7 +177,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                     <UFormField
                         label="Description"
                         name="description"
-                        class="my-2 w-full"
+                        :class="`${isModal ? '' : 'my-2'} w-full`"
                     >
                         <UTextarea
                             v-model="state.description"
@@ -190,7 +190,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                         <UFormField
                             label="Total Capacity"
                             name="capacity"
-                            class="my-2 w-full"
+                            :class="`${isModal ? '' : 'my-2'} w-full`"
                         >
                             <UInput
                                 v-model="state.capacity"
@@ -202,7 +202,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                         <UFormField
                             label="Attendance Confirmation"
                             name="confirmation_attendance"
-                            class="my-2 w-full"
+                            :class="`${isModal ? '' : 'my-2'} w-full`"
                         >
                             <USwitch v-model="state.confirmation_attendance" />
                         </UFormField>

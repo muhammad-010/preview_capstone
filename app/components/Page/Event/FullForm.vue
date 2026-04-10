@@ -5,8 +5,8 @@ defineProps<{
     tenantId: number
 }>()
 const emit = defineEmits([EMIT_TABLE_REFRESH])
-const target = defineModel<TenantEventForm | undefined>('fields', { default: undefined })
-const targetId = defineModel<number | undefined>('id', { default: undefined })
+const fields = defineModel<TenantEventForm | undefined>('fields', { default: undefined })
+const id = defineModel<number | undefined>('id', { default: undefined })
 const router = useRouter()
 const formRef = ref()
 const formLoading = ref(false)
@@ -54,7 +54,7 @@ function prevStep() {
     <div class="my-8">
         <CardForm
             title="Event Information"
-            :subtitle="targetId ? 'Update current event details' : 'Enter event detail and assign POC'"
+            :subtitle="id ? 'Update current event details' : 'Enter event detail and assign POC'"
             :loading="formLoading"
             with-stepper
             :total-step="steps.length"
@@ -70,8 +70,8 @@ function prevStep() {
                 v-model:success="formSuccess"
                 v-model:active-step="activeSteps"
                 :tenant-id="tenantId"
-                :event-id="targetId"
-                :fields="target"
+                :event-id="id"
+                :fields="fields"
                 :steps="steps"
             />
         </CardForm>

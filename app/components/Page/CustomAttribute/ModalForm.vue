@@ -5,22 +5,23 @@ defineProps<{
 }>()
 const emit = defineEmits([EMIT_TABLE_REFRESH])
 const formDialog = defineModel<boolean>('open', { default: false })
-const target = defineModel<CustomAttributeForm | undefined>('fields', { default: undefined })
-const targetId = defineModel<number | undefined>('id', { default: undefined })
+const fields = defineModel<CustomAttributeForm | undefined>('fields', { default: undefined })
+const id = defineModel<number | undefined>('id', { default: undefined })
 const formRef = ref()
 const formLoading = ref(false)
 const formSuccess = ref(false)
 
 function closeForm(close: () => void) {
     close()
-    target.value = undefined
+    fields.value = undefined
+    id.value = undefined
 }
 
 async function saveForm(close: () => void) {
     try {
         await formRef.value.saveData()
         if (formSuccess.value) {
-            close()
+            closeForm(close)
             formSuccess.value = false
         }
     }
@@ -37,7 +38,7 @@ async function saveForm(close: () => void) {
     >
         <template #header="{ close }">
             <div class="flex justify-between items-center w-full">
-                <h5>{{ target ? 'Edit' : 'Add' }} Custom Attribute</h5>
+                <h5>{{ fields ? 'Edit' : 'Add' }} Custom Attribute</h5>
 
                 <UButton
                     color="neutral"
@@ -58,8 +59,8 @@ async function saveForm(close: () => void) {
                     v-model:success="formSuccess"
                     :tenant-id="tenantId"
                     :event-id="eventId"
-                    :attribute-id="targetId"
-                    :fields="target"
+                    :attribute-id="id"
+                    :fields="fields"
                     is-modal
                 />
             </MiscLoadingOverlay>

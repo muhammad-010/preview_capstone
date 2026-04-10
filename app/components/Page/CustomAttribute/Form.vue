@@ -105,7 +105,7 @@ function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Attribute Name"
                 name="name"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.name"

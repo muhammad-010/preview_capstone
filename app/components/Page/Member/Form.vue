@@ -145,7 +145,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Member Name"
                 name="name"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.name"
@@ -158,7 +158,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Email"
                 name="email"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.email"
@@ -171,7 +171,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Phone Number"
                 name="phone_number"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.phone_number"
@@ -198,7 +198,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Account Status"
                 name="status"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInputMenu
                     v-model="state.status"
@@ -211,7 +211,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Admin Password"
                 name="password"
                 :required="isCreate"
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.password"
@@ -238,7 +238,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Confirm Password"
                 name="password_confirm"
                 :required="isCreate"
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.password_confirm"

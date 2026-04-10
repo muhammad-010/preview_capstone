@@ -3,8 +3,8 @@ defineProps<{
     tenantId: number
 }>()
 const emit = defineEmits([EMIT_TABLE_REFRESH])
-const target = defineModel<UserForm | undefined>('fields', { default: undefined })
-const targetId = defineModel<number | undefined>('id', { default: undefined })
+const fields = defineModel<UserForm | undefined>('fields', { default: undefined })
+const id = defineModel<number | undefined>('id', { default: undefined })
 const router = useRouter()
 const formRef = ref()
 const formLoading = ref(false)
@@ -28,7 +28,7 @@ async function saveForm() {
     <div class="my-8">
         <CardForm
             title="Member Information"
-            :subtitle="targetId ? 'Update current member details' : 'Enter the details for the new member'"
+            :subtitle="id ? 'Update current member details' : 'Enter the details for the new member'"
             :loading="formLoading"
             @cancel="router.back()"
             @save="saveForm"
@@ -38,8 +38,8 @@ async function saveForm() {
                 v-model:loading="formLoading"
                 v-model:success="formSuccess"
                 :tenant-id="tenantId"
-                :user-id="targetId"
-                :fields="target"
+                :user-id="id"
+                :fields="fields"
             />
         </CardForm>
     </div>

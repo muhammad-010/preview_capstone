@@ -111,7 +111,7 @@ function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Session Name"
                 name="name"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.name"
@@ -124,7 +124,7 @@ function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Start Time"
                 name="start_time"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <InputDateTime
                     v-model="state.start_time"
@@ -135,7 +135,7 @@ function submitData(payload: FormSubmitEvent<Schema>) {
                 label="End Time"
                 name="end_time"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <InputDateTime
                     v-model="state.end_time"
@@ -146,7 +146,7 @@ function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Venue"
                 name="location"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.location"

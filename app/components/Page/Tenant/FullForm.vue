@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const emit = defineEmits([EMIT_TABLE_REFRESH])
-const target = defineModel<TenantForm | undefined>('fields', { default: undefined })
-const targetId = defineModel<number | undefined>('id', { default: undefined })
+const fields = defineModel<TenantForm | undefined>('fields', { default: undefined })
+const id = defineModel<number | undefined>('id', { default: undefined })
 const router = useRouter()
 const formRef = ref()
 const formLoading = ref(false)
@@ -25,7 +25,7 @@ async function saveForm() {
     <div class="my-8">
         <CardForm
             title="Tenant Information"
-            :subtitle="targetId ? 'Update current tenant organization details' : 'Enter the details for the new tenant organization'"
+            :subtitle="id ? 'Update current tenant organization details' : 'Enter the details for the new tenant organization'"
             :loading="formLoading"
             @cancel="router.back()"
             @save="saveForm"
@@ -34,8 +34,8 @@ async function saveForm() {
                 ref="formRef"
                 v-model:loading="formLoading"
                 v-model:success="formSuccess"
-                :tenant-id="targetId"
-                :fields="target"
+                :tenant-id="id"
+                :fields="fields"
             />
         </CardForm>
     </div>

@@ -132,7 +132,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 name="name"
 
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.name"
@@ -145,7 +145,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Email"
                 name="email"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.email"
@@ -158,7 +158,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 label="Phone Number"
                 name="phone_number"
                 required
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.phone_number"
@@ -184,7 +184,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
             <UFormField
                 label="Max Attendance"
                 name="max_attendance"
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.max_attendance"
@@ -198,7 +198,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 :key="index"
                 :label="`Custom Attribute: ${item.name}`"
                 :name="`custom_attribute.${index}`"
-                class="my-2 w-full"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <UInput
                     v-model="state.custom_attribute![index]!.value"
