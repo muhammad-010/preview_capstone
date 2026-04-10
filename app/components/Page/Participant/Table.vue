@@ -16,109 +16,17 @@ const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
 const selected = defineModel<number[]>('selected', { default: () => [] })
 const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attribute', { default: () => [] })
-const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
-const filterCustomAttributeField = ref(structuredClone(toRaw(unref(filterCustomAttribute))))
-const cleanedFilterCustomAttribute = computed(() => formatCleanCustomAttribute(filterCustomAttribute.value))
-const filterCustomAttributeButtonLabel = computed(() => cleanedFilterCustomAttribute.value.map(attr => `${attr.name}: ${attr.value}`).join(', '))
-const filterCheckedInItems = [
-    {
-        label: 'All',
-        value: null,
-    },
-    {
-        label: 'Yes',
-        value: true,
-    },
-    {
-        label: 'No',
-        value: false,
-    },
-]
-const filterCheckedInField = ref<boolean | null>(null)
-const filterCheckedInLabel = computed(() => filterCheckedInItems.find(e => e.value === filterCheckedIn.value)?.label || 'Invalid Data')
+// const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
+const filterSessionStatus = defineModel<ParticipantSessionStatus[]>('filter-session-status', { default: () => [] })
 const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
 const toast = useToast()
 const { tenantId } = useUserState()
-const rowSelection = ref<Record<string, boolean>>({})
-const selectAll = ref(false)
-const resetSelectionConfirmation = ref(false)
+
+// FILTER CUSTOM ATTRIBUTE
+const filterCustomAttributeField = ref(structuredClone(toRaw(unref(filterCustomAttribute))))
+const cleanedFilterCustomAttribute = computed(() => formatCleanCustomAttribute(filterCustomAttribute.value))
+const filterCustomAttributeButtonLabel = computed(() => cleanedFilterCustomAttribute.value.map(attr => `${attr.name}: ${attr.value}`).join(', '))
 const filterCustomAttributeDialog = ref(false)
-const filterCheckedInDialog = ref(false)
-const filterSelectionDialog = ref(false)
-const filterSelections = computed(() => {
-    const list = []
-    if (!cleanedFilterCustomAttribute.value.length) {
-        list.push({
-            label: 'Metadata',
-            onClick: () => {
-                filterSelectionDialog.value = false
-                filterCustomAttributeDialog.value = true
-            },
-        })
-    }
-    if (filterCheckedIn.value === null) {
-        list.push({
-            label: 'Checked In',
-            onClick: () => {
-                filterSelectionDialog.value = false
-                filterCheckedInDialog.value = true
-            },
-        })
-    }
-
-    return list
-})
-const deleteConfirmation = ref(false)
-const deleteTarget = ref({
-    id: 0,
-    name: '',
-})
-const manualCheckInTarget = ref({
-    id: 0,
-    name: '',
-    maxAttendance: 0,
-})
-const manualCheckInConfirmation = ref(false)
-const manualCheckInGuestConfirmation = ref(false)
-const manualCheckInGuest = reactive({ count: 0 })
-const resetFunction = ref<ToggleAllPageRowsSelected>()
-
-type CheckInGuestSchema = typeof manualCheckInGuest
-
-function toggle(pId: number | undefined) {
-    if (!pId) return
-
-    const data = selected.value
-    const i = data.indexOf(pId)
-
-    if (i !== -1) {
-        data.splice(i, 1)
-    }
-    else {
-        data.push(pId)
-    }
-
-    selected.value = data
-}
-
-/** all is null, so this worked for select all */
-function clearSelection(all: boolean) {
-    selected.value = []
-    selectAll.value = all
-}
-
-function askResetSelection(cb: ToggleAllPageRowsSelected) {
-    resetFunction.value = cb
-    resetSelectionConfirmation.value = true
-}
-
-function confirmResetSelection() {
-    const cb = resetFunction.value
-    if (cb) cb(false)
-    clearSelection(false)
-    resetFunction.value = undefined
-    resetSelectionConfirmation.value = false
-}
 
 function refreshFilterCustomAttributeDialog() {
     filterCustomAttribute.value = structuredClone(toRaw(unref(filterCustomAttributeField.value)))
@@ -142,25 +50,128 @@ function applyFilterCustomAttributeDialog(close: () => void) {
     refreshFilterCustomAttributeDialog()
 }
 
-function refreshFilterCheckedIn() {
-    filterCheckedIn.value = filterCheckedInField.value
+// FILTER CHECKED-IN
+// const filterCheckedInItems = [
+//     {
+//         label: 'All',
+//         value: null,
+//     },
+//     {
+//         label: 'Yes',
+//         value: true,
+//     },
+//     {
+//         label: 'No',
+//         value: false,
+//     },
+// ]
+// const filterCheckedInField = ref<boolean | null>(null)
+// const filterCheckedInLabel = computed(() => filterCheckedInItems.find(e => e.value === filterCheckedIn.value)?.label || 'Invalid Data')
+// const filterCheckedInDialog = ref(false)
+
+// function refreshFilterCheckedIn() {
+//     filterCheckedIn.value = filterCheckedInField.value
+//     emit(EMIT_TABLE_REFRESH)
+// }
+
+// function clearFilterCheckedIn(refresh: boolean) {
+//     filterCheckedInField.value = null
+//     if (refresh) refreshFilterCheckedIn()
+// }
+
+// function closeFilterCheckedInDialog(close: () => void) {
+//     filterCheckedInDialog.value = false
+//     close()
+// }
+
+// function applyFilterCheckedInDialog(close: () => void) {
+//     close()
+//     refreshFilterCheckedIn()
+// }
+
+// FILTER SESSION STATUS
+const filterSessionStatusItems = [
+    {
+        label: formatCapitalize(PARTICIPANT_SESSION_STATUS_NONE),
+        description: 'Participant that haven\'t checked-in',
+        value: PARTICIPANT_SESSION_STATUS_NONE,
+    },
+    {
+        label: formatCapitalize(PARTICIPANT_SESSION_STATUS_PARTIAL),
+        description: 'Participant that already checked-in in some session',
+        value: PARTICIPANT_SESSION_STATUS_PARTIAL,
+    },
+    {
+        label: formatCapitalize(PARTICIPANT_SESSION_STATUS_COMPLETED),
+        description: 'Participant that checked-in in all session',
+        value: PARTICIPANT_SESSION_STATUS_COMPLETED,
+    },
+]
+const filterSessionStatusField = ref<ParticipantSessionStatus[]>([])
+const filterSessionStatusLabel = computed(() => filterSessionStatusItems.filter(e => filterSessionStatus.value.includes(e.value)).map(e => e.label).join(', '))
+const filterSessionStatusDialog = ref(false)
+
+function refreshFilterSessionStatus() {
+    filterSessionStatus.value = filterSessionStatusField.value
     emit(EMIT_TABLE_REFRESH)
 }
 
-function clearFilterCheckedIn(refresh: boolean) {
-    filterCheckedInField.value = null
-    if (refresh) refreshFilterCheckedIn()
+function clearFilterSessionStatus(refresh: boolean) {
+    filterSessionStatusField.value = []
+    if (refresh) refreshFilterSessionStatus()
 }
 
-function closeFilterCheckedInDialog(close: () => void) {
-    filterCheckedInDialog.value = false
+function closeFilterSessionStatusDialog(close: () => void) {
+    filterSessionStatusDialog.value = false
     close()
 }
 
-function applyFilterCheckedInDialog(close: () => void) {
+function applyFilterSessionStatusDialog(close: () => void) {
     close()
-    refreshFilterCheckedIn()
+    refreshFilterSessionStatus()
 }
+
+// ADD FILTER
+const filterSelectionDialog = ref(false)
+const filterSelections = computed(() => {
+    const list = []
+    if (!cleanedFilterCustomAttribute.value.length) {
+        list.push({
+            label: 'Metadata',
+            onClick: () => {
+                filterSelectionDialog.value = false
+                filterCustomAttributeDialog.value = true
+            },
+        })
+    }
+    // if (filterCheckedIn.value === null) {
+    //     list.push({
+    //         label: 'Checked In',
+    //         onClick: () => {
+    //             filterSelectionDialog.value = false
+    //             filterCheckedInDialog.value = true
+    //         },
+    //     })
+    // }
+    if (!filterSessionStatus.value.length) {
+        list.push({
+            label: 'Session Status',
+            onClick: () => {
+                filterSelectionDialog.value = false
+                filterSessionStatusDialog.value = true
+            },
+        })
+    }
+
+    return list
+})
+
+// DELETION
+const deleteConfirmation = ref(false)
+const deleteTarget = ref({
+    id: 0,
+    name: '',
+})
 
 function setDeleteTarget(id: number, name: string) {
     deleteTarget.value.id = id
@@ -201,6 +212,18 @@ async function deleteData(id: number) {
     }
     closeDeleteConfirmation()
 }
+
+// CHECK-IN
+const manualCheckInTarget = ref({
+    id: 0,
+    name: '',
+    maxAttendance: 0,
+})
+const manualCheckInConfirmation = ref(false)
+const manualCheckInGuestConfirmation = ref(false)
+const manualCheckInGuest = reactive({ count: 0 })
+
+type CheckInGuestSchema = typeof manualCheckInGuest
 
 function openConfirmManualCheckIn(id: number, name: string) {
     manualCheckInTarget.value = { id, name, maxAttendance: 0 }
@@ -289,6 +312,47 @@ async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchem
         })
         console.error('Manual submit participant guest error', error)
     }
+}
+
+// TABLE
+const rowSelection = ref<Record<string, boolean>>({})
+const selectAll = ref(false)
+const resetSelectionConfirmation = ref(false)
+const resetFunction = ref<ToggleAllPageRowsSelected>()
+
+function toggle(pId: number | undefined) {
+    if (!pId) return
+
+    const data = selected.value
+    const i = data.indexOf(pId)
+
+    if (i !== -1) {
+        data.splice(i, 1)
+    }
+    else {
+        data.push(pId)
+    }
+
+    selected.value = data
+}
+
+/** all is null, so this worked for select all */
+function clearSelection(all: boolean) {
+    selected.value = []
+    selectAll.value = all
+}
+
+function askResetSelection(cb: ToggleAllPageRowsSelected) {
+    resetFunction.value = cb
+    resetSelectionConfirmation.value = true
+}
+
+function confirmResetSelection() {
+    const cb = resetFunction.value
+    if (cb) cb(false)
+    clearSelection(false)
+    resetFunction.value = undefined
+    resetSelectionConfirmation.value = false
 }
 
 watch(
@@ -493,12 +557,20 @@ const { columns, tableRef } = useColumns()
                     @clear="() => clearFilterCustomAttributeDialog(true)"
                 />
 
-                <DataTableFilter
+                <!-- <DataTableFilter
                     label="Checked In"
                     :active-condition="filterCheckedIn !== null"
                     :active-label="filterCheckedInLabel"
                     @open-filter="filterCheckedInDialog = true"
                     @clear="() => clearFilterCheckedIn(true)"
+                /> -->
+
+                <DataTableFilter
+                    label="Session Status"
+                    :active-condition="Boolean(filterSessionStatus.length)"
+                    :active-label="filterSessionStatusLabel"
+                    @open-filter="filterSessionStatusDialog = true"
+                    @clear="() => clearFilterSessionStatus(true)"
                 />
 
                 <UButton
@@ -725,7 +797,7 @@ const { columns, tableRef } = useColumns()
             </template>
         </UModal>
 
-        <UModal v-model:open="filterCheckedInDialog">
+        <!-- <UModal v-model:open="filterCheckedInDialog">
             <template #header="{ close }">
                 <div class="flex justify-between items-center w-full">
                     <h5>Filter Checked In</h5>
@@ -734,7 +806,7 @@ const { columns, tableRef } = useColumns()
                         color="neutral"
                         variant="ghost"
                         icon="lucide:x"
-                        @click="() => closeFilterCustomAttributeDialog(close)"
+                        @click="() => closeFilterCheckedInDialog(close)"
                     />
                 </div>
             </template>
@@ -742,6 +814,7 @@ const { columns, tableRef } = useColumns()
             <template #body>
                 <URadioGroup
                     v-model="filterCheckedInField"
+                    variant="table"
                     :items="filterCheckedInItems"
                 />
             </template>
@@ -763,6 +836,52 @@ const { columns, tableRef } = useColumns()
                             class="cursor-pointer"
                             label="Apply Filter"
                             @click="() => applyFilterCheckedInDialog(close)"
+                        />
+                    </div>
+                </div>
+            </template>
+        </UModal> -->
+
+        <UModal v-model:open="filterSessionStatusDialog">
+            <template #header="{ close }">
+                <div class="flex justify-between items-center w-full">
+                    <h5>Filter Session Status</h5>
+
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="lucide:x"
+                        @click="() => closeFilterSessionStatusDialog(close)"
+                    />
+                </div>
+            </template>
+
+            <template #body>
+                <UCheckboxGroup
+                    v-model="filterSessionStatusField"
+                    variant="table"
+                    :items="filterSessionStatusItems"
+                    value-key="value"
+                />
+            </template>
+
+            <template #footer="{ close }">
+                <div class="flex justify-end items-center w-full">
+                    <div class="flex gap-2">
+                        <UButton
+                            color="neutral"
+                            variant="outline"
+                            icon="lucide:x"
+                            class="cursor-pointer"
+                            label="Cancel"
+                            @click="() => closeFilterSessionStatusDialog(close)"
+                        />
+                        <UButton
+                            color="primary"
+                            icon="lucide:save"
+                            class="cursor-pointer"
+                            label="Apply Filter"
+                            @click="() => applyFilterSessionStatusDialog(close)"
                         />
                     </div>
                 </div>

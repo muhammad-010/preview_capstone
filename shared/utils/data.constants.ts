@@ -5,6 +5,7 @@ import type {
     ParticipantCategory,
     SendChannel,
     InvitationStatus,
+    ParticipantSessionStatus,
 } from '../types/data'
 
 // STATUS
@@ -55,6 +56,23 @@ export const PARTICIPANT_STATUS_DROPDOWN: ParticipantStatus[] = [
 export const PARTICIPANT_STATUS_COLORS: Record<ParticipantStatus, 'success' | 'neutral'> = {
     [PARTICIPANT_STATUS_CHECKED_IN]: 'success',
     [PARTICIPANT_STATUS_PENDING]: 'neutral',
+} as const
+
+// PARTICIPANT_SSESSION_STATUS
+export const PARTICIPANT_SESSION_STATUS_NONE: ParticipantSessionStatus = 'none'
+export const PARTICIPANT_SESSION_STATUS_PARTIAL: ParticipantSessionStatus = 'partial'
+export const PARTICIPANT_SESSION_STATUS_COMPLETED: ParticipantSessionStatus = 'completed'
+
+export const PARTICIPANT_SESSION_STATUS_DROPDOWN: ParticipantSessionStatus[] = [
+    PARTICIPANT_SESSION_STATUS_NONE,
+    PARTICIPANT_SESSION_STATUS_PARTIAL,
+    PARTICIPANT_SESSION_STATUS_COMPLETED,
+]
+
+export const PARTICIPANT_SESSION_STATUS_COLORS: Record<ParticipantSessionStatus, 'neutral' | 'info' | 'success'> = {
+    [PARTICIPANT_SESSION_STATUS_NONE]: 'neutral',
+    [PARTICIPANT_SESSION_STATUS_PARTIAL]: 'info',
+    [PARTICIPANT_SESSION_STATUS_COMPLETED]: 'success',
 } as const
 
 // PARTICIPANT_INVITATION_STATUS

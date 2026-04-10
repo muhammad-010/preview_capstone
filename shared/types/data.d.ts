@@ -8,6 +8,8 @@ export type TenantEventStatus = 'Active' | 'Upcoming' | 'Live' | 'Completed'
 
 export type ParticipantStatus = 'Pending' | 'Checked In'
 
+export type ParticipantSessionStatus = 'none' | 'partial' | 'completed'
+
 export type ParticipantCategory = 'VIP' | 'Regular'
 
 export type SendChannel = 'email' | 'whatsapp'
