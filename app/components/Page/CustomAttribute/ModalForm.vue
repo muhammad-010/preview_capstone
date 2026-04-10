@@ -21,6 +21,7 @@ async function saveForm(close: () => void) {
         await formRef.value.saveData()
         if (formSuccess.value) {
             close()
+            formSuccess.value = false
         }
     }
     catch { /* empty */ }
@@ -30,7 +31,10 @@ async function saveForm(close: () => void) {
 </script>
 
 <template>
-    <UModal v-model:open="formDialog">
+    <UModal
+        v-model:open="formDialog"
+        :dismissible="false"
+    >
         <template #header="{ close }">
             <div class="flex justify-between items-center w-full">
                 <h5>{{ target ? 'Edit' : 'Add' }} Custom Attribute</h5>

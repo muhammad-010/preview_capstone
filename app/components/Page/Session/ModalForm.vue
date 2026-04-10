@@ -21,6 +21,7 @@ async function saveForm(close: () => void) {
         await formRef.value.saveData()
         if (formSuccess.value) {
             close()
+            formSuccess.value = false
         }
     }
     catch { /* empty */ }

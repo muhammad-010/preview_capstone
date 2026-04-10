@@ -17,6 +17,7 @@ async function saveForm() {
         await formRef.value.saveData()
         if (formSuccess.value) {
             router.go(-1)
+            formSuccess.value = false
         }
     }
     catch { /* empty */ }
