@@ -52,9 +52,7 @@ async function useDetail(tId: number, id: number) {
 
 async function useList(tId: number, id: number) {
     const search = ref('')
-    const searchPhoneNumber = ref('')
     const query = ref('')
-    const phoneNumber = ref('')
     const page = ref(1)
     const limit = ref(5)
     const selectedIds = ref<number[]>([])
@@ -79,10 +77,6 @@ async function useList(tId: number, id: number) {
                             custom_attribute_values: cleanedFilterCustomAttribute.map(attr => attr.value).join(','),
                         }
                     : {}),
-                ...(phoneNumber.value
-                    ? { phone_number: phoneNumber.value }
-                    : {}
-                ),
             }
         }),
         watch: false,
@@ -103,10 +97,6 @@ async function useList(tId: number, id: number) {
                         : {}
                     ),
                     custom_attribute: [...formatCleanCustomAttribute(filterCustomAttribute.value)],
-                    ...(phoneNumber.value
-                        ? { phone_number: phoneNumber.value }
-                        : {}
-                    ),
                 },
             })
             if (data.filepath) {
@@ -151,12 +141,6 @@ async function useList(tId: number, id: number) {
         refresh()
     }
 
-    function searchParticipantPhoneNumber() {
-        page.value = 1
-        phoneNumber.value = searchPhoneNumber.value
-        refresh()
-    }
-
     function clearSearch() {
         page.value = 1
         search.value = ''
@@ -164,16 +148,8 @@ async function useList(tId: number, id: number) {
         refresh()
     }
 
-    function clearSearchPhoneNumber() {
-        page.value = 1
-        searchPhoneNumber.value = ''
-        query.value = search.value
-        refresh()
-    }
-
     return {
         search,
-        searchPhoneNumber,
         page,
         limit,
         selectedIds,
@@ -186,9 +162,7 @@ async function useList(tId: number, id: number) {
         refresh,
         exportData,
         searchParticipant,
-        searchParticipantPhoneNumber,
         clearSearch,
-        clearSearchPhoneNumber,
     }
 }
 
@@ -203,7 +177,6 @@ const [
 
     {
         search,
-        searchPhoneNumber,
         page,
         limit,
         selectedIds,
@@ -215,14 +188,15 @@ const [
         refresh: refreshParticipants,
         exportData,
         searchParticipant,
-        searchParticipantPhoneNumber,
         clearSearch,
-        clearSearchPhoneNumber,
     },
 ] = await Promise.all([
     useDetail(tenantId.value, id),
     useList(tenantId.value, id),
 ])
+
+const printConfirmation = ref(false)
+const sendConfirmation = ref(false)
 
 useHead({
     title: computed(() => `Event - ${event.value ? event.value.name : 'Detail'}`),
@@ -294,48 +268,35 @@ async function refreshAll() {
                         <template #header>
                             <div class="card-toolbar">
                                 <div class="card-toolbar-left-wrapper">
-                                    <InputSearch
+                                    <DataTableSearch
                                         v-model="search"
-                                        class="card-toolbar-left"
-                                        placeholder="Search Name"
+                                        class="card-toolbar-left w-full"
+                                        placeholder="Search Participant"
                                         @search="searchParticipant"
                                         @clear="clearSearch"
-                                    />
-
-                                    <InputSearch
-                                        v-model="searchPhoneNumber"
-                                        class="card-toolbar-left"
-                                        placeholder="Search Phone Number"
-                                        @search="searchParticipantPhoneNumber"
-                                        @clear="clearSearchPhoneNumber"
                                     />
                                 </div>
 
                                 <div class="card-toolbar-actions">
-                                    <UButton
-                                        color="neutral"
-                                        variant="outline"
-                                        icon="lucide:download"
-                                        class="cursor-pointer"
-                                        @click="exportData"
-                                    >
-                                        Export
-                                    </UButton>
-                                    <PageEventImport
-                                        :tenant-id="tenantId"
-                                        :event-id="id"
-                                        @refresh="refreshAll"
-                                    />
                                     <PageEventPrintQr
+                                        v-model:open="printConfirmation"
                                         :tenant-id="tenantId"
                                         :event-id="id"
                                         :selected-ids="selectedIds"
+                                        hide
                                         @refresh="refreshAll"
                                     />
                                     <PageEventSendQr
+                                        v-model:open="sendConfirmation"
                                         :tenant-id="tenantId"
                                         :event-id="id"
                                         :selected-ids="selectedIds"
+                                        hide
+                                        @refresh="refreshAll"
+                                    />
+                                    <PageEventImport
+                                        :tenant-id="tenantId"
+                                        :event-id="id"
                                         @refresh="refreshAll"
                                     />
                                     <UButton
@@ -362,6 +323,9 @@ async function refreshAll() {
                             :pending="pending"
                             with-pagination
                             @refresh="refreshAll"
+                            @export="exportData"
+                            @print-qr="printConfirmation = true"
+                            @send-qr="sendConfirmation = true"
                         />
                     </UCard>
                 </div>

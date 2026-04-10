@@ -3,12 +3,13 @@ const props = defineProps<{
     tenantId: number
     eventId: number
     selectedIds: number[]
+    hide?: boolean
 }>()
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
+const sendConfirmation = defineModel<boolean>('open', { default: false })
 
 const { $api } = useNuxtApp()
 const toast = useToast()
-const sendConfirmation = ref(false)
 const sendLoading = ref(false)
 const sendChannels = ref(SEND_CHANNEL_DROPDOWN)
 const selectedSendChannel = ref<SendChannel[]>([])
@@ -42,6 +43,7 @@ async function sendQr() {
 
 <template>
     <UButton
+        v-if="!hide"
         color="neutral"
         variant="outline"
         icon="lucide:send"

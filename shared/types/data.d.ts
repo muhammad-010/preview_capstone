@@ -157,6 +157,11 @@ export interface ParticipantInvitationLog {
     }
 }
 
+export interface ParticipantCheckInProgress {
+    total: number
+    count: number
+}
+
 export interface Participant {
     participant_id?: number
     name: string
@@ -168,6 +173,7 @@ export interface Participant {
     max_attendance: number
     custom_attribute: CustomAttribute[] | null
     latest_invitation_log?: ParticipantInvitationLog | null
+    check_in_progress?: ParticipantCheckInProgress
 
     phone?: Phone
     ticket_path?: string

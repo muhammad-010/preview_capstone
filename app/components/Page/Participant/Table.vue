@@ -36,7 +36,7 @@ const filterCheckedInItems = [
 ]
 const filterCheckedInField = ref<boolean | null>(null)
 const filterCheckedInLabel = computed(() => filterCheckedInItems.find(e => e.value === filterCheckedIn.value)?.label || 'Invalid Data')
-const emit = defineEmits([EMIT_TABLE_REFRESH])
+const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
 const toast = useToast()
 const { tenantId } = useUserState()
 const rowSelection = ref<Record<string, boolean>>({})
@@ -44,6 +44,30 @@ const selectAll = ref(false)
 const resetSelectionConfirmation = ref(false)
 const filterCustomAttributeDialog = ref(false)
 const filterCheckedInDialog = ref(false)
+const filterSelectionDialog = ref(false)
+const filterSelections = computed(() => {
+    const list = []
+    if (!cleanedFilterCustomAttribute.value.length) {
+        list.push({
+            label: 'Metadata',
+            onClick: () => {
+                filterSelectionDialog.value = false
+                filterCustomAttributeDialog.value = true
+            },
+        })
+    }
+    if (filterCheckedIn.value === null) {
+        list.push({
+            label: 'Checked In',
+            onClick: () => {
+                filterSelectionDialog.value = false
+                filterCheckedInDialog.value = true
+            },
+        })
+    }
+
+    return list
+})
 const deleteConfirmation = ref(false)
 const deleteTarget = ref({
     id: 0,
@@ -285,6 +309,8 @@ function useColumns() {
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
     const UCheckbox = resolveComponent('UCheckbox')
+    const UProgress = resolveComponent('UProgress')
+    const UTooltip = resolveComponent('UTooltip')
     const tableRef = useTemplateRef('tableRef')
 
     function qrSent(participant: Participant) {
@@ -388,14 +414,16 @@ function useColumns() {
             },
         },
         {
-            accessorKey: 'status',
+            accessorKey: 'check_in_progress',
             header: 'Status',
             cell: ({ row }) => {
-                return h(UBadge, {
-                    color: PARTICIPANT_STATUS_COLORS[row.getValue('status') as ParticipantStatus],
-                    variant: 'subtle',
-                    label: row.original.status,
-                })
+                return h('div', {}, [
+                    h('span', {}, `${row.original.check_in_progress?.count || 0}/${row.original.check_in_progress?.total || 0} Session`),
+                    h(UProgress, {
+                        max: row.original.check_in_progress?.total || 0,
+                        modelValue: row.original.check_in_progress?.count || 0,
+                    }),
+                ])
             },
         },
         {
@@ -406,27 +434,42 @@ function useColumns() {
         {
             accessorKey: 'participant_id',
             header: 'Action',
+            meta: {
+                class: {
+                    td: 'w-[1%]',
+                },
+            },
             cell: ({ row }) => {
-                return h('div', { class: 'flex gap-2' }, [
-                    h(UButton, {
-                        color: row.original.status === PARTICIPANT_STATUS_CHECKED_IN ? 'neutral' : 'primary',
-                        variant: row.original.status === PARTICIPANT_STATUS_CHECKED_IN ? 'outline' : 'solid',
-                        disabled: row.original.status === PARTICIPANT_STATUS_CHECKED_IN,
-                        icon: 'lucide:circle-check',
-                        onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
-                    }),
-                    h(UButton, {
-                        color: 'neutral',
-                        variant: 'ghost',
-                        icon: 'lucide:pencil',
-                        to: `/events/${props.eventId}/participant/${row.original.participant_id}/edit`,
-                    }),
-                    h(UButton, {
-                        color: 'error',
-                        variant: 'ghost',
-                        icon: 'lucide:trash',
-                        onClick: () => openDeleteConfirmation(row.original.participant_id || 0, row.original.name),
-                    }),
+                const disabled = row.original.check_in_progress
+                    ? row.original.check_in_progress.count === row.original.check_in_progress.total
+                    : true
+                return h('div', { class: 'inline-flex gap-2' }, [
+                    h(UTooltip, { text: 'Manual Check-In', delayDuration: 0 }, [
+                        h(UButton, {
+                            color: 'neutral',
+                            variant: 'ghost',
+                            disabled,
+                            icon: 'lucide:circle-check',
+                            class: disabled ? 'opacity-25!' : '',
+                            onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
+                        }),
+                    ]),
+                    h(UTooltip, { text: 'Edit', delayDuration: 0 }, [
+                        h(UButton, {
+                            color: 'neutral',
+                            variant: 'ghost',
+                            icon: 'lucide:pencil',
+                            to: `/events/${props.eventId}/participant/${row.original.participant_id}/edit`,
+                        }),
+                    ]),
+                    h(UTooltip, { text: 'Delete', delayDuration: 0 }, [
+                        h(UButton, {
+                            color: 'error',
+                            variant: 'ghost',
+                            icon: 'lucide:trash',
+                            onClick: () => openDeleteConfirmation(row.original.participant_id || 0, row.original.name),
+                        }),
+                    ]),
                 ])
             },
         },
@@ -440,61 +483,44 @@ const { columns, tableRef } = useColumns()
 
 <template>
     <div>
-        <div class="flex flex-wrap gap-2 mb-4">
-            <span>Filter:</span>
-            <UFieldGroup>
-                <UButton
-                    color="neutral"
-                    variant="subtle"
-                    size="xs"
-                    :icon="`lucide:${cleanedFilterCustomAttribute.length ? 'pencil' : 'plus'}`"
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex flex-wrap gap-2">
+                <DataTableFilter
                     label="Metadata"
-                    @click="filterCustomAttributeDialog = true"
+                    :active-condition="Boolean(cleanedFilterCustomAttribute.length)"
+                    :active-label="filterCustomAttributeButtonLabel"
+                    @open-filter="filterCustomAttributeDialog = true"
+                    @clear="() => clearFilterCustomAttributeDialog(true)"
                 />
-                <UButton
-                    v-if="cleanedFilterCustomAttribute.length"
-                    color="neutral"
-                    variant="outline"
-                    size="xs"
-                    :label="filterCustomAttributeButtonLabel"
-                    @click="filterCustomAttributeDialog = true"
-                />
-                <UButton
-                    v-if="cleanedFilterCustomAttribute.length"
-                    color="error"
-                    variant="subtle"
-                    size="xs"
-                    icon="lucide:x"
-                    @click="() => clearFilterCustomAttributeDialog(true)"
-                />
-            </UFieldGroup>
 
-            <UFieldGroup>
-                <UButton
-                    color="neutral"
-                    variant="subtle"
-                    size="xs"
-                    :icon="`lucide:${filterCheckedIn !== null ? 'pencil' : 'plus'}`"
+                <DataTableFilter
                     label="Checked In"
-                    @click="filterCheckedInDialog = true"
+                    :active-condition="filterCheckedIn !== null"
+                    :active-label="filterCheckedInLabel"
+                    @open-filter="filterCheckedInDialog = true"
+                    @clear="() => clearFilterCheckedIn(true)"
                 />
+
                 <UButton
-                    v-if="filterCheckedIn !== null"
+                    v-if="filterSelections.length"
                     color="neutral"
-                    variant="outline"
-                    size="xs"
-                    :label="filterCheckedInLabel"
-                    @click="filterCheckedInDialog = true"
-                />
-                <UButton
-                    v-if="filterCheckedIn !== null"
-                    color="error"
                     variant="subtle"
                     size="xs"
-                    icon="lucide:x"
-                    @click="clearFilterCheckedIn(true)"
+                    icon="lucide:plus"
+                    label="Add Filter"
+                    @click="filterSelectionDialog = true"
                 />
-            </UFieldGroup>
+            </div>
+
+            <PageParticipantBulkAction
+                :tenant-id="tenantId"
+                :event-id="eventId"
+                :selected-ids="selected"
+                @export="emit(EMIT_TABLE_EXPORT)"
+                @print-qr="emit(EMIT_TABLE_PRINT_QR)"
+                @send-qr="emit(EMIT_TABLE_SEND_QR)"
+                @bulk-delete="emit(EMIT_TABLE_BULK_DELETE)"
+            />
         </div>
 
         <UTable
@@ -505,7 +531,7 @@ const { columns, tableRef } = useColumns()
             :loading="pending"
         />
 
-        <MiscPagination
+        <DataTablePagination
             v-if="withPagination"
             v-model:limit="limit"
             v-model:page="page"
@@ -603,6 +629,35 @@ const { columns, tableRef } = useColumns()
                             class="cursor-pointer"
                         />
                     </UForm>
+                </div>
+            </template>
+        </UModal>
+
+        <UModal v-model:open="filterSelectionDialog">
+            <template #header="{ close }">
+                <div class="flex justify-between items-center w-full">
+                    <h5>Add Filter</h5>
+
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="lucide:x"
+                        @click="close"
+                    />
+                </div>
+            </template>
+
+            <template #body>
+                <div class="flex flex-col gap-4">
+                    <UButton
+                        v-for="(filter, index) in filterSelections"
+                        :key="index"
+                        :label="filter.label"
+                        variant="outline"
+                        color="neutral"
+                        size="xl"
+                        @click="() => filter.onClick()"
+                    />
                 </div>
             </template>
         </UModal>

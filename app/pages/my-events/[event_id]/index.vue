@@ -203,7 +203,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             <UCard>
                 <template #header>
                     <div class="flex justify-between items-center">
-                        <InputSearch
+                        <DataTableSearch
                             v-model="search"
                             @search="searchEvent"
                             @clear="clearSearch"

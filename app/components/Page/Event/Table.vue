@@ -107,7 +107,7 @@ const columns = useColumns()
             :loading="pending"
         />
 
-        <MiscPagination
+        <DataTablePagination
             v-if="withPagination"
             v-model:limit="limit"
             v-model:page="page"

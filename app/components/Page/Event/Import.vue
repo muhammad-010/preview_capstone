@@ -2,12 +2,13 @@
 const props = defineProps<{
     tenantId: number
     eventId: number
+    hide?: boolean
 }>()
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
+const importDialog = defineModel<boolean>('open', { default: false })
 
 const { $api } = useNuxtApp()
 const toast = useToast()
-const importDialog = ref(false)
 const downloadLoading = ref(false)
 const uploadLoading = ref(false)
 const uploadFile = ref<File | null>(null)
@@ -68,6 +69,7 @@ async function uploadTemplate() {
 
 <template>
     <UButton
+        v-if="!hide"
         color="neutral"
         variant="outline"
         icon="lucide:upload"

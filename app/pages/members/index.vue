@@ -63,7 +63,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
         <UCard>
             <template #header>
                 <div class="card-toolbar">
-                    <InputSearch
+                    <DataTableSearch
                         v-model="search"
                         class="card-toolbar-left"
                         @search="searchData"
