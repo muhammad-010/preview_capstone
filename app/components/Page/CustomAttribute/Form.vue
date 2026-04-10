@@ -7,7 +7,7 @@ const toast = useToast()
 const props = defineProps<{
     tenantId: number
     eventId: number
-    customAttributeId?: number
+    attributeId?: number
     fields?: CustomAttributeForm
     isModal?: boolean
 }>()
@@ -19,91 +19,75 @@ async function saveData() {
 }
 defineExpose({ saveData })
 
-async function useForm(tId: number, eId: number, id: number) {
-    const isCreate = !id
-    const schema = z.object({
-        name: zodStringRequired('Member name is required'),
-    })
-    type Schema = z.output<typeof schema>
+const isCreate = !props.attributeId
+const schema = z.object({
+    name: zodStringRequired('Member name is required'),
+})
+type Schema = z.output<typeof schema>
 
-    const state = reactive<Partial<CustomAttributeForm>>(props.fields ?? {
-        name: '',
-    })
+const state = reactive<Partial<CustomAttributeForm>>(props.fields ?? {
+    name: '',
+})
 
-    async function addData(payload: FormSubmitEvent<Schema>) {
-        try {
-            const data = await $api(`/api/tenant/${tId}/event/${eId}/attribute`, {
-                method: 'POST',
-                body: payload.data,
-            })
-            if (data.success) {
-                toast.add({
-                    title: 'Success',
-                    description: 'New custom attribute has been created',
-                    color: 'success',
-                })
-                success.value = true
-            }
-        }
-        catch (error) {
+async function addData(payload: FormSubmitEvent<Schema>) {
+    try {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/attribute`, {
+            method: 'POST',
+            body: payload.data,
+        })
+        if (data.success) {
             toast.add({
-                title: 'Error',
-                description: 'Failed to create new custom attribute',
-                color: 'error',
+                title: 'Success',
+                description: 'New custom attribute has been created',
+                color: 'success',
             })
-            console.error('Add custom attribute error', error)
+            success.value = true
         }
     }
-
-    async function editData(payload: FormSubmitEvent<Schema>, id: number) {
-        try {
-            const data = await $api(`/api/tenant/${tId}/event/${eId}/attribute/${id}`, {
-                method: 'PUT',
-                body: payload.data,
-            })
-            if (data.success) {
-                toast.add({
-                    title: 'Success',
-                    description: 'A custom attribute has been updated',
-                    color: 'success',
-                })
-                success.value = true
-            }
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to update custom attribute',
-                color: 'error',
-            })
-            console.error('Edit custom attribute error', error)
-        }
-    }
-
-    function submitData(payload: FormSubmitEvent<Schema>) {
-        loading.value = true
-        if (isCreate) {
-            return addData(payload)
-        }
-        else {
-            return editData(payload, id)
-        }
-    }
-
-    return {
-        isCreate,
-        loading,
-        schema,
-        state,
-        submitData,
+    catch (error) {
+        toast.add({
+            title: 'Error',
+            description: 'Failed to create new custom attribute',
+            color: 'error',
+        })
+        console.error('Add custom attribute error', error)
     }
 }
 
-const {
-    schema,
-    state,
-    submitData,
-} = await useForm(props.tenantId, props.eventId, props.customAttributeId || 0)
+async function editData(payload: FormSubmitEvent<Schema>, attributeId: number) {
+    try {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/attribute/${attributeId}`, {
+            method: 'PUT',
+            body: payload.data,
+        })
+        if (data.success) {
+            toast.add({
+                title: 'Success',
+                description: 'A custom attribute has been updated',
+                color: 'success',
+            })
+            success.value = true
+        }
+    }
+    catch (error) {
+        toast.add({
+            title: 'Error',
+            description: 'Failed to update custom attribute',
+            color: 'error',
+        })
+        console.error('Edit custom attribute error', error)
+    }
+}
+
+function submitData(payload: FormSubmitEvent<Schema>) {
+    loading.value = true
+    if (isCreate) {
+        return addData(payload)
+    }
+    else {
+        return editData(payload, props.attributeId)
+    }
+}
 </script>
 
 <template>
