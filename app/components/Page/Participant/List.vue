@@ -14,7 +14,8 @@ const page = ref(1)
 const limit = ref(5)
 const selectedIds = ref<number[]>([])
 const filterCustomAttribute = ref<CustomAttribute[]>(structuredClone(toRaw(unref(props.customAttributes))))
-const filterCheckedIn = ref<boolean | null>(null)
+// const filterCheckedIn = ref<boolean | null>(null)
+const filterSessionStatus = ref<ParticipantSessionStatus | null>(null)
 
 const { data, pending, refresh } = useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
     transform: res => res.data,
@@ -24,8 +25,12 @@ const { data, pending, refresh } = useApi(`/api/tenant/${props.tenantId}/event/$
             query: query.value,
             page: page.value,
             limit: limit.value,
-            ...(filterCheckedIn.value !== null
-                ? { is_checked_in: filterCheckedIn.value }
+            // ...(filterCheckedIn.value !== null
+            //     ? { is_checked_in: filterCheckedIn.value }
+            //     : {}
+            // ),
+            ...(filterSessionStatus.value !== null
+                ? { check_in_session: filterSessionStatus.value }
                 : {}
             ),
             ...(cleanedFilterCustomAttribute.length
@@ -51,8 +56,12 @@ async function exportData() {
             method: 'POST',
             body: {
                 query: query.value,
-                ...(filterCheckedIn.value !== null
-                    ? { is_checked_in: filterCheckedIn.value }
+                // ...(filterCheckedIn.value !== null
+                //     ? { is_checked_in: filterCheckedIn.value }
+                //     : {}
+                // ),
+                ...(filterSessionStatus.value !== null
+                    ? { check_in_session: filterSessionStatus.value }
                     : {}
                 ),
                 custom_attribute: [...formatCleanCustomAttribute(filterCustomAttribute.value)],
@@ -170,7 +179,7 @@ const sendConfirmation = ref(false)
                 v-model:page="page"
                 v-model:selected="selectedIds"
                 v-model:filter-custom-attribute="filterCustomAttribute"
-                v-model:filter-checked-in="filterCheckedIn"
+                v-model:filter-session-status="filterSessionStatus"
                 :tenant-id="tenantId"
                 :event-id="eventId"
                 :data="participants"

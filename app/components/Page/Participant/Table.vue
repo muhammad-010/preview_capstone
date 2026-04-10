@@ -18,7 +18,7 @@ const page = defineModel<number>('page', { default: 0 })
 const selected = defineModel<number[]>('selected', { default: () => [] })
 const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attribute', { default: () => [] })
 // const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
-const filterSessionStatus = defineModel<ParticipantSessionStatus[]>('filter-session-status', { default: () => [] })
+const filterSessionStatus = defineModel<ParticipantSessionStatus | null>('filter-session-status', { default: null })
 const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
 const toast = useToast()
 
@@ -99,6 +99,11 @@ function applyFilterCustomAttributeDialog(close: () => void) {
 // FILTER SESSION STATUS
 const filterSessionStatusItems = [
     {
+        label: 'All',
+        description: 'No Filter',
+        value: null,
+    },
+    {
         label: formatCapitalize(PARTICIPANT_SESSION_STATUS_NONE),
         description: 'Participant that haven\'t checked-in',
         value: PARTICIPANT_SESSION_STATUS_NONE,
@@ -114,8 +119,8 @@ const filterSessionStatusItems = [
         value: PARTICIPANT_SESSION_STATUS_COMPLETED,
     },
 ]
-const filterSessionStatusField = ref<ParticipantSessionStatus[]>([])
-const filterSessionStatusLabel = computed(() => filterSessionStatusItems.filter(e => filterSessionStatus.value.includes(e.value)).map(e => e.label).join(', '))
+const filterSessionStatusField = ref<ParticipantSessionStatus | null>(null)
+const filterSessionStatusLabel = computed(() => filterSessionStatusItems.find(e => e.value === filterSessionStatus.value)?.label || 'Invalid Data')
 const filterSessionStatusDialog = ref(false)
 
 function refreshFilterSessionStatus() {
@@ -124,7 +129,7 @@ function refreshFilterSessionStatus() {
 }
 
 function clearFilterSessionStatus(refresh: boolean) {
-    filterSessionStatusField.value = []
+    filterSessionStatusField.value = null
     if (refresh) refreshFilterSessionStatus()
 }
 
@@ -160,7 +165,7 @@ const filterSelections = computed(() => {
     //         },
     //     })
     // }
-    if (!filterSessionStatus.value.length) {
+    if (filterSessionStatus.value === null) {
         list.push({
             label: 'Session Status',
             onClick: () => {
@@ -575,7 +580,7 @@ const { columns, tableRef } = useColumns()
 
                 <DataTableFilter
                     label="Session Status"
-                    :active-condition="Boolean(filterSessionStatus.length)"
+                    :active-condition="filterSessionStatus !== null"
                     :active-label="filterSessionStatusLabel"
                     @open-filter="filterSessionStatusDialog = true"
                     @clear="() => clearFilterSessionStatus(true)"
@@ -865,7 +870,7 @@ const { columns, tableRef } = useColumns()
             </template>
 
             <template #body>
-                <UCheckboxGroup
+                <URadioGroup
                     v-model="filterSessionStatusField"
                     variant="table"
                     :items="filterSessionStatusItems"
