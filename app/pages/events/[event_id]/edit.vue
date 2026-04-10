@@ -19,9 +19,10 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
 <template>
     <div class="my-8">
-        <PageEventForm
-            :id="eventId"
-            :fields="event"
+        <PageEventFullForm
+            v-model:fields="event"
+            v-model:id="eventId"
+            :tenant-id="tenantId"
         />
     </div>
 </template>
