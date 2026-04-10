@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
+const { tenantId } = useUserState()
 useHead({
     title: 'Event - Add',
 })
@@ -8,6 +9,8 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
 <template>
     <div class="my-8">
-        <PageEventForm />
+        <PageEventFullForm
+            :tenant-id="tenantId"
+        />
     </div>
 </template>

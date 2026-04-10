@@ -7,6 +7,8 @@ import type {
     ParticipantForm,
     User,
     UserForm,
+    TenantEventSession,
+    TenantEventSessionForm,
 } from '../types/data'
 
 export function tenantFormToTenant(data: TenantForm): Tenant {
@@ -63,6 +65,24 @@ export function tenantEventToTenantEventForm(data: TenantEvent): TenantEventForm
         capacity: data.rule_config?.capacity?.total,
         assign_user_ids: data.assigned_users ? data.assigned_users!.map(u => u.user_id) : [],
     } as TenantEventForm
+}
+
+export function tenantEventSessionToTenantEventSessionForm(data: TenantEventSession): TenantEventSessionForm {
+    return {
+        name: data.name,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        location: data.location,
+    } as TenantEventSessionForm
+}
+
+export function tenantEventSessionFormToTenantEventSession(data: TenantEventSessionForm): TenantEventSession {
+    return {
+        name: data.name,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        location: data.location,
+    } as TenantEventSession
 }
 
 export function participantFormToParticipant(data: ParticipantForm): Participant {

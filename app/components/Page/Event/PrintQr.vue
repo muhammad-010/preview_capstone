@@ -3,12 +3,13 @@ const props = defineProps<{
     tenantId: number
     eventId: number
     selectedIds: number[]
+    hide?: boolean
 }>()
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
+const printConfirmation = defineModel<boolean>('open', { default: false })
 
 const { $api } = useNuxtApp()
 const toast = useToast()
-const printConfirmation = ref(false)
 const printLoading = ref(false)
 
 async function printQr() {
@@ -63,6 +64,7 @@ async function printQr() {
 
 <template>
     <UButton
+        v-if="!hide"
         color="neutral"
         variant="outline"
         icon="lucide:qr-code"

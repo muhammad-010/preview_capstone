@@ -34,7 +34,6 @@ export type LoginResult = Result<AuthSession>
 export type LogoutResult = FetchResult
 
 // DASHBOARD
-
 export type DashboardTenantListResult = Result<{
     tenants: Tenant[]
 }>
@@ -42,7 +41,6 @@ export type DashboardTenantListResult = Result<{
 export type DashboardCardTotalTenantResult = Result<DashboardCard>
 
 // TENANTS
-
 export type TenantListResult = Result<
     PaginatedData<Tenant, 'tenants'>
 >
@@ -56,7 +54,6 @@ export type TenantAddResult = Result<
 >
 
 // EVENTS
-
 export type TenantEventListResult = Result<
     PaginatedData<TenantEvent, 'event'>
 >
@@ -73,7 +70,23 @@ export type TenantEventUserFound = Result<{
     users: User[]
 }>
 
+// EVENT SESSION
+export type TenantEventSessionListResult = Result<
+    PaginatedData<TenantEventSession, 'event_session'>
+>
+
+export type TenantEventSessionDetailResult = Result<TenantEventSession>
+
+export type TenantEventSessionFormResult = Result<TenantEventSessionForm>
+
+export type TenantEventSessionAddResult = Result<
+    AddedData<number, 'event_session_id'>
+>
+
 // CUSTOM ATTRIBUTES
+export type CustomAttributeListResult = Result<
+    PaginatedData<CustomAttribute, 'custom_attribute'>
+>
 
 export type CustomAttributeFound = Result<{
     custom_attribute: CustomAttribute[]
@@ -84,7 +97,6 @@ export type CustomAttributeAddResult = Result<
 >
 
 // PARTICIPANTS
-
 export type ParticipantListResult = Result<
     PaginatedData<Participant, 'participant'>
 >
@@ -126,7 +138,6 @@ export type ParticipantExportResult = Result<{
 }>
 
 // USERS
-
 export type TenantMemberListresult = Result<
     PaginatedData<User, 'user'>
 >

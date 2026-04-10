@@ -6,6 +6,7 @@ type ToggleAllPageRowsSelected = (value?: boolean | undefined) => void
 
 const { $api } = useNuxtApp()
 const props = defineProps<{
+    tenantId: number
     eventId: number
     data: Participant[]
     total: number
@@ -16,89 +17,27 @@ const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
 const selected = defineModel<number[]>('selected', { default: () => [] })
 const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attribute', { default: () => [] })
-const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
+// const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
+const filterSessionStatus = defineModel<ParticipantSessionStatus | null>('filter-session-status', { default: null })
+const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
+const toast = useToast()
+
+function triggerRefresh(skipResetPage?: boolean) {
+    if (!skipResetPage) {
+        page.value = 1
+    }
+    emit(EMIT_TABLE_REFRESH)
+}
+
+// FILTER CUSTOM ATTRIBUTE
 const filterCustomAttributeField = ref(structuredClone(toRaw(unref(filterCustomAttribute))))
 const cleanedFilterCustomAttribute = computed(() => formatCleanCustomAttribute(filterCustomAttribute.value))
 const filterCustomAttributeButtonLabel = computed(() => cleanedFilterCustomAttribute.value.map(attr => `${attr.name}: ${attr.value}`).join(', '))
-const filterCheckedInItems = [
-    {
-        label: 'All',
-        value: null,
-    },
-    {
-        label: 'Yes',
-        value: true,
-    },
-    {
-        label: 'No',
-        value: false,
-    },
-]
-const filterCheckedInField = ref<boolean | null>(null)
-const filterCheckedInLabel = computed(() => filterCheckedInItems.find(e => e.value === filterCheckedIn.value)?.label || 'Invalid Data')
-const emit = defineEmits([EMIT_TABLE_REFRESH])
-const toast = useToast()
-const { tenantId } = useUserState()
-const rowSelection = ref<Record<string, boolean>>({})
-const selectAll = ref(false)
-const resetSelectionConfirmation = ref(false)
 const filterCustomAttributeDialog = ref(false)
-const filterCheckedInDialog = ref(false)
-const deleteConfirmation = ref(false)
-const deleteTarget = ref({
-    id: 0,
-    name: '',
-})
-const manualCheckInTarget = ref({
-    id: 0,
-    name: '',
-    maxAttendance: 0,
-})
-const manualCheckInConfirmation = ref(false)
-const manualCheckInGuestConfirmation = ref(false)
-const manualCheckInGuest = reactive({ count: 0 })
-const resetFunction = ref<ToggleAllPageRowsSelected>()
-
-type CheckInGuestSchema = typeof manualCheckInGuest
-
-function toggle(pId: number | undefined) {
-    if (!pId) return
-
-    const data = selected.value
-    const i = data.indexOf(pId)
-
-    if (i !== -1) {
-        data.splice(i, 1)
-    }
-    else {
-        data.push(pId)
-    }
-
-    selected.value = data
-}
-
-/** all is null, so this worked for select all */
-function clearSelection(all: boolean) {
-    selected.value = []
-    selectAll.value = all
-}
-
-function askResetSelection(cb: ToggleAllPageRowsSelected) {
-    resetFunction.value = cb
-    resetSelectionConfirmation.value = true
-}
-
-function confirmResetSelection() {
-    const cb = resetFunction.value
-    if (cb) cb(false)
-    clearSelection(false)
-    resetFunction.value = undefined
-    resetSelectionConfirmation.value = false
-}
 
 function refreshFilterCustomAttributeDialog() {
     filterCustomAttribute.value = structuredClone(toRaw(unref(filterCustomAttributeField.value)))
-    emit(EMIT_TABLE_REFRESH)
+    triggerRefresh()
 }
 
 function clearFilterCustomAttributeDialog(refresh: boolean) {
@@ -118,25 +57,133 @@ function applyFilterCustomAttributeDialog(close: () => void) {
     refreshFilterCustomAttributeDialog()
 }
 
-function refreshFilterCheckedIn() {
-    filterCheckedIn.value = filterCheckedInField.value
-    emit(EMIT_TABLE_REFRESH)
+// FILTER CHECKED-IN
+// const filterCheckedInItems = [
+//     {
+//         label: 'All',
+//         value: null,
+//     },
+//     {
+//         label: 'Yes',
+//         value: true,
+//     },
+//     {
+//         label: 'No',
+//         value: false,
+//     },
+// ]
+// const filterCheckedInField = ref<boolean | null>(null)
+// const filterCheckedInLabel = computed(() => filterCheckedInItems.find(e => e.value === filterCheckedIn.value)?.label || 'Invalid Data')
+// const filterCheckedInDialog = ref(false)
+
+// function refreshFilterCheckedIn() {
+//     filterCheckedIn.value = filterCheckedInField.value
+//     emit(EMIT_TABLE_REFRESH)
+// }
+
+// function clearFilterCheckedIn(refresh: boolean) {
+//     filterCheckedInField.value = null
+//     if (refresh) refreshFilterCheckedIn()
+// }
+
+// function closeFilterCheckedInDialog(close: () => void) {
+//     filterCheckedInDialog.value = false
+//     close()
+// }
+
+// function applyFilterCheckedInDialog(close: () => void) {
+//     close()
+//     refreshFilterCheckedIn()
+// }
+
+// FILTER SESSION STATUS
+const filterSessionStatusItems = [
+    {
+        label: 'All',
+        description: 'No Filter',
+        value: null,
+    },
+    {
+        label: formatCapitalize(PARTICIPANT_SESSION_STATUS_NONE),
+        description: 'Participant that haven\'t checked-in',
+        value: PARTICIPANT_SESSION_STATUS_NONE,
+    },
+    {
+        label: formatCapitalize(PARTICIPANT_SESSION_STATUS_PARTIAL),
+        description: 'Participant that already checked-in in some session',
+        value: PARTICIPANT_SESSION_STATUS_PARTIAL,
+    },
+    {
+        label: formatCapitalize(PARTICIPANT_SESSION_STATUS_COMPLETED),
+        description: 'Participant that checked-in in all session',
+        value: PARTICIPANT_SESSION_STATUS_COMPLETED,
+    },
+]
+const filterSessionStatusField = ref<ParticipantSessionStatus | null>(null)
+const filterSessionStatusLabel = computed(() => filterSessionStatusItems.find(e => e.value === filterSessionStatus.value)?.label || 'Invalid Data')
+const filterSessionStatusDialog = ref(false)
+
+function refreshFilterSessionStatus() {
+    filterSessionStatus.value = filterSessionStatusField.value
+    triggerRefresh()
 }
 
-function clearFilterCheckedIn(refresh: boolean) {
-    filterCheckedInField.value = null
-    if (refresh) refreshFilterCheckedIn()
+function clearFilterSessionStatus(refresh: boolean) {
+    filterSessionStatusField.value = null
+    if (refresh) refreshFilterSessionStatus()
 }
 
-function closeFilterCheckedInDialog(close: () => void) {
-    filterCheckedInDialog.value = false
+function closeFilterSessionStatusDialog(close: () => void) {
+    filterSessionStatusDialog.value = false
     close()
 }
 
-function applyFilterCheckedInDialog(close: () => void) {
+function applyFilterSessionStatusDialog(close: () => void) {
     close()
-    refreshFilterCheckedIn()
+    refreshFilterSessionStatus()
 }
+
+// ADD FILTER
+const filterSelectionDialog = ref(false)
+const filterSelections = computed(() => {
+    const list = []
+    if (!cleanedFilterCustomAttribute.value.length) {
+        list.push({
+            label: 'Metadata',
+            onClick: () => {
+                filterSelectionDialog.value = false
+                filterCustomAttributeDialog.value = true
+            },
+        })
+    }
+    // if (filterCheckedIn.value === null) {
+    //     list.push({
+    //         label: 'Checked In',
+    //         onClick: () => {
+    //             filterSelectionDialog.value = false
+    //             filterCheckedInDialog.value = true
+    //         },
+    //     })
+    // }
+    if (filterSessionStatus.value === null) {
+        list.push({
+            label: 'Session Status',
+            onClick: () => {
+                filterSelectionDialog.value = false
+                filterSessionStatusDialog.value = true
+            },
+        })
+    }
+
+    return list
+})
+
+// DELETION
+const deleteConfirmation = ref(false)
+const deleteTarget = ref({
+    id: 0,
+    name: '',
+})
 
 function setDeleteTarget(id: number, name: string) {
     deleteTarget.value.id = id
@@ -148,15 +195,15 @@ function openDeleteConfirmation(id: number, name: string) {
     deleteConfirmation.value = true
 }
 
-function closeDeleteConfirmation() {
+function closeDeleteConfirmation(skipResetPage?: boolean) {
     setDeleteTarget(0, '')
     deleteConfirmation.value = false
-    emit(EMIT_TABLE_REFRESH)
+    triggerRefresh(skipResetPage)
 }
 
 async function deleteData(id: number) {
     try {
-        const data = await $api(`/api/tenant/${tenantId.value}/event/${props.eventId}/participant/${id}`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/${id}`, {
             method: 'DELETE',
         })
         if (data.success) {
@@ -166,6 +213,7 @@ async function deleteData(id: number) {
                 color: 'success',
             })
         }
+        closeDeleteConfirmation()
     }
     catch (error) {
         toast.add({
@@ -174,9 +222,21 @@ async function deleteData(id: number) {
             color: 'error',
         })
         console.error('Delete participant error', error)
+        closeDeleteConfirmation(true)
     }
-    closeDeleteConfirmation()
 }
+
+// CHECK-IN
+const manualCheckInTarget = ref({
+    id: 0,
+    name: '',
+    maxAttendance: 0,
+})
+const manualCheckInConfirmation = ref(false)
+const manualCheckInGuestConfirmation = ref(false)
+const manualCheckInGuest = reactive({ count: 0 })
+
+type CheckInGuestSchema = typeof manualCheckInGuest
 
 function openConfirmManualCheckIn(id: number, name: string) {
     manualCheckInTarget.value = { id, name, maxAttendance: 0 }
@@ -203,7 +263,7 @@ function closeConfirmManualCheckInGuest() {
 
 async function manualCheckIn() {
     try {
-        const { data } = await $api(`/api/tenant/${tenantId.value}/event/${props.eventId}/participant/check-in/manual`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in/manual`, {
             method: 'POST',
             body: {
                 participant_id: manualCheckInTarget.value.id,
@@ -242,7 +302,7 @@ function validateManualCheckInGuest(state: Partial<CheckInGuestSchema>): FormErr
 
 async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchema>) {
     try {
-        await $api(`/api/tenant/${tenantId.value}/event/${props.eventId}/participant/check-in/confirm/manual`, {
+        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in/confirm/manual`, {
             method: 'POST',
             body: {
                 participant_id: manualCheckInTarget.value.id,
@@ -267,6 +327,47 @@ async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchem
     }
 }
 
+// TABLE
+const rowSelection = ref<Record<string, boolean>>({})
+const selectAll = ref(false)
+const resetSelectionConfirmation = ref(false)
+const resetFunction = ref<ToggleAllPageRowsSelected>()
+
+function toggle(pId: number | undefined) {
+    if (!pId) return
+
+    const data = selected.value
+    const i = data.indexOf(pId)
+
+    if (i !== -1) {
+        data.splice(i, 1)
+    }
+    else {
+        data.push(pId)
+    }
+
+    selected.value = data
+}
+
+/** all is null, so this worked for select all */
+function clearSelection(all: boolean) {
+    selected.value = []
+    selectAll.value = all
+}
+
+function askResetSelection(cb: ToggleAllPageRowsSelected) {
+    resetFunction.value = cb
+    resetSelectionConfirmation.value = true
+}
+
+function confirmResetSelection() {
+    const cb = resetFunction.value
+    if (cb) cb(false)
+    clearSelection(false)
+    resetFunction.value = undefined
+    resetSelectionConfirmation.value = false
+}
+
 watch(
     () => props.data,
     () => {
@@ -285,6 +386,8 @@ function useColumns() {
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
     const UCheckbox = resolveComponent('UCheckbox')
+    const UProgress = resolveComponent('UProgress')
+    const UTooltip = resolveComponent('UTooltip')
     const tableRef = useTemplateRef('tableRef')
 
     function qrSent(participant: Participant) {
@@ -388,14 +491,16 @@ function useColumns() {
             },
         },
         {
-            accessorKey: 'status',
+            accessorKey: 'check_in_progress',
             header: 'Status',
             cell: ({ row }) => {
-                return h(UBadge, {
-                    color: PARTICIPANT_STATUS_COLORS[row.getValue('status') as ParticipantStatus],
-                    variant: 'subtle',
-                    label: row.original.status,
-                })
+                return h('div', {}, [
+                    h('span', {}, `${row.original.check_in_progress?.count || 0}/${row.original.check_in_progress?.total || 0} Session`),
+                    h(UProgress, {
+                        max: row.original.check_in_progress?.total || 0,
+                        modelValue: row.original.check_in_progress?.count || 0,
+                    }),
+                ])
             },
         },
         {
@@ -406,27 +511,42 @@ function useColumns() {
         {
             accessorKey: 'participant_id',
             header: 'Action',
+            meta: {
+                class: {
+                    td: 'w-[1%]',
+                },
+            },
             cell: ({ row }) => {
-                return h('div', { class: 'flex gap-2' }, [
-                    h(UButton, {
-                        color: row.original.status === PARTICIPANT_STATUS_CHECKED_IN ? 'neutral' : 'primary',
-                        variant: row.original.status === PARTICIPANT_STATUS_CHECKED_IN ? 'outline' : 'solid',
-                        disabled: row.original.status === PARTICIPANT_STATUS_CHECKED_IN,
-                        icon: 'lucide:circle-check',
-                        onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
-                    }),
-                    h(UButton, {
-                        color: 'neutral',
-                        variant: 'ghost',
-                        icon: 'lucide:pencil',
-                        to: `/events/${props.eventId}/participant/${row.original.participant_id}/edit`,
-                    }),
-                    h(UButton, {
-                        color: 'error',
-                        variant: 'ghost',
-                        icon: 'lucide:trash',
-                        onClick: () => openDeleteConfirmation(row.original.participant_id || 0, row.original.name),
-                    }),
+                const disabled = row.original.check_in_progress
+                    ? row.original.check_in_progress.count === row.original.check_in_progress.total
+                    : true
+                return h('div', { class: 'inline-flex gap-2' }, [
+                    h(UTooltip, { text: 'Manual Check-In', delayDuration: 0 }, [
+                        h(UButton, {
+                            color: 'neutral',
+                            variant: 'ghost',
+                            disabled,
+                            icon: 'lucide:circle-check',
+                            class: disabled ? 'opacity-25!' : '',
+                            onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
+                        }),
+                    ]),
+                    h(UTooltip, { text: 'Edit', delayDuration: 0 }, [
+                        h(UButton, {
+                            color: 'neutral',
+                            variant: 'ghost',
+                            icon: 'lucide:pencil',
+                            to: `/events/${props.eventId}/participant/${row.original.participant_id}/edit`,
+                        }),
+                    ]),
+                    h(UTooltip, { text: 'Delete', delayDuration: 0 }, [
+                        h(UButton, {
+                            color: 'error',
+                            variant: 'ghost',
+                            icon: 'lucide:trash',
+                            onClick: () => openDeleteConfirmation(row.original.participant_id || 0, row.original.name),
+                        }),
+                    ]),
                 ])
             },
         },
@@ -440,61 +560,52 @@ const { columns, tableRef } = useColumns()
 
 <template>
     <div>
-        <div class="flex flex-wrap gap-2 mb-4">
-            <span>Filter:</span>
-            <UFieldGroup>
-                <UButton
-                    color="neutral"
-                    variant="subtle"
-                    size="xs"
-                    :icon="`lucide:${cleanedFilterCustomAttribute.length ? 'pencil' : 'plus'}`"
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex flex-wrap gap-2">
+                <DataTableFilter
                     label="Metadata"
-                    @click="filterCustomAttributeDialog = true"
+                    :active-condition="Boolean(cleanedFilterCustomAttribute.length)"
+                    :active-label="filterCustomAttributeButtonLabel"
+                    @open-filter="filterCustomAttributeDialog = true"
+                    @clear="() => clearFilterCustomAttributeDialog(true)"
                 />
-                <UButton
-                    v-if="cleanedFilterCustomAttribute.length"
-                    color="neutral"
-                    variant="outline"
-                    size="xs"
-                    :label="filterCustomAttributeButtonLabel"
-                    @click="filterCustomAttributeDialog = true"
-                />
-                <UButton
-                    v-if="cleanedFilterCustomAttribute.length"
-                    color="error"
-                    variant="subtle"
-                    size="xs"
-                    icon="lucide:x"
-                    @click="() => clearFilterCustomAttributeDialog(true)"
-                />
-            </UFieldGroup>
 
-            <UFieldGroup>
-                <UButton
-                    color="neutral"
-                    variant="subtle"
-                    size="xs"
-                    :icon="`lucide:${filterCheckedIn !== null ? 'pencil' : 'plus'}`"
+                <!-- <DataTableFilter
                     label="Checked In"
-                    @click="filterCheckedInDialog = true"
+                    :active-condition="filterCheckedIn !== null"
+                    :active-label="filterCheckedInLabel"
+                    @open-filter="filterCheckedInDialog = true"
+                    @clear="() => clearFilterCheckedIn(true)"
+                /> -->
+
+                <DataTableFilter
+                    label="Session Status"
+                    :active-condition="filterSessionStatus !== null"
+                    :active-label="filterSessionStatusLabel"
+                    @open-filter="filterSessionStatusDialog = true"
+                    @clear="() => clearFilterSessionStatus(true)"
                 />
+
                 <UButton
-                    v-if="filterCheckedIn !== null"
+                    v-if="filterSelections.length"
                     color="neutral"
-                    variant="outline"
-                    size="xs"
-                    :label="filterCheckedInLabel"
-                    @click="filterCheckedInDialog = true"
-                />
-                <UButton
-                    v-if="filterCheckedIn !== null"
-                    color="error"
                     variant="subtle"
                     size="xs"
-                    icon="lucide:x"
-                    @click="clearFilterCheckedIn(true)"
+                    icon="lucide:plus"
+                    label="Add Filter"
+                    @click="filterSelectionDialog = true"
                 />
-            </UFieldGroup>
+            </div>
+
+            <PageParticipantBulkAction
+                :tenant-id="tenantId"
+                :event-id="eventId"
+                :selected-ids="selected"
+                @export="emit(EMIT_TABLE_EXPORT)"
+                @print-qr="emit(EMIT_TABLE_PRINT_QR)"
+                @send-qr="emit(EMIT_TABLE_SEND_QR)"
+                @bulk-delete="emit(EMIT_TABLE_BULK_DELETE)"
+            />
         </div>
 
         <UTable
@@ -505,7 +616,7 @@ const { columns, tableRef } = useColumns()
             :loading="pending"
         />
 
-        <MiscPagination
+        <DataTablePagination
             v-if="withPagination"
             v-model:limit="limit"
             v-model:page="page"
@@ -607,6 +718,35 @@ const { columns, tableRef } = useColumns()
             </template>
         </UModal>
 
+        <UModal v-model:open="filterSelectionDialog">
+            <template #header="{ close }">
+                <div class="flex justify-between items-center w-full">
+                    <h5>Add Filter</h5>
+
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="lucide:x"
+                        @click="close"
+                    />
+                </div>
+            </template>
+
+            <template #body>
+                <div class="flex flex-col gap-4">
+                    <UButton
+                        v-for="(filter, index) in filterSelections"
+                        :key="index"
+                        :label="filter.label"
+                        variant="outline"
+                        color="neutral"
+                        size="xl"
+                        @click="() => filter.onClick()"
+                    />
+                </div>
+            </template>
+        </UModal>
+
         <UModal v-model:open="filterCustomAttributeDialog">
             <template #header="{ close }">
                 <div class="flex justify-between items-center w-full">
@@ -670,7 +810,7 @@ const { columns, tableRef } = useColumns()
             </template>
         </UModal>
 
-        <UModal v-model:open="filterCheckedInDialog">
+        <!-- <UModal v-model:open="filterCheckedInDialog">
             <template #header="{ close }">
                 <div class="flex justify-between items-center w-full">
                     <h5>Filter Checked In</h5>
@@ -679,7 +819,7 @@ const { columns, tableRef } = useColumns()
                         color="neutral"
                         variant="ghost"
                         icon="lucide:x"
-                        @click="() => closeFilterCustomAttributeDialog(close)"
+                        @click="() => closeFilterCheckedInDialog(close)"
                     />
                 </div>
             </template>
@@ -687,6 +827,7 @@ const { columns, tableRef } = useColumns()
             <template #body>
                 <URadioGroup
                     v-model="filterCheckedInField"
+                    variant="table"
                     :items="filterCheckedInItems"
                 />
             </template>
@@ -708,6 +849,52 @@ const { columns, tableRef } = useColumns()
                             class="cursor-pointer"
                             label="Apply Filter"
                             @click="() => applyFilterCheckedInDialog(close)"
+                        />
+                    </div>
+                </div>
+            </template>
+        </UModal> -->
+
+        <UModal v-model:open="filterSessionStatusDialog">
+            <template #header="{ close }">
+                <div class="flex justify-between items-center w-full">
+                    <h5>Filter Session Status</h5>
+
+                    <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="lucide:x"
+                        @click="() => closeFilterSessionStatusDialog(close)"
+                    />
+                </div>
+            </template>
+
+            <template #body>
+                <URadioGroup
+                    v-model="filterSessionStatusField"
+                    variant="table"
+                    :items="filterSessionStatusItems"
+                    value-key="value"
+                />
+            </template>
+
+            <template #footer="{ close }">
+                <div class="flex justify-end items-center w-full">
+                    <div class="flex gap-2">
+                        <UButton
+                            color="neutral"
+                            variant="outline"
+                            icon="lucide:x"
+                            class="cursor-pointer"
+                            label="Cancel"
+                            @click="() => closeFilterSessionStatusDialog(close)"
+                        />
+                        <UButton
+                            color="primary"
+                            icon="lucide:save"
+                            class="cursor-pointer"
+                            label="Apply Filter"
+                            @click="() => applyFilterSessionStatusDialog(close)"
                         />
                     </div>
                 </div>

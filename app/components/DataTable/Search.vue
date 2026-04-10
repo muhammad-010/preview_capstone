@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
     placeholder?: string
+    inputClass?: string
 }>()
 const model = defineModel<string>()
 const emit = defineEmits([EMIT_INPUT_SEARCH, EMIT_INPUT_CLEAR])
@@ -10,7 +11,7 @@ const emit = defineEmits([EMIT_INPUT_SEARCH, EMIT_INPUT_CLEAR])
     <UFieldGroup>
         <UInput
             v-model="model"
-            class="max-lg:w-full"
+            :class="inputClass || 'max-lg:w-full'"
             type="text"
             :placeholder="placeholder ?? 'Search'"
             :ui="{ trailing: 'pe-1' }"

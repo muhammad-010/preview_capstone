@@ -8,6 +8,8 @@ export type TenantEventStatus = 'Active' | 'Upcoming' | 'Live' | 'Completed'
 
 export type ParticipantStatus = 'Pending' | 'Checked In'
 
+export type ParticipantSessionStatus = 'none' | 'partial' | 'completed'
+
 export type ParticipantCategory = 'VIP' | 'Regular'
 
 export type SendChannel = 'email' | 'whatsapp'
@@ -32,7 +34,6 @@ export interface Phone {
 }
 
 // AUTH
-
 export interface AuthSessionAssignedTenant {
     id: number
     name: string
@@ -53,7 +54,6 @@ export interface AuthSession {
 }
 
 // TENANTS
-
 export type TenantOwnerPhone = Phone
 
 export interface TenantOwner {
@@ -93,7 +93,6 @@ export interface TenantForm {
 }
 
 // EVENTS
-
 export interface TenantEventCapacity {
     total: number
     used: number
@@ -137,6 +136,23 @@ export interface TenantEventForm {
     assign_user_ids: number[]
 }
 
+// EVENT SESSIONS
+export interface TenantEventSession {
+    event_session_id: number
+    name: string
+    start_time: ISOString
+    end_time: ISOString
+    location: string
+    participant_status?: TenantEventParticipantStatus
+}
+
+export interface TenantEventSessionForm {
+    name: string
+    start_time: ISOString
+    end_time: ISOString
+    location: string
+}
+
 // CUSTOM ATTRIBUTES
 export interface CustomAttribute {
     custom_attribute_id: number
@@ -144,8 +160,11 @@ export interface CustomAttribute {
     value?: string
 }
 
-// PARTICIPANT
+export interface CustomAttributeForm {
+    name: string
+}
 
+// PARTICIPANT
 export type ParticipantPhone = Phone
 
 export interface ParticipantInvitationLog {
@@ -155,6 +174,11 @@ export interface ParticipantInvitationLog {
     whatsapp?: {
         status: InvitationStatus
     }
+}
+
+export interface ParticipantCheckInProgress {
+    total: number
+    count: number
 }
 
 export interface Participant {
@@ -168,6 +192,7 @@ export interface Participant {
     max_attendance: number
     custom_attribute: CustomAttribute[] | null
     latest_invitation_log?: ParticipantInvitationLog | null
+    check_in_progress?: ParticipantCheckInProgress
 
     phone?: Phone
     ticket_path?: string
@@ -187,7 +212,6 @@ export interface ParticipantCheckIn {
 }
 
 // USERS
-
 export type UserPhone = Phone
 
 export interface User {

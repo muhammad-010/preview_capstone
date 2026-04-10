@@ -128,7 +128,7 @@ export const APP_ROUTES: AppRoute[] = [
                     },
                     {
                         title: 'Add New Participant',
-                        description: 'Assign new participant into the even',
+                        description: 'Assign new participant into the event',
                         label: 'Add',
                         to: '/events/:event_id/participant/add',
                     },
