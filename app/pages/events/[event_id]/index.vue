@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const { $api } = useNuxtApp()
 const route = useRoute()
 const id = Number(route.params.event_id)
 const { tenantId } = useUserState()
@@ -18,185 +17,13 @@ const tabs = [
     },
 ]
 const activeTab = useState(STATE_EVENT_DETAIL_ACTIVE_TAB, () => '0')
-const toast = useToast()
-const { customAttributes, refreshCustomAttributes }
-    = await useFindCustomAttribute(tenantId.value, id)
+const { customAttributes, refreshCustomAttributes } = await useFindCustomAttribute(tenantId.value, id)
+const { event } = await useEventInfo(tenantId.value, id)
 
-async function useDetail(tId: number, id: number) {
-    const { data, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
-        transform: res => ({
-            ...res.data,
-            start_time: formatLongDate(res.data.start_time || ''),
-            end_time: formatLongDate(res.data.end_time || ''),
-        }),
-    })
-    const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
-    const checkInPercentage = computed(() => formatPercentage(
-        event.value.participant_status?.total_checked_in || 0,
-        event.value.participant_status?.total_registered || 0,
-        1,
-    ))
-    const totalCheckedIn = computed(() => event.value.participant_status?.total_checked_in || 0)
-    const totalRegistered = computed(() => event.value.participant_status?.total_registered || 0)
-    const totalNotCheckedIn = computed(() => totalRegistered.value - totalCheckedIn.value)
-
-    return {
-        event,
-        refresh,
-        checkInPercentage,
-        totalCheckedIn,
-        totalRegistered,
-        totalNotCheckedIn,
-    }
+const overviewRef = ref()
+function refreshDetail() {
+    overviewRef.value.refresh()
 }
-
-async function useList(tId: number, id: number) {
-    const search = ref('')
-    const query = ref('')
-    const page = ref(1)
-    const limit = ref(5)
-    const selectedIds = ref<number[]>([])
-    const filterCustomAttribute = ref<CustomAttribute[]>(structuredClone(toRaw(unref(customAttributes.value))))
-    const filterCheckedIn = ref<boolean | null>(null)
-
-    const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/participant`, {
-        transform: res => res.data,
-        query: computed(() => {
-            const cleanedFilterCustomAttribute = formatCleanCustomAttribute(filterCustomAttribute.value)
-            return {
-                query: query.value,
-                page: page.value,
-                limit: limit.value,
-                ...(filterCheckedIn.value !== null
-                    ? { is_checked_in: filterCheckedIn.value }
-                    : {}
-                ),
-                ...(cleanedFilterCustomAttribute.length
-                    ? {
-                            custom_attribute_ids: cleanedFilterCustomAttribute.map(attr => attr.custom_attribute_id).join(','),
-                            custom_attribute_values: cleanedFilterCustomAttribute.map(attr => attr.value).join(','),
-                        }
-                    : {}),
-            }
-        }),
-        watch: false,
-    })
-    const participants = computed<Participant[]>(() => data.value?.participant ?? [])
-    const total = computed(() => data.value?.total_data ?? 0)
-    watch(page, () => refresh())
-    watch(limit, () => refresh())
-
-    async function exportData() {
-        try {
-            const { data } = await $api(`/api/tenant/${tId}/event/${id}/participant/export`, {
-                method: 'POST',
-                body: {
-                    query: query.value,
-                    ...(filterCheckedIn.value !== null
-                        ? { is_checked_in: filterCheckedIn.value }
-                        : {}
-                    ),
-                    custom_attribute: [...formatCleanCustomAttribute(filterCustomAttribute.value)],
-                },
-            })
-            if (data.filepath) {
-                const filename = data.filepath.split('/').pop()
-                if (!filename) {
-                    toast.add({
-                        title: 'Error',
-                        description: 'Cannot read filename',
-                        color: 'error',
-                    })
-                    console.error('Export participant error: can\'t read filename')
-                    return
-                }
-                await useDownload(
-                    `/api/${data.filepath}`,
-                    filename,
-                )
-            }
-            else {
-                toast.add({
-                    title: 'Error',
-                    description: 'Cannot read filepath',
-                    color: 'error',
-                })
-                console.error('Export participant error: can\'t read filepath')
-                return
-            }
-        }
-        catch (error) {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to export participant',
-                color: 'error',
-            })
-            console.error('Export participant error', error)
-        }
-    }
-
-    function searchParticipant() {
-        page.value = 1
-        query.value = search.value
-        refresh()
-    }
-
-    function clearSearch() {
-        page.value = 1
-        search.value = ''
-        query.value = search.value
-        refresh()
-    }
-
-    return {
-        search,
-        page,
-        limit,
-        selectedIds,
-        filterCustomAttribute,
-        filterCheckedIn,
-        toast,
-        participants,
-        total,
-        pending,
-        refresh,
-        exportData,
-        searchParticipant,
-        clearSearch,
-    }
-}
-
-const [
-    {
-        event,
-        refresh: refreshDetail,
-        checkInPercentage,
-        totalCheckedIn,
-        totalRegistered,
-    },
-
-    {
-        search,
-        page,
-        limit,
-        selectedIds,
-        filterCustomAttribute,
-        filterCheckedIn,
-        participants,
-        total,
-        pending,
-        refresh: refreshParticipants,
-        exportData,
-        searchParticipant,
-        clearSearch,
-    },
-] = await Promise.all([
-    useDetail(tenantId.value, id),
-    useList(tenantId.value, id),
-])
-
-const printConfirmation = ref(false)
-const sendConfirmation = ref(false)
 
 useHead({
     title: computed(() => `Event - ${event.value ? event.value.name : 'Detail'}`),
@@ -207,14 +34,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         label: event.value.name,
     },
 }))
-
-async function refreshAll() {
-    selectedIds.value = []
-    await Promise.all([
-        refreshDetail(),
-        refreshParticipants(),
-    ])
-}
 </script>
 
 <template>
@@ -226,35 +45,15 @@ async function refreshAll() {
             size="xl"
         >
             <template #overview>
-                <div class="grid grid-cols-3 gap-4 my-8">
-                    <CardTotal
-                        title="Total Registrations"
-                        :total="totalRegistered"
-                        icon="lucide:users"
-                    />
-
-                    <CardTotal
-                        title="Checked Ins"
-                        :total="totalCheckedIn"
-                        icon="lucide:circle-check"
-                    />
-
-                    <CardTotal
-                        title="Attendance Rate"
-                        :total="checkInPercentage"
-                        percentage
-                        icon="lucide:user-check"
-                    />
-                </div>
-
-                <PageEventDetail
+                <PageEventOverview
+                    ref="overviewRef"
                     :tenant-id="tenantId"
-                    :event="event"
+                    :event-id="id"
                 />
             </template>
 
             <template #custom-attributes>
-                <PageCustomAttributeForm
+                <PageCustomAttributeList
                     :tenant-id="tenantId"
                     :event-id="id"
                     :custom-attributes="customAttributes"
@@ -263,72 +62,12 @@ async function refreshAll() {
             </template>
 
             <template #attendees>
-                <div class="my-8">
-                    <UCard>
-                        <template #header>
-                            <div class="card-toolbar">
-                                <div class="card-toolbar-left-wrapper">
-                                    <DataTableSearch
-                                        v-model="search"
-                                        class="card-toolbar-left w-full"
-                                        placeholder="Search Participant"
-                                        @search="searchParticipant"
-                                        @clear="clearSearch"
-                                    />
-                                </div>
-
-                                <div class="card-toolbar-actions">
-                                    <PageEventPrintQr
-                                        v-model:open="printConfirmation"
-                                        :tenant-id="tenantId"
-                                        :event-id="id"
-                                        :selected-ids="selectedIds"
-                                        hide
-                                        @refresh="refreshAll"
-                                    />
-                                    <PageEventSendQr
-                                        v-model:open="sendConfirmation"
-                                        :tenant-id="tenantId"
-                                        :event-id="id"
-                                        :selected-ids="selectedIds"
-                                        hide
-                                        @refresh="refreshAll"
-                                    />
-                                    <PageEventImport
-                                        :tenant-id="tenantId"
-                                        :event-id="id"
-                                        @refresh="refreshAll"
-                                    />
-                                    <UButton
-                                        color="primary"
-                                        icon="lucide:plus"
-                                        class="cursor-pointer"
-                                        :to="`/events/${id}/participant/add`"
-                                    >
-                                        Add Attendee
-                                    </UButton>
-                                </div>
-                            </div>
-                        </template>
-
-                        <PageParticipantTable
-                            v-model:limit="limit"
-                            v-model:page="page"
-                            v-model:selected="selectedIds"
-                            v-model:filter-custom-attribute="filterCustomAttribute"
-                            v-model:filter-checked-in="filterCheckedIn"
-                            :event-id="id"
-                            :data="participants"
-                            :total="total"
-                            :pending="pending"
-                            with-pagination
-                            @refresh="refreshAll"
-                            @export="exportData"
-                            @print-qr="printConfirmation = true"
-                            @send-qr="sendConfirmation = true"
-                        />
-                    </UCard>
-                </div>
+                <PageParticipantList
+                    :tenant-id="tenantId"
+                    :event-id="id"
+                    :custom-attributes="customAttributes"
+                    @refresh="refreshDetail"
+                />
             </template>
         </UTabs>
     </div>

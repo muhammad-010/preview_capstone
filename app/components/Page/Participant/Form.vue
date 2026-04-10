@@ -4,11 +4,12 @@ import * as z from 'zod'
 
 const { $api } = useNuxtApp()
 const router = useRouter()
-const { tenantId } = useUserState()
 const props = defineProps<{
-    id?: number
+    tenantId: number
     eventId: number
+    participantId?: number
     fields?: ParticipantForm
+    isModal?: boolean
 }>()
 const formRef = useTemplateRef<Form<ParticipantForm>>('formRef')
 async function saveData() {
@@ -29,7 +30,7 @@ async function useForm(tId: number, eId: number, id: number) {
         max_attendance: zodNumberOptional(),
         custom_attribute: z.array(
             z.object({
-                custom_attribute_id: z.number(),
+                attribute_id: z.number(),
                 name: z.string().optional(),
                 value: z.string().optional(),
             }),
@@ -64,6 +65,8 @@ async function useForm(tId: number, eId: number, id: number) {
                     description: 'A participant has been created',
                     color: 'success',
                 })
+            }
+            if (!props.isModal) {
                 router.go(-1)
             }
         }
@@ -92,7 +95,9 @@ async function useForm(tId: number, eId: number, id: number) {
                     description: 'A participant has been updated',
                     color: 'success',
                 })
-                router.go(-1)
+                if (!props.isModal) {
+                    router.go(-1)
+                }
             }
         }
         catch (error) {
@@ -131,7 +136,7 @@ const {
     schema,
     state,
     submitData,
-} = await useForm(tenantId.value, props.eventId, props.id || 0)
+} = await useForm(props.tenantId, props.eventId, props.participantId || 0)
 </script>
 
 <template>

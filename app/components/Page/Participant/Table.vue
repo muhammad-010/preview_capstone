@@ -6,6 +6,7 @@ type ToggleAllPageRowsSelected = (value?: boolean | undefined) => void
 
 const { $api } = useNuxtApp()
 const props = defineProps<{
+    tenantId: number
     eventId: number
     data: Participant[]
     total: number
@@ -20,7 +21,13 @@ const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attr
 const filterSessionStatus = defineModel<ParticipantSessionStatus[]>('filter-session-status', { default: () => [] })
 const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
 const toast = useToast()
-const { tenantId } = useUserState()
+
+function triggerRefresh(skipResetPage?: boolean) {
+    if (!skipResetPage) {
+        page.value = 1
+    }
+    emit(EMIT_TABLE_REFRESH)
+}
 
 // FILTER CUSTOM ATTRIBUTE
 const filterCustomAttributeField = ref(structuredClone(toRaw(unref(filterCustomAttribute))))
@@ -30,7 +37,7 @@ const filterCustomAttributeDialog = ref(false)
 
 function refreshFilterCustomAttributeDialog() {
     filterCustomAttribute.value = structuredClone(toRaw(unref(filterCustomAttributeField.value)))
-    emit(EMIT_TABLE_REFRESH)
+    triggerRefresh()
 }
 
 function clearFilterCustomAttributeDialog(refresh: boolean) {
@@ -113,7 +120,7 @@ const filterSessionStatusDialog = ref(false)
 
 function refreshFilterSessionStatus() {
     filterSessionStatus.value = filterSessionStatusField.value
-    emit(EMIT_TABLE_REFRESH)
+    triggerRefresh()
 }
 
 function clearFilterSessionStatus(refresh: boolean) {
@@ -183,15 +190,15 @@ function openDeleteConfirmation(id: number, name: string) {
     deleteConfirmation.value = true
 }
 
-function closeDeleteConfirmation() {
+function closeDeleteConfirmation(skipResetPage?: boolean) {
     setDeleteTarget(0, '')
     deleteConfirmation.value = false
-    emit(EMIT_TABLE_REFRESH)
+    triggerRefresh(skipResetPage)
 }
 
 async function deleteData(id: number) {
     try {
-        const data = await $api(`/api/tenant/${tenantId.value}/event/${props.eventId}/participant/${id}`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/${id}`, {
             method: 'DELETE',
         })
         if (data.success) {
@@ -201,6 +208,7 @@ async function deleteData(id: number) {
                 color: 'success',
             })
         }
+        closeDeleteConfirmation()
     }
     catch (error) {
         toast.add({
@@ -209,8 +217,8 @@ async function deleteData(id: number) {
             color: 'error',
         })
         console.error('Delete participant error', error)
+        closeDeleteConfirmation(true)
     }
-    closeDeleteConfirmation()
 }
 
 // CHECK-IN
@@ -250,7 +258,7 @@ function closeConfirmManualCheckInGuest() {
 
 async function manualCheckIn() {
     try {
-        const { data } = await $api(`/api/tenant/${tenantId.value}/event/${props.eventId}/participant/check-in/manual`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in/manual`, {
             method: 'POST',
             body: {
                 participant_id: manualCheckInTarget.value.id,
@@ -289,7 +297,7 @@ function validateManualCheckInGuest(state: Partial<CheckInGuestSchema>): FormErr
 
 async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchema>) {
     try {
-        await $api(`/api/tenant/${tenantId.value}/event/${props.eventId}/participant/check-in/confirm/manual`, {
+        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in/confirm/manual`, {
             method: 'POST',
             body: {
                 participant_id: manualCheckInTarget.value.id,

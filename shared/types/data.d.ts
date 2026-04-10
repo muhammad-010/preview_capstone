@@ -141,9 +141,13 @@ export interface TenantEventForm {
 
 // CUSTOM ATTRIBUTES
 export interface CustomAttribute {
-    custom_attribute_id: number
+    attribute_id: number
     name?: string
     value?: string
+}
+
+export interface CustomAttributeForm {
+    name: string
 }
 
 // PARTICIPANT
