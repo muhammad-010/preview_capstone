@@ -521,7 +521,7 @@ function useColumns() {
                     ? row.original.check_in_progress.count === row.original.check_in_progress.total
                     : true
                 return h('div', { class: 'inline-flex gap-2' }, [
-                    h(UTooltip, { text: 'Manual Check-In', delayDuration: 0 }, [
+                    h(UTooltip, { text: 'Manual Check-In', delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'neutral',
                             variant: 'ghost',
@@ -531,7 +531,7 @@ function useColumns() {
                             onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
                         }),
                     ]),
-                    h(UTooltip, { text: 'Edit', delayDuration: 0 }, [
+                    h(UTooltip, { text: 'Edit', delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'neutral',
                             variant: 'ghost',
@@ -539,7 +539,7 @@ function useColumns() {
                             to: `/events/${props.eventId}/participant/${row.original.participant_id}/edit`,
                         }),
                     ]),
-                    h(UTooltip, { text: 'Delete', delayDuration: 0 }, [
+                    h(UTooltip, { text: 'Delete', delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'error',
                             variant: 'ghost',

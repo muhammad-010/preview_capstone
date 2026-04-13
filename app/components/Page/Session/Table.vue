@@ -115,7 +115,7 @@ function useColumns() {
             cell: ({ row }) => {
                 const _ = row
                 return h('div', { class: 'inline-flex gap-2' }, [
-                    h(UTooltip, { text: 'Edit', delayDuration: 0 }, [
+                    h(UTooltip, { text: 'Edit', delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'neutral',
                             variant: 'ghost',
@@ -131,7 +131,7 @@ function useColumns() {
                                 row.original.event_session_id),
                         }),
                     ]),
-                    h(UTooltip, { text: 'Delete', delayDuration: 0 }, [
+                    h(UTooltip, { text: 'Delete', delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'error',
                             variant: 'ghost',

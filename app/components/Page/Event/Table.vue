@@ -15,6 +15,7 @@ function useColumns() {
     const UProgress = resolveComponent('UProgress')
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
+    const UTooltip = resolveComponent('UTooltip')
 
     return [
         {
@@ -71,12 +72,14 @@ function useColumns() {
             header: 'Action',
             cell: ({ row }) => {
                 return h('div', { class: 'flex gap-2' }, [
-                    h(UButton, {
-                        color: 'neutral',
-                        variant: 'ghost',
-                        icon: 'lucide:pencil',
-                        to: `/events/${row.original.event_id}/edit`,
-                    }),
+                    h(UTooltip, { text: 'Edit', delayDuration: 0 }, () => [
+                        h(UButton, {
+                            color: 'neutral',
+                            variant: 'ghost',
+                            icon: 'lucide:pencil',
+                            to: `/events/${row.original.event_id}/edit`,
+                        }),
+                    ]),
                     // h(UButton, {
                     //     color: 'neutral',
                     //     variant: 'ghost',
@@ -84,12 +87,14 @@ function useColumns() {
                     //     disabled: !SCANNABLE_EVENT.includes(row.original.status),
                     //     to: `/lottery/${row.original.event_id}`,
                     // }),
-                    h(UButton, {
-                        color: 'neutral',
-                        variant: 'ghost',
-                        icon: 'lucide:info',
-                        to: `/events/${row.original.event_id}`,
-                    }),
+                    h(UTooltip, { text: 'Detail', delayDuration: 0 }, () => [
+                        h(UButton, {
+                            color: 'neutral',
+                            variant: 'ghost',
+                            icon: 'lucide:info',
+                            to: `/events/${row.original.event_id}`,
+                        }),
+                    ]),
                 ])
             },
         },
