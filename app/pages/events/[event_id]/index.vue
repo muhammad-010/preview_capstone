@@ -100,7 +100,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     <template #leading>
                         <UIcon
                             name="lucide:chevron-down"
-                            size="5"
                             class="shrink-0 group-data-[state=open]:rotate-180 transition-transform duration-200"
                         />
                     </template>
