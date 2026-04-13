@@ -41,6 +41,11 @@ export interface TablePagination {
     pageSize: number
 }
 
+export interface ParticipantCheckInTarget {
+    name: string
+    maxAttendance: number
+}
+
 export type EditorMode = 'invitation-email' | 'check-in-page'
 
 export type Orientation = 'portrait' | 'landscape'

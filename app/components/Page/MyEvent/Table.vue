@@ -71,32 +71,27 @@ function useColumns() {
             accessorKey: 'event_id',
             header: 'Action',
             cell: ({ row }) => {
-                return h('div', { class: 'flex gap-2' }, () => {
-                    const actions = [
-                        h(UTooltip, { text: 'Detail', delayDuration: 0 }, () => [
-                            h(UButton, {
-                                color: 'neutral',
-                                variant: 'ghost',
-                                icon: 'lucide:info',
-                                to: `/my-events/${row.original.event_id}`,
-                            }),
+                return h('div', { class: 'flex gap-2' }, [
+                    h(UTooltip, { text: 'Detail', delayDuration: 0 }, () => [
+                        h(UButton, {
+                            color: 'neutral',
+                            variant: 'ghost',
+                            icon: 'lucide:info',
+                            to: `/my-events/${row.original.event_id}`,
+                        }),
 
-                        ]),
-                    ]
-                    if (row.original.status !== TENANT_EVENT_STATUS_COMPLETED) {
-                        actions.push(
-                            h(UTooltip, { text: 'Check-In', delayDuration: 0 }, () => [
-                                h(UButton, {
-                                    color: 'primary',
-                                    icon: 'lucide:scan-qr-code',
-                                    disabled: !SCANNABLE_EVENT.includes(row.original.status),
-                                    to: `/check-in/${row.original.event_id}`,
-                                }),
-                            ]),
-                        )
-                    }
-                    return actions
-                })
+                    ]),
+                    h(UTooltip, { text: 'Check-In', delayDuration: 0 }, () => [
+                        h(UButton, {
+                            color: 'primary',
+                            icon: 'lucide:scan-qr-code',
+                            disabled: !SCANNABLE_EVENT.includes(row.original.status),
+                            to: row.original.status !== TENANT_EVENT_STATUS_COMPLETED
+                                ? `/check-in/${row.original.event_id}`
+                                : '',
+                        }),
+                    ]),
+                ])
             },
         },
     ] as TableColumn<TenantEvent>[]
