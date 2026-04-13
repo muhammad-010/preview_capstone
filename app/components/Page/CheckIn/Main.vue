@@ -23,24 +23,20 @@ const toast = useToast()
 const isClient = import.meta.client
 
 // CHECK IN METHOD
-const checkInMethods = {
-    [CHECK_IN_METHOD_QR]: 'Scan QR',
-    [CHECK_IN_METHOD_MANUAL]: 'Input Phone Number',
-}
 const checkInMethodDialog = ref(true)
-const activeCheckInMethod = ref<typeof CHECK_IN_METHOD_QR | typeof CHECK_IN_METHOD_MANUAL | null>(null)
+const activeCheckInMethod = ref<CheckInMethod | null>(null)
 const inverseCheckInMethodLabel = computed(() => {
     switch (activeCheckInMethod.value) {
-        case CHECK_IN_METHOD_QR:
-            return `Switch to ${checkInMethods[CHECK_IN_METHOD_MANUAL]}`
+        case CHECK_IN_METHOD_SCAN:
+            return `Switch to ${CHECK_IN_METHODS[CHECK_IN_METHOD_MANUAL]}`
         case CHECK_IN_METHOD_MANUAL:
-            return `Switch to ${checkInMethods[CHECK_IN_METHOD_QR]}`
+            return `Switch to ${CHECK_IN_METHODS[CHECK_IN_METHOD_SCAN]}`
         default:
             return 'No check-in method selected'
     }
 })
 function checkInQr() {
-    activeCheckInMethod.value = CHECK_IN_METHOD_QR
+    activeCheckInMethod.value = CHECK_IN_METHOD_SCAN
     checkInMethodDialog.value = false
 }
 function checkInManual() {
@@ -49,11 +45,11 @@ function checkInManual() {
 }
 function switchCheckInMethod() {
     switch (activeCheckInMethod.value) {
-        case CHECK_IN_METHOD_QR:
+        case CHECK_IN_METHOD_SCAN:
             activeCheckInMethod.value = CHECK_IN_METHOD_MANUAL
             break
         case CHECK_IN_METHOD_MANUAL:
-            activeCheckInMethod.value = CHECK_IN_METHOD_QR
+            activeCheckInMethod.value = CHECK_IN_METHOD_SCAN
             break
         default:
             break
@@ -345,7 +341,7 @@ async function confirmAttendanceManual(event: FormSubmitEvent<ConfirmAttendanceS
 
 async function confirmAttendance(event: FormSubmitEvent<ConfirmAttendanceSchema>) {
     switch (activeCheckInMethod.value) {
-        case CHECK_IN_METHOD_QR:
+        case CHECK_IN_METHOD_SCAN:
             confirmAttendanceQr(event)
             break
         case CHECK_IN_METHOD_MANUAL:
@@ -364,11 +360,11 @@ async function confirmAttendance(event: FormSubmitEvent<ConfirmAttendanceSchema>
         /> -->
 
         <!-- <div
-            v-if="activeCheckInMethod === CHECK_IN_METHOD_QR"
+            v-if="activeCheckInMethod === CHECK_IN_METHOD_SCAN"
             :style="getStaticBlockStyle('qr-code')"
         > -->
         <div
-            v-if="activeCheckInMethod === CHECK_IN_METHOD_QR"
+            v-if="activeCheckInMethod === CHECK_IN_METHOD_SCAN"
             style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"
         >
             <div class="flex justify-center mb-4">

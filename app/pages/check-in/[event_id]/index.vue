@@ -11,23 +11,23 @@ const toast = useToast()
 const isClient = import.meta.client
 
 const checkInMethods = {
-    [CHECK_IN_METHOD_QR]: 'Scan QR',
+    [CHECK_IN_METHOD_SCAN]: 'Scan QR',
     [CHECK_IN_METHOD_MANUAL]: 'Input Phone Number',
 }
 const checkInMethodDialog = ref(true)
-const activeCheckInMethod = ref<typeof CHECK_IN_METHOD_QR | typeof CHECK_IN_METHOD_MANUAL | null>(null)
+const activeCheckInMethod = ref<typeof CHECK_IN_METHOD_SCAN | typeof CHECK_IN_METHOD_MANUAL | null>(null)
 const inverseCheckInMethodLabel = computed(() => {
     switch (activeCheckInMethod.value) {
-        case CHECK_IN_METHOD_QR:
+        case CHECK_IN_METHOD_SCAN:
             return `Switch to ${checkInMethods[CHECK_IN_METHOD_MANUAL]}`
         case CHECK_IN_METHOD_MANUAL:
-            return `Switch to ${checkInMethods[CHECK_IN_METHOD_QR]}`
+            return `Switch to ${checkInMethods[CHECK_IN_METHOD_SCAN]}`
         default:
             return 'No check-in method selected'
     }
 })
 function checkInQr() {
-    activeCheckInMethod.value = CHECK_IN_METHOD_QR
+    activeCheckInMethod.value = CHECK_IN_METHOD_SCAN
     checkInMethodDialog.value = false
 }
 function checkInManual() {
@@ -36,11 +36,11 @@ function checkInManual() {
 }
 function switchCheckInMethod() {
     switch (activeCheckInMethod.value) {
-        case CHECK_IN_METHOD_QR:
+        case CHECK_IN_METHOD_SCAN:
             activeCheckInMethod.value = CHECK_IN_METHOD_MANUAL
             break
         case CHECK_IN_METHOD_MANUAL:
-            activeCheckInMethod.value = CHECK_IN_METHOD_QR
+            activeCheckInMethod.value = CHECK_IN_METHOD_SCAN
             break
         default:
             break
@@ -333,7 +333,7 @@ async function useConfirmAttendance(tId: number, id: number) {
 
     async function confirmAttendance(event: FormSubmitEvent<Schema>) {
         switch (activeCheckInMethod.value) {
-            case CHECK_IN_METHOD_QR:
+            case CHECK_IN_METHOD_SCAN:
                 confirmAttendanceQr(event)
                 break
             case CHECK_IN_METHOD_MANUAL:
@@ -402,7 +402,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         </div>
 
         <CheckInScan
-            v-if="activeCheckInMethod === CHECK_IN_METHOD_QR"
+            v-if="activeCheckInMethod === CHECK_IN_METHOD_SCAN"
             v-model:pause-qr="pauseQr"
             @qr-detect="qrDetected"
         />

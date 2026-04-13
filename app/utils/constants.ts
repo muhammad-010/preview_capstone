@@ -55,5 +55,10 @@ export const PHONE_NUMBER_PLACEHOLDER = '08xxx'
 export const ERROR_SCAN_QR_MESSAGE = 'Failed To Scan QR Code'
 
 // CHECK IN METHOD
-export const CHECK_IN_METHOD_QR = 'check-in-qr'
+export const CHECK_IN_METHOD_SCAN = 'check-in-scan'
 export const CHECK_IN_METHOD_MANUAL = 'check-in-manual'
+
+export const CHECK_IN_METHODS = {
+    [CHECK_IN_METHOD_SCAN]: 'Scan QR',
+    [CHECK_IN_METHOD_MANUAL]: 'Input Phone Number',
+}

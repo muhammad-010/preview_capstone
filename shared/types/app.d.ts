@@ -41,6 +41,8 @@ export interface TablePagination {
     pageSize: number
 }
 
+export type CheckInMethod = 'check-in-scan' | 'check-in-manual'
+
 export interface ParticipantCheckInTarget {
     name: string
     maxAttendance: number
