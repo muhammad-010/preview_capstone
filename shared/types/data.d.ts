@@ -130,7 +130,6 @@ export interface TenantEventForm {
     location: string
     start_time: ISOString
     end_time: ISOString
-    confirmation_attendance: boolean
     status: TenantEventStatus
     capacity: number
     assign_user_ids: number[]
