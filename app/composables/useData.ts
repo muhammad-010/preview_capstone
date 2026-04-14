@@ -14,6 +14,21 @@ export async function useFindCustomAttribute(tenantId: number, eventId: number) 
     return { customAttributes, refreshCustomAttributes: refresh }
 }
 
+export async function useFindEventSession(tenantId: number, eventId: number) {
+    const { data, clear, refresh } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/session/find`, {
+        transform: res => res.data,
+    })
+    const participantSession = computed<TenantEventSession[]>(() => data.value?.event_session ?? [])
+    return { participantSession, clearParticipantSession: clear, refreshParticipantSession: refresh }
+}
+
+export async function useRawFindEventSession(tenantId: number, eventId: number) {
+    const { $api } = useNuxtApp()
+    const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/session/find`)
+
+    return data.event_session
+}
+
 export async function useFindParticipantSession(tenantId: number, eventId: number, participantId: number) {
     const { data, clear, refresh } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/participant/${participantId}/session/find`, {
         transform: res => res.data,

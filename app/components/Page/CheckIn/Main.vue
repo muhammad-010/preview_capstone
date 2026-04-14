@@ -6,6 +6,7 @@ import { FetchError } from 'ofetch'
 const props = defineProps<{
     tenantId: number
     eventId: number
+    sessionId: number
     isPreview?: boolean
 }>()
 const checkInSuccessDialog = defineModel<boolean>('open-success', { default: false })
@@ -184,7 +185,7 @@ async function qrDetected(qrCodes: DetectedBarcode[]) {
     participantQr.value = qrCode.rawValue
 
     try {
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in`, {
             method: 'POST',
             body: {
                 token: participantQr.value,
@@ -249,7 +250,7 @@ async function manualCheckIn() {
     if (!participantId.value) return
 
     try {
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in/manual`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/manual`, {
             method: 'POST',
             body: {
                 participant_id: participantId.value,
@@ -295,7 +296,7 @@ async function confirmAttendanceQr(event: FormSubmitEvent<ConfirmAttendanceSchem
     if (props.isPreview) return
 
     try {
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in/confirm`, {
+        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/confirm`, {
             method: 'POST',
             body: {
                 token: participantQr.value,
@@ -323,7 +324,7 @@ async function confirmAttendanceManual(event: FormSubmitEvent<ConfirmAttendanceS
     if (props.isPreview) return
 
     try {
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in/confirm/manual`, {
+        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/confirm/manual`, {
             method: 'POST',
             body: {
                 participant_id: participantId.value,

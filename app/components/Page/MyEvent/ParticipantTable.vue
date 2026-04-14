@@ -14,7 +14,38 @@ const page = defineModel<number>('page', { default: 0 })
 
 function useColumns() {
     const UBadge = resolveComponent('UBadge')
+    const UProgress = resolveComponent('UProgress')
     const tableRef = useTemplateRef('tableRef')
+
+    function qrSent(participant: Participant) {
+        if (!participant.latest_invitation_log) {
+            return h('span', { class: 'text-dimmed' }, 'Not Sent')
+        }
+
+        const qrSent = []
+        if (participant.latest_invitation_log.email) {
+            qrSent.push(
+                h(UBadge, {
+                    class: 'w-max',
+                    color: INVITATION_STATUS_COLORS[participant.latest_invitation_log.email.status],
+                    variant: 'subtle',
+                    label: `Email: ${participant.latest_invitation_log.email.status}`,
+                }),
+            )
+        }
+        if (participant.latest_invitation_log.whatsapp) {
+            qrSent.push(
+                h(UBadge, {
+                    class: 'w-max',
+                    color: INVITATION_STATUS_COLORS[participant.latest_invitation_log.whatsapp.status],
+                    variant: 'subtle',
+                    label: `Whatsapp: ${participant.latest_invitation_log.whatsapp.status}`,
+                }),
+            )
+        }
+        return qrSent
+    }
+
     const columns = [
         {
             accessorKey: 'name',
@@ -37,24 +68,23 @@ function useColumns() {
             },
         },
         {
-            accessorKey: 'status',
+            accessorKey: 'check_in_progress',
             header: 'Status',
             cell: ({ row }) => {
-                return h(UBadge, {
-                    color: PARTICIPANT_STATUS_COLORS[row.getValue('status') as ParticipantStatus],
-                    variant: 'subtle',
-                    label: row.original.status,
-                })
+                return h('div', {}, [
+                    h('span', {}, `${row.original.check_in_progress?.count || 0}/${row.original.check_in_progress?.total || 0} Session`),
+                    h(UProgress, {
+                        color: row.original.check_in_progress?.total === row.original.check_in_progress?.count ? 'success' : 'info',
+                        max: row.original.check_in_progress?.total || 0,
+                        modelValue: row.original.check_in_progress?.count || 0,
+                    }),
+                ])
             },
         },
         {
-            accessorKey: 'check_in',
-            header: 'Check In Time',
-            cell: ({ row }) => {
-                return h('div', {}, [
-                    h('span', {}, row.original.check_in_time ? formatHour(row.original.check_in_time) : '-'),
-                ])
-            },
+            accessorKey: 'latest_invitation_log',
+            header: 'QR Sent',
+            cell: ({ row }) => h('div', { class: 'flex flex-col gap-2' }, qrSent(row.original)),
         },
     ] as TableColumn<Participant>[]
 

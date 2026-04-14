@@ -3,6 +3,7 @@ import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 
 defineProps<{
+    tenantId: number
     data: TenantEvent[]
     total: number
     pending?: boolean
@@ -10,6 +11,20 @@ defineProps<{
 }>()
 const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
+
+const checkInSessionDialog = ref(false)
+const targetCheckIn = ref(0)
+
+function openCheckInSessionDialog(id: number) {
+    targetCheckIn.value = id
+    checkInSessionDialog.value = true
+}
+
+watch(checkInSessionDialog, (newCheckInSessionDialog) => {
+    if (!newCheckInSessionDialog) {
+        targetCheckIn.value = 0
+    }
+})
 
 function useColumns() {
     const UProgress = resolveComponent('UProgress')
@@ -86,9 +101,7 @@ function useColumns() {
                             color: 'primary',
                             icon: 'lucide:scan-qr-code',
                             disabled: !SCANNABLE_EVENT.includes(row.original.status),
-                            to: row.original.status !== TENANT_EVENT_STATUS_COMPLETED
-                                ? `/check-in/${row.original.event_id}`
-                                : '',
+                            onClick: () => openCheckInSessionDialog(row.original.event_id || 0),
                         }),
                     ]),
                 ])
@@ -106,6 +119,13 @@ const columns = useColumns()
             :data="data"
             :columns="columns"
             :loading="pending"
+        />
+
+        <PageParticipantCheckIn
+            v-model:open="checkInSessionDialog"
+            :tenant-id="tenantId"
+            :event-id="targetCheckIn"
+            scan
         />
 
         <DataTablePagination

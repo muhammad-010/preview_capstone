@@ -234,7 +234,7 @@ const manualCheckInTarget = ref<ParticipantCheckInTarget>({
     name: '',
     maxAttendance: 0,
 })
-const manualCheckInConfirmation = ref(false)
+const manualCheckInDialog = ref(false)
 
 function openConfirmManualCheckIn(id: number, name: string) {
     manualCheckInTarget.value = {
@@ -244,7 +244,7 @@ function openConfirmManualCheckIn(id: number, name: string) {
         name,
         maxAttendance: 0,
     }
-    manualCheckInConfirmation.value = true
+    manualCheckInDialog.value = true
 }
 
 // TABLE
@@ -560,7 +560,7 @@ const { columns, tableRef } = useColumns()
         />
 
         <PageParticipantCheckIn
-            v-model:open="manualCheckInConfirmation"
+            v-model:open="manualCheckInDialog"
             v-model:target="manualCheckInTarget"
             :tenant-id="tenantId"
             :event-id="eventId"

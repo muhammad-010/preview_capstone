@@ -131,3 +131,7 @@ naming pattern and rules same as [app/utils](#apputils) and [server/utils](#serv
 - /tenant/[tenant_id]/event/[event_id]/participant/check-in/manual
 - /tenant/[tenant_id]/event/[event_id]/participant/check-in/confirm
 - /tenant/[tenant_id]/event/[event_id]/participant/check-in/confirm/manual
+
+## APP
+- check-in/[event_id]/index
+- check-in/[event_id]/new

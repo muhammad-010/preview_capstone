@@ -23,11 +23,18 @@ const guestConfirmation = reactive({ count: 0 })
 const sessions = ref<TenantEventSession[]>([])
 const sessionLoading = ref(false)
 watch([target, sessionDialog], async ([newTarget, newSessionDialog]) => {
-    if (newSessionDialog && newTarget.id) {
-        sessionLoading.value = true
-        sessions.value = await useRawFindParticipantSession(props.tenantId, props.eventId, newTarget.id)
-        sessionLoading.value = false
+    sessionLoading.value = true
+    if (props.scan) {
+        if (newSessionDialog) {
+            sessions.value = await useRawFindEventSession(props.tenantId, props.eventId)
+        }
     }
+    else {
+        if (newSessionDialog && newTarget.id) {
+            sessions.value = await useRawFindParticipantSession(props.tenantId, props.eventId, newTarget.id)
+        }
+    }
+    sessionLoading.value = false
 })
 
 type GuestConfirmationSchema = typeof guestConfirmation
@@ -40,6 +47,16 @@ function resetTarget() {
         name: '',
         maxAttendance: 0,
     }
+}
+
+function onSessionSelect(ciTime: ISOString | null | undefined, sId: number, sName: string) {
+    if (ciTime) return
+    if (props.scan) {
+        window.open(`/check-in/${props.eventId}/${sId}`, '_blank', 'noopener,noreferrer')
+        return
+    }
+
+    openCheckInDialog(sId, sName)
 }
 
 function openCheckInDialog(sId: number, sName: string) {
@@ -147,7 +164,7 @@ async function submitGuestConfirmation(event: FormSubmitEvent<GuestConfirmationS
                             v-for="ps in sessions"
                             :key="ps.event_session_id"
                             :class="`relative overflow-hidden ring-2 ${ps.checked_in_at ? '' : 'cursor-pointer ring-primary group transition'}`"
-                            @click="() => ps.checked_in_at ? void 0 : openCheckInDialog(ps.event_session_id, ps.name)"
+                            @click="() => onSessionSelect(ps.checked_in_at, ps.event_session_id, ps.name)"
                         >
                             <div class="pointer-events-none absolute inset-0 bg-primary/0 group-hover:bg-primary/10 group-hover:dark:bg-primary/20 transition" />
 
