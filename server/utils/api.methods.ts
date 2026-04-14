@@ -31,6 +31,7 @@ async function _api<T>(
         onResponseError({ response }) {
             console.error({
                 url: response.url,
+                logId: response.headers.get('x-log-id'),
                 status: response.status,
                 statusText: response.statusText,
                 data: response._data,
