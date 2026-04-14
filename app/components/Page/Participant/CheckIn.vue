@@ -4,51 +4,75 @@ import type { FormSubmitEvent, FormError } from '@nuxt/ui'
 const props = defineProps<{
     tenantId: number
     eventId: number
+    scan?: boolean
 }>()
-const manualCheckInTarget = defineModel<ParticipantCheckInTarget>('target', { default: () => ({
+const target = defineModel<ParticipantCheckInTarget>('target', { default: () => ({
     id: 0,
+    sessionId: 0,
     name: '',
     maxAttendance: 0,
 }) })
-const manualCheckInConfirmation = defineModel<boolean>('open', { default: false })
+const sessionDialog = defineModel<boolean>('open', { default: false })
 const emit = defineEmits([EMIT_TABLE_REFRESH])
 
 const { $api } = useNuxtApp()
 const toast = useToast()
-const manualCheckInGuestConfirmation = ref(false)
-const manualCheckInGuest = reactive({ count: 0 })
+const checkInDialog = ref(false)
+const guestConfirmationDialog = ref(false)
+const guestConfirmation = reactive({ count: 0 })
+const sessions = ref<TenantEventSession[]>([])
+watch([target, sessionDialog], async ([newTarget, newSessionDialog]) => {
+    if (newSessionDialog && newTarget.id) {
+        const { participantSession, clearParticipantSession } = await useFindParticipantSession(props.tenantId, props.eventId, newTarget.id)
+        sessions.value = participantSession.value
+        clearParticipantSession()
+    }
+    else {
+        sessions.value = []
+    }
+})
 
-type CheckInGuestSchema = typeof manualCheckInGuest
+type GuestConfirmationSchema = typeof guestConfirmation
 
-function resetManualCheckInTarget() {
-    manualCheckInTarget.value = {
+function resetTarget() {
+    target.value = {
         id: 0,
+        sessionId: 0,
+        sessionName: '',
         name: '',
         maxAttendance: 0,
     }
 }
 
-function closeConfirmManualCheckIn(reset: boolean) {
-    manualCheckInConfirmation.value = false
-    if (reset) resetManualCheckInTarget()
+function openCheckInDialog(sId: number, sName: string) {
+    target.value.sessionId = sId
+    target.value.sessionName = sName
+    sessionDialog.value = false
+    checkInDialog.value = true
 }
 
-function closeConfirmManualCheckInGuest() {
-    manualCheckInGuestConfirmation.value = false
-    resetManualCheckInTarget()
+function closeCheckInDialog(reset: boolean) {
+    checkInDialog.value = false
+    if (reset) resetTarget()
 }
 
-async function manualCheckIn() {
+function closeGuestConfirmationDialog() {
+    guestConfirmationDialog.value = false
+    guestConfirmation.count = 0
+    resetTarget()
+}
+
+async function checkIn() {
     try {
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in/manual`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/check-in/manual`, {
             method: 'POST',
             body: {
-                participant_id: manualCheckInTarget.value.id,
+                participant_id: target.value.id,
             },
         })
-        manualCheckInTarget.value.maxAttendance = data.participant.max_attendance
+        target.value.maxAttendance = data.participant.max_attendance
         if (data.confirmation_attendance) {
-            manualCheckInGuestConfirmation.value = true
+            guestConfirmationDialog.value = true
         }
         else {
             toast.add({
@@ -56,9 +80,9 @@ async function manualCheckIn() {
                 description: 'Manual check in success',
                 color: 'success',
             })
+            emit(EMIT_TABLE_REFRESH)
         }
-        closeConfirmManualCheckIn(!data.confirmation_attendance)
-        emit(EMIT_TABLE_REFRESH)
+        closeCheckInDialog(!data.confirmation_attendance)
     }
     catch (error) {
         toast.add({
@@ -70,19 +94,19 @@ async function manualCheckIn() {
     }
 }
 
-function validateManualCheckInGuest(state: Partial<CheckInGuestSchema>): FormError[] {
+function validateGuestConfirmation(state: Partial<GuestConfirmationSchema>): FormError[] {
     const errors = []
     if (!state.count) errors.push({ name: 'count', message: 'Guest count is required, minimum is 1' })
-    else if (state.count > manualCheckInTarget.value.maxAttendance) errors.push({ name: 'count', message: `Can not more than ${manualCheckInTarget.value.maxAttendance}` })
+    else if (state.count > target.value.maxAttendance) errors.push({ name: 'count', message: `Can not more than ${target.value.maxAttendance}` })
     return errors
 }
 
-async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchema>) {
+async function submitGuestConfirmation(event: FormSubmitEvent<GuestConfirmationSchema>) {
     try {
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/check-in/confirm/manual`, {
+        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/check-in/confirm/manual`, {
             method: 'POST',
             body: {
-                participant_id: manualCheckInTarget.value.id,
+                participant_id: target.value.id,
                 count_attendance: Number(event.data.count),
             },
         })
@@ -91,7 +115,7 @@ async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchem
             description: 'Manual submit participant guest success',
             color: 'success',
         })
-        closeConfirmManualCheckInGuest()
+        closeGuestConfirmationDialog()
         emit(EMIT_TABLE_REFRESH)
     }
     catch (error) {
@@ -107,15 +131,67 @@ async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchem
 
 <template>
     <div>
+        <UModal v-model:open="sessionDialog">
+            <template #header>
+                <div>
+                    <h2 class="text-highlighted font-semibold">
+                        Select Session
+                    </h2>
+                </div>
+            </template>
+            <template #body>
+                <MiscLoadingOverlay :loading="!sessions.length">
+                    <div class="flex flex-col gap-4">
+                        <UCard
+                            v-for="ps in sessions"
+                            :key="ps.event_session_id"
+                            :class="`relative overflow-hidden ${ps.checked_in_at ? '' : 'cursor-pointer group transition'}`"
+                            @click="() => ps.checked_in_at ? void 0 : openCheckInDialog(ps.event_session_id, ps.name)"
+                        >
+                            <div class="pointer-events-none absolute inset-0 bg-primary/0 group-hover:bg-primary/10 group-hover:dark:bg-primary/20 transition" />
+
+                            <div class="relative z-10">
+                                <div class="flex justify-between items-center gap-2">
+                                    <h3 class="text-highlighted font-semibold">
+                                        {{ ps.name }}
+                                    </h3>
+
+                                    <UBadge
+                                        v-if="ps.checked_in_at"
+                                        color="success"
+                                        :label="`${formatHour(ps.checked_in_at)}`"
+                                        size="lg"
+                                        variant="subtle"
+                                    />
+                                </div>
+
+                                <div class="flex flex-col">
+                                    <DetailSectionData
+                                        icon="lucide:clock"
+                                        :subtitle="`${formatLongDate(ps.start_time)} - ${formatLongDate(ps.end_time)}`"
+                                    />
+
+                                    <DetailSectionData
+                                        icon="lucide:map-pin"
+                                        :subtitle="ps.location"
+                                    />
+                                </div>
+                            </div>
+                        </UCard>
+                    </div>
+                </MiscLoadingOverlay>
+            </template>
+        </UModal>
+
         <ModalConfirmPositiveAction
-            v-model:open="manualCheckInConfirmation"
+            v-model:open="checkInDialog"
             title="Manual Check-In Confirmation"
-            :body="`Are you sure you want to check-in ${manualCheckInTarget.name}?`"
-            @confirm="manualCheckIn()"
+            :body="`Are you sure you want to check-in ${target.name} on session ${target.sessionName}?`"
+            @confirm="checkIn()"
         />
 
         <UModal
-            v-model:open="manualCheckInGuestConfirmation"
+            v-model:open="guestConfirmationDialog"
             :dismissible="false"
         >
             <template #header>
@@ -129,18 +205,18 @@ async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchem
                 <div class="flex flex-col">
                     <div class="text-center mb-4">
                         <h3>
-                            Please confirm guests attendance for {{ manualCheckInTarget.name }}
+                            Please confirm guests attendance for {{ target.name }}
                         </h3>
                         <h4>
-                            (Max {{ manualCheckInTarget.maxAttendance }})
+                            (Max {{ target.maxAttendance }})
                         </h4>
                     </div>
 
                     <UForm
-                        :validate="validateManualCheckInGuest"
-                        :state="manualCheckInGuest"
+                        :validate="validateGuestConfirmation"
+                        :state="guestConfirmation"
                         class="flex flex-col items-center"
-                        @submit="manualCheckInGuestSubmit"
+                        @submit="submitGuestConfirmation"
                     >
                         <UFormField
                             label="Number of guests"
@@ -149,7 +225,7 @@ async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchem
                             class="mb-4"
                         >
                             <UInput
-                                v-model="manualCheckInGuest.count"
+                                v-model="guestConfirmation.count"
                                 class="text-center"
                                 :ui="{
                                     base: 'text-center',
@@ -161,8 +237,8 @@ async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchem
                                         variant="link"
                                         icon="lucide:minus"
                                         size="xl"
-                                        :disabled="manualCheckInGuest.count === 0"
-                                        @click="manualCheckInGuest.count--"
+                                        :disabled="guestConfirmation.count === 0"
+                                        @click="guestConfirmation.count--"
                                     />
                                 </template>
                                 <template #trailing>
@@ -171,8 +247,8 @@ async function manualCheckInGuestSubmit(event: FormSubmitEvent<CheckInGuestSchem
                                         variant="link"
                                         icon="lucide:plus"
                                         size="xl"
-                                        :disabled="manualCheckInGuest.count === manualCheckInTarget.maxAttendance"
-                                        @click="manualCheckInGuest.count++"
+                                        :disabled="guestConfirmation.count === target.maxAttendance"
+                                        @click="guestConfirmation.count++"
                                     />
                                 </template>
                             </UInput>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-    title: string
+    title?: string
     subtitle?: string
     icon?: string
 }>()
@@ -8,7 +8,10 @@ defineProps<{
 
 <template>
     <div>
-        <h5 class="mb-1">
+        <h5
+            v-if="title"
+            class="mb-1"
+        >
             {{ title }}
         </h5>
         <div class="flex items-center">

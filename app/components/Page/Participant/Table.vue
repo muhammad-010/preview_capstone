@@ -227,15 +227,23 @@ async function deleteData(id: number) {
 }
 
 // CHECK-IN
-const manualCheckInTarget = ref({
+const manualCheckInTarget = ref<ParticipantCheckInTarget>({
     id: 0,
+    sessionId: 0,
+    sessionName: '',
     name: '',
     maxAttendance: 0,
 })
 const manualCheckInConfirmation = ref(false)
 
 function openConfirmManualCheckIn(id: number, name: string) {
-    manualCheckInTarget.value = { id, name, maxAttendance: 0 }
+    manualCheckInTarget.value = {
+        id,
+        sessionId: 0,
+        sessionName: '',
+        name,
+        maxAttendance: 0,
+    }
     manualCheckInConfirmation.value = true
 }
 
@@ -409,6 +417,7 @@ function useColumns() {
                 return h('div', {}, [
                     h('span', {}, `${row.original.check_in_progress?.count || 0}/${row.original.check_in_progress?.total || 0} Session`),
                     h(UProgress, {
+                        color: row.original.check_in_progress?.total === row.original.check_in_progress?.count ? 'success' : 'info',
                         max: row.original.check_in_progress?.total || 0,
                         modelValue: row.original.check_in_progress?.count || 0,
                     }),
@@ -555,6 +564,7 @@ const { columns, tableRef } = useColumns()
             v-model:target="manualCheckInTarget"
             :tenant-id="tenantId"
             :event-id="eventId"
+            @refresh="() => triggerRefresh(true)"
         />
 
         <UModal v-model:open="filterSelectionDialog">

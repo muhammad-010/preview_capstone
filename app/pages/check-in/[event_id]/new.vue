@@ -6,6 +6,9 @@ const { tenantId } = useUserState()
 const checkInSuccessDialog = ref(false)
 const checkInFailedDialog = ref(false)
 const targetParticipant = ref<ParticipantCheckInTarget>({
+    id: 0,
+    sessionId: 0,
+    sessionName: '',
     name: '',
     maxAttendance: 0,
 })

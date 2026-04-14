@@ -11,6 +11,8 @@ const props = defineProps<{
 const checkInSuccessDialog = defineModel<boolean>('open-success', { default: false })
 const checkInFailedDialog = defineModel<boolean>('open-failed', { default: false })
 const participant = defineModel<ParticipantCheckInTarget>('participant', { default: () => ({
+    id: 0,
+    sessionId: 0,
     name: '',
     maxAttendance: 0,
 }),
@@ -189,6 +191,9 @@ async function qrDetected(qrCodes: DetectedBarcode[]) {
             },
         })
         participant.value = {
+            id: 0,
+            sessionId: 0,
+            sessionName: '',
             name: data.participant.name || '',
             maxAttendance: data.participant.max_attendance || 0,
         }
@@ -229,6 +234,9 @@ async function selectParticipant(selectedParticipant: Participant | undefined) {
 
     participantId.value = selectedParticipant.participant_id || 0
     participant.value = {
+        id: selectedParticipant.participant_id || 0,
+        sessionId: 0,
+        sessionName: '',
         name: selectedParticipant.name,
         maxAttendance: 0,
     }
