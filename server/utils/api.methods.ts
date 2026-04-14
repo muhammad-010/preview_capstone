@@ -29,7 +29,6 @@ async function _api<T>(
     }
     return await $fetch.create({
         onResponseError({ response }) {
-            console.log(response)
             console.error({
                 url: response.url,
                 status: response.status,
