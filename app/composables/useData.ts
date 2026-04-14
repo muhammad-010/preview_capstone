@@ -21,3 +21,10 @@ export async function useFindParticipantSession(tenantId: number, eventId: numbe
     const participantSession = computed<TenantEventSession[]>(() => data.value?.event_session ?? [])
     return { participantSession, clearParticipantSession: clear, refreshParticipantSession: refresh }
 }
+
+export async function useRawFindParticipantSession(tenantId: number, eventId: number, participantId: number) {
+    const { $api } = useNuxtApp()
+    const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/participant/${participantId}/session/find`)
+
+    return data.event_session
+}

@@ -21,14 +21,12 @@ const checkInDialog = ref(false)
 const guestConfirmationDialog = ref(false)
 const guestConfirmation = reactive({ count: 0 })
 const sessions = ref<TenantEventSession[]>([])
+const sessionLoading = ref(false)
 watch([target, sessionDialog], async ([newTarget, newSessionDialog]) => {
     if (newSessionDialog && newTarget.id) {
-        const { participantSession, clearParticipantSession } = await useFindParticipantSession(props.tenantId, props.eventId, newTarget.id)
-        sessions.value = participantSession.value
-        clearParticipantSession()
-    }
-    else {
-        sessions.value = []
+        sessionLoading.value = true
+        sessions.value = await useRawFindParticipantSession(props.tenantId, props.eventId, newTarget.id)
+        sessionLoading.value = false
     }
 })
 
@@ -131,7 +129,10 @@ async function submitGuestConfirmation(event: FormSubmitEvent<GuestConfirmationS
 
 <template>
     <div>
-        <UModal v-model:open="sessionDialog">
+        <UModal
+            v-model:open="sessionDialog"
+            :ui="{ body: 'p-0 sm:p-0' }"
+        >
             <template #header>
                 <div>
                     <h2 class="text-highlighted font-semibold">
@@ -140,12 +141,12 @@ async function submitGuestConfirmation(event: FormSubmitEvent<GuestConfirmationS
                 </div>
             </template>
             <template #body>
-                <MiscLoadingOverlay :loading="!sessions.length">
-                    <div class="flex flex-col gap-4">
+                <MiscLoadingOverlay :loading="sessionLoading">
+                    <div class="flex flex-col gap-4 p-4 sm:p-6">
                         <UCard
                             v-for="ps in sessions"
                             :key="ps.event_session_id"
-                            :class="`relative overflow-hidden ${ps.checked_in_at ? '' : 'cursor-pointer group transition'}`"
+                            :class="`relative overflow-hidden ring-2 ${ps.checked_in_at ? '' : 'cursor-pointer ring-primary group transition'}`"
                             @click="() => ps.checked_in_at ? void 0 : openCheckInDialog(ps.event_session_id, ps.name)"
                         >
                             <div class="pointer-events-none absolute inset-0 bg-primary/0 group-hover:bg-primary/10 group-hover:dark:bg-primary/20 transition" />
@@ -158,6 +159,7 @@ async function submitGuestConfirmation(event: FormSubmitEvent<GuestConfirmationS
 
                                     <UBadge
                                         v-if="ps.checked_in_at"
+                                        icon="lucide:check-circle"
                                         color="success"
                                         :label="`${formatHour(ps.checked_in_at)}`"
                                         size="lg"
