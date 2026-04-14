@@ -1,67 +1,26 @@
 <script setup lang="ts">
-import type { DateValue } from '@internationalized/date'
-import { DateFormatter, parseAbsolute, getLocalTimeZone } from '@internationalized/date'
+import { DateFormatter, parseAbsolute, getLocalTimeZone, CalendarDate, CalendarDateTime } from '@internationalized/date'
 
-const model = defineModel<ISOString>()
-const dateModel = computed<DateValue | null>({
-    get() {
-        return !model.value ? null : parseAbsolute(model.value, getLocalTimeZone())
-    },
-    set(value) {
-        if (!value) {
-            model.value = ''
-            return
-        }
-
-        const iso = new Date(
-            value.year,
-            value.month - 1,
-            value.day,
-            0, 0, 0,
-        ).toISOString()
-
-        model.value = iso
-    },
-})
-const hourModel = computed<string>({
-    get() {
-        if (!model.value) return '00:00:00'
-
-        const date = new Date(model.value)
-
-        const h = String(date.getHours()).padStart(2, '0')
-        const m = String(date.getMinutes()).padStart(2, '0')
-        const s = String(date.getSeconds()).padStart(2, '0')
-
-        return `${h}:${m}:${s}`
-    },
-    set(value) {
-        if (!value) return
-
-        const [hour, minute, second] = value.split(':').map(Number)
-
-        const date = model.value
-            ? new Date(model.value)
-            : new Date()
-
-        date.setHours(hour || 0)
-        date.setMinutes(minute || 0)
-        date.setSeconds(second || 0)
-
-        model.value = date.toISOString()
-    },
-})
-const formatter = new DateFormatter('en-US', {
-    dateStyle: 'long',
-})
-function inputLabel() {
+const model = defineModel<ISOString>({ default: new Date().toISOString() })
+const dateModel = shallowRef(new CalendarDate(...getISODateArray(model.value)))
+const hourModel = ref(getISOHourArray(model.value).map(e => String(e).padStart(2, '0')).join(':'))
+const label = computed(() => {
     if (!model.value) return 'Select date and time'
 
-    const d = formatter.format(parseAbsolute(model.value, getLocalTimeZone()).toDate())
+    const d = df.format(parseAbsolute(model.value, getLocalTimeZone()).toDate())
     const [h, m, _] = hourModel.value.split(':')
 
     return `${d} at ${h}:${m}`
-}
+})
+watch([dateModel, hourModel], ([newDate, newHour]) => {
+    const [hour, minute, second] = newHour.split(':').map(Number)
+    const date = new CalendarDateTime(newDate.year, newDate.month, newDate.day, hour, minute, second)
+    model.value = date.toDate(getLocalTimeZone()).toISOString()
+})
+
+const df = new DateFormatter('en-US', {
+    dateStyle: 'long',
+})
 </script>
 
 <template>
@@ -72,7 +31,7 @@ function inputLabel() {
             class="w-full"
             :ui="{ base: 'justify-start!' }"
         >
-            {{ inputLabel() }}
+            {{ label }}
         </UButton>
 
         <template #content>
@@ -84,7 +43,7 @@ function inputLabel() {
                     />
                     <UInput
                         :value="dateModel
-                            ? formatter.format(dateModel.toDate(getLocalTimeZone()))
+                            ? df.format(dateModel.toDate(getLocalTimeZone()))
                             : 'Select a date'
                         "
                         readonly
