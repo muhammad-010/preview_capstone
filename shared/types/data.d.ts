@@ -142,6 +142,7 @@ export interface TenantEventSession {
     start_time: ISOString
     end_time: ISOString
     location: string
+    checked_in_at?: ISOString | null
     participant_status?: TenantEventParticipantStatus
 }
 
