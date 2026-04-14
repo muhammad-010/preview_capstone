@@ -35,6 +35,7 @@ async function saveForm(close: () => void) {
     <UModal
         v-model:open="formDialog"
         :dismissible="false"
+        :ui="{ body: 'p-0 sm:p-0' }"
     >
         <template #header="{ close }">
             <div class="flex justify-between items-center w-full">
@@ -50,19 +51,19 @@ async function saveForm(close: () => void) {
         </template>
 
         <template #body>
-            <MiscLoadingOverlay
-                :loading="formLoading"
-            >
-                <PageCustomAttributeForm
-                    ref="formRef"
-                    v-model:loading="formLoading"
-                    v-model:success="formSuccess"
-                    :tenant-id="tenantId"
-                    :event-id="eventId"
-                    :attribute-id="id"
-                    :fields="fields"
-                    is-modal
-                />
+            <MiscLoadingOverlay :loading="formLoading">
+                <div class=" p-4 sm:p-6">
+                    <PageCustomAttributeForm
+                        ref="formRef"
+                        v-model:loading="formLoading"
+                        v-model:success="formSuccess"
+                        :tenant-id="tenantId"
+                        :event-id="eventId"
+                        :attribute-id="id"
+                        :fields="fields"
+                        is-modal
+                    />
+                </div>
             </MiscLoadingOverlay>
         </template>
 

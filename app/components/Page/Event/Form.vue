@@ -35,12 +35,16 @@ const schema = z.object({
 })
 type Schema = z.output<typeof schema>
 
+const defaultStartTime = new Date()
+defaultStartTime.setSeconds(0, 0)
+const defaultEndTime = new Date()
+defaultEndTime.setSeconds(0, 0)
 const state = reactive<Partial<TenantEventForm>>(props.fields ?? {
     name: '',
     description: '',
     location: '',
-    start_time: new Date().toISOString(),
-    end_time: new Date().toISOString(),
+    start_time: defaultStartTime.toISOString(),
+    end_time: defaultEndTime.toISOString(),
     capacity: 0,
     status: 'Active',
     assign_user_ids: [],
