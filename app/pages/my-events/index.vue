@@ -106,6 +106,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
             <PageMyEventTable
                 v-model:limit="limit"
                 v-model:page="page"
+                :tenant-id="tenantId"
                 :data="list"
                 :total="total"
                 :pending="pending"

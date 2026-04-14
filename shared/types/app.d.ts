@@ -41,6 +41,16 @@ export interface TablePagination {
     pageSize: number
 }
 
+export type CheckInMethod = 'check-in-scan' | 'check-in-manual'
+
+export interface ParticipantCheckInTarget {
+    id: number
+    sessionId: number
+    sessionName: string
+    name: string
+    maxAttendance: number
+}
+
 export type EditorMode = 'invitation-email' | 'check-in-page'
 
 export type Orientation = 'portrait' | 'landscape'

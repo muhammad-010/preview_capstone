@@ -16,6 +16,7 @@ const page = defineModel<number>('page', { default: 0 })
 function useColumns(uId: number) {
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
+    const UTooltip = resolveComponent('UTooltip')
 
     return [
         {
@@ -54,13 +55,15 @@ function useColumns(uId: number) {
             header: 'Action',
             cell: ({ row }) => {
                 return h('div', { class: 'flex gap-2' }, [
-                    h(UButton, {
-                        color: 'neutral',
-                        variant: 'ghost',
-                        disabled: uId === row.original.user_id,
-                        icon: 'lucide:pencil',
-                        to: `/members/${row.original.user_id}/edit`,
-                    }),
+                    h(UTooltip, { text: 'Edit', delayDuration: 0 }, () => [
+                        h(UButton, {
+                            color: 'neutral',
+                            variant: 'ghost',
+                            disabled: uId === row.original.user_id,
+                            icon: 'lucide:pencil',
+                            to: `/members/${row.original.user_id}/edit`,
+                        }),
+                    ]),
                 ])
             },
         },

@@ -123,3 +123,15 @@ Contains type definition used across client-side and server-side code.
 Different from [shared/types](#sharedtypes), utils are STRICTLY not related into client-side and server-side.
 
 naming pattern and rules same as [app/utils](#apputils) and [server/utils](#serverutils)
+
+# DEPRECATION
+
+## API
+- /tenant/[tenant_id]/event/[event_id]/participant/check-in
+- /tenant/[tenant_id]/event/[event_id]/participant/check-in/manual
+- /tenant/[tenant_id]/event/[event_id]/participant/check-in/confirm
+- /tenant/[tenant_id]/event/[event_id]/participant/check-in/confirm/manual
+
+## APP
+- check-in/[event_id]/index
+- check-in/[event_id]/new

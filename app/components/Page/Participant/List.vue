@@ -123,6 +123,7 @@ function refreshData() {
 
 const printConfirmation = ref(false)
 const sendConfirmation = ref(false)
+const bulkDeleteConfirmation = ref(false)
 </script>
 
 <template>
@@ -151,6 +152,14 @@ const sendConfirmation = ref(false)
                         />
                         <PageEventSendQr
                             v-model:open="sendConfirmation"
+                            :tenant-id="tenantId"
+                            :event-id="eventId"
+                            :selected-ids="selectedIds"
+                            hide
+                            @refresh="refreshData"
+                        />
+                        <PageEventBulkDeleteParticipant
+                            v-model:open="bulkDeleteConfirmation"
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             :selected-ids="selectedIds"
@@ -190,6 +199,7 @@ const sendConfirmation = ref(false)
                 @export="exportData"
                 @print-qr="printConfirmation = true"
                 @send-qr="sendConfirmation = true"
+                @bulk-delete="bulkDeleteConfirmation = true"
             />
         </UCard>
     </div>

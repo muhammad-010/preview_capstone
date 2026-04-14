@@ -30,20 +30,22 @@ const schema = z.object({
     start_time: zodISODatetime(),
     end_time: zodISODatetime(),
     capacity: zodNumberRequired(),
-    confirmation_attendance: zodBooleanRequired(),
     status: zodStringOptional(),
     assign_user_ids: zodArrayNumber(),
 })
 type Schema = z.output<typeof schema>
 
+const defaultStartTime = new Date()
+defaultStartTime.setSeconds(0, 0)
+const defaultEndTime = new Date()
+defaultEndTime.setSeconds(0, 0)
 const state = reactive<Partial<TenantEventForm>>(props.fields ?? {
     name: '',
     description: '',
     location: '',
-    start_time: '',
-    end_time: '',
+    start_time: defaultStartTime.toISOString(),
+    end_time: defaultEndTime.toISOString(),
     capacity: 0,
-    confirmation_attendance: false,
     status: 'Active',
     assign_user_ids: [],
 })
@@ -197,14 +199,6 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                                 type="number"
                                 class="w-full"
                             />
-                        </UFormField>
-
-                        <UFormField
-                            label="Attendance Confirmation"
-                            name="confirmation_attendance"
-                            :class="`${isModal ? '' : 'my-2'} w-full`"
-                        >
-                            <USwitch v-model="state.confirmation_attendance" />
                         </UFormField>
                     </div>
                 </div>

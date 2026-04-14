@@ -5,7 +5,8 @@ import { FetchError } from 'ofetch'
 
 const { $api } = useNuxtApp()
 const route = useRoute()
-const id = Number(route.params.event_id)
+const eventId = Number(route.params.event_id)
+const sessionId = Number(route.params.session_id)
 const { tenantId } = useUserState()
 const toast = useToast()
 const isClient = import.meta.client
@@ -135,8 +136,8 @@ watch(checkInFailedDialog, (value, oldValue) => {
     }
 })
 
-async function useDetail(tId: number, id: number) {
-    const { data } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
+async function useDetail(tenantId: number, eventId: number) {
+    const { data } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/detail`, {
         transform: res => ({
             ...res.data,
         }),
@@ -148,7 +149,7 @@ async function useDetail(tId: number, id: number) {
     }
 }
 
-async function useScanQr(tId: number, id: number) {
+async function useScanQr(tenantId: number, eventId: number, sessionId: number) {
     const pauseQr = ref(false)
 
     async function qrDetected(qrCodes: DetectedBarcode[]) {
@@ -172,7 +173,7 @@ async function useScanQr(tId: number, id: number) {
         participantQr.value = qrCode.rawValue
 
         try {
-            const { data } = await $api(`/api/tenant/${tId}/event/${id}/participant/check-in`, {
+            const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in`, {
                 method: 'POST',
                 body: {
                     token: participantQr.value,
@@ -217,7 +218,7 @@ async function useScanQr(tId: number, id: number) {
     }
 }
 
-async function useManual(tId: number, id: number) {
+async function useManual(tenantId: number, eventId: number, sessionId: number) {
     async function selectParticipant(selectedParticipant: Participant | undefined) {
         if (!selectedParticipant) return
 
@@ -233,7 +234,7 @@ async function useManual(tId: number, id: number) {
         if (!participantId.value) return
 
         try {
-            const { data } = await $api(`/api/tenant/${tId}/event/${id}/participant/check-in/manual`, {
+            const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in/manual`, {
                 method: 'POST',
                 body: {
                     participant_id: participantId.value,
@@ -268,7 +269,7 @@ async function useManual(tId: number, id: number) {
     }
 }
 
-async function useConfirmAttendance(tId: number, id: number) {
+async function useConfirmAttendance(tenantId: number, eventId: number, sessionId: number) {
     const state = reactive({ count: 0 })
     type Schema = typeof state
 
@@ -281,7 +282,7 @@ async function useConfirmAttendance(tId: number, id: number) {
 
     async function confirmAttendanceQr(event: FormSubmitEvent<Schema>) {
         try {
-            await $api(`/api/tenant/${tId}/event/${id}/participant/check-in/confirm`, {
+            await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in/confirm`, {
                 method: 'POST',
                 body: {
                     token: participantQr.value,
@@ -307,7 +308,7 @@ async function useConfirmAttendance(tId: number, id: number) {
 
     async function confirmAttendanceManual(event: FormSubmitEvent<Schema>) {
         try {
-            await $api(`/api/tenant/${tId}/event/${id}/participant/check-in/confirm/manual`, {
+            await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in/confirm/manual`, {
                 method: 'POST',
                 body: {
                     participant_id: participantId.value,
@@ -365,16 +366,16 @@ const [
         selectParticipant,
     },
 ] = await Promise.all([
-    useDetail(tenantId.value, id),
-    useScanQr(tenantId.value, id),
-    useManual(tenantId.value, id),
+    useDetail(tenantId.value, eventId),
+    useScanQr(tenantId.value, eventId, sessionId),
+    useManual(tenantId.value, eventId, sessionId),
 ])
 
 const {
     state,
     validateConfirmAttendance,
     confirmAttendance,
-} = await useConfirmAttendance(tenantId.value, id)
+} = await useConfirmAttendance(tenantId.value, eventId, sessionId)
 
 useHead({
     title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),
@@ -409,7 +410,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
         <CheckInManual
             v-else-if="activeCheckInMethod === CHECK_IN_METHOD_MANUAL"
-            :event-id="id"
+            :event-id="eventId"
             title="Manual Check In"
             button-label="Check In"
             @select="selectParticipant"

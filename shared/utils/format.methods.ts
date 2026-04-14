@@ -69,7 +69,7 @@ export function formatHour(datestring: ISOString) {
  *
  * uses getUTC<*>() since FE input doesn't have timezone
  * */
-export function formatISOWithOffset(datestring: string) {
+export function formatISOWithOffset(datestring: ISOString) {
     if (!datestring) return 'Invalid Date'
 
     const date = new Date(datestring)
@@ -92,6 +92,24 @@ export function formatISOWithOffset(datestring: string) {
     const offsetMinutes = padNumber(Math.abs(offset) % 60)
 
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}${sign}${offsetHours}:${offsetMinutes}`
+}
+
+export function getISODateArray(iso: ISOString): [number, number, number] {
+    const d = new Date(iso)
+    return [
+        d.getFullYear(),
+        d.getMonth() + 1,
+        d.getDate(),
+    ]
+}
+
+export function getISOHourArray(iso: ISOString): [number, number, number] {
+    const d = new Date(iso)
+    return [
+        d.getHours(),
+        d.getMinutes(),
+        d.getSeconds(),
+    ]
 }
 
 export function padNumber(n: number, z: number = 2) {

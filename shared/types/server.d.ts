@@ -75,6 +75,10 @@ export type TenantEventSessionListResult = Result<
     PaginatedData<TenantEventSession, 'event_session'>
 >
 
+export type TenantEventSessionFound = Result<{
+    event_session: TenantEventSession[]
+}>
+
 export type TenantEventSessionDetailResult = Result<TenantEventSession>
 
 export type TenantEventSessionFormResult = Result<TenantEventSessionForm>
