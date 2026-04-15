@@ -230,6 +230,13 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     </div>
                 </template>
 
+                <PageParticipantCheckIn
+                    v-model:open="checkInSessionDialog"
+                    :tenant-id="tenantId"
+                    :event-id="targetCheckIn"
+                    scan
+                />
+
                 <PageMyEventParticipantTable
                     v-model:limit="limit"
                     v-model:page="page"
