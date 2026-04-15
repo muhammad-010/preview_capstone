@@ -16,7 +16,7 @@ async function bulkDelete() {
     const ids = props.selectedIds.length > 0 ? props.selectedIds : []
     try {
         bulkDeleteLoading.value = true
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/bulk/hard`, {
+        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/bulk`, {
             method: 'DELETE',
             body: ids.length ? { participant_ids: ids } : {},
         })
