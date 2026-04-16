@@ -3,11 +3,8 @@
         <NuxtImg
             src="/logo.png"
             :width="325"
+            class="mb-8"
         />
-        <div class="text-center mb-8">
-            <!-- <h2>{{ APP_NAME }}</h2> -->
-            <small>Enterprise Event Management Platform</small>
-        </div>
 
         <slot />
 

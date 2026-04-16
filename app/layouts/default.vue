@@ -5,6 +5,7 @@ const { $api } = useNuxtApp()
 const { pageTitle, pageSubtitle, pageBreadCrumb } = useLayoutPropState()
 const company = ref({
     logo: '/logo.png',
+    logoIcon: '/logo-icon.png',
 })
 const { user, clear } = useUserSession()
 const { navigation, roleSlug } = useUserState()
@@ -40,7 +41,7 @@ async function logout() {
         >
             <template #header="{ collapsed }">
                 <MiscCompanyLogo
-                    :logo="company.logo"
+                    :logo="collapsed ? company.logoIcon : company.logo"
                     :collapsed="collapsed"
                 />
             </template>
