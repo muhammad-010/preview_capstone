@@ -32,6 +32,7 @@ export const STATE_LAYOUT_PAGE_BREADCRUMB = 'layout:pageBreadCrumb'
 export const STATE_USER_NAVIGATION = 'user:navigation'
 export const STATE_USER_ACTIVE_TENANT_INDEX = 'user:activeTenantIndex'
 export const STATE_CHECK_IN_EVENT_ID = 'checkIn:eventId'
+export const STATE_CHECK_IN_SESSION_ID = 'checkIn:sessionId'
 export const STATE_EVENT_DETAIL_ACTIVE_TAB = 'eventDetail:activeTab'
 
 // PAGINATION LIMIT
@@ -61,4 +62,17 @@ export const CHECK_IN_METHOD_MANUAL = 'check-in-manual'
 export const CHECK_IN_METHODS = {
     [CHECK_IN_METHOD_SCAN]: 'Scan QR',
     [CHECK_IN_METHOD_MANUAL]: 'Input Phone Number',
+}
+
+export const TENANT_EVENT_SETTINGS = {
+    [TENANT_EVENT_SETTING_CONFIRMATION_ATTENDANCE]: {
+        title: 'Attendees Pax Confirmation',
+        desc: 'Enable attendees to insert actual pax after checked-in',
+        value: false,
+    },
+    [TENANT_EVENT_SETTING_PUBLIC_TICKET_RETRIEVAL]: {
+        title: 'Public Ticket Retrieval',
+        desc: 'Allow attendees to retrieve their ticket/QR code via public link using registered contact, without sign-in',
+        value: false,
+    },
 }

@@ -6,6 +6,7 @@ import type {
     SendChannel,
     InvitationStatus,
     ParticipantSessionStatus,
+    TenantEventSettingKeys,
 } from '../types/data'
 
 // STATUS
@@ -43,6 +44,14 @@ export const TENANT_EVENT_STATUS_COLORS: Record<
     [TENANT_EVENT_STATUS_LIVE]: 'success',
     [TENANT_EVENT_STATUS_COMPLETED]: 'primary',
 } as const
+
+// TENANT_EVENT_SETTINGS
+export const TENANT_EVENT_SETTING_CONFIRMATION_ATTENDANCE: TenantEventSettingKeys = 'confirmation_attendance'
+export const TENANT_EVENT_SETTING_PUBLIC_TICKET_RETRIEVAL: TenantEventSettingKeys = 'public_ticket_retrieval'
+export const TENANT_EVENT_SETTING_DROPDOWN: TenantEventSettingKeys[] = [
+    TENANT_EVENT_SETTING_CONFIRMATION_ATTENDANCE,
+    TENANT_EVENT_SETTING_PUBLIC_TICKET_RETRIEVAL,
+]
 
 // PARTICIPANT_STATUS
 export const PARTICIPANT_STATUS_CHECKED_IN: ParticipantStatus = 'Checked In'

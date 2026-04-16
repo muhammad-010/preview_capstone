@@ -100,6 +100,12 @@ export type CustomAttributeAddResult = Result<
     AddedData<number, 'custom_attribute_id'>
 >
 
+// EVENT SETTINGS
+export type TenantEventSettingResult = Result<TenantEventSetting>
+
+// TEMPLATE
+export type ScanPageTemplateResult = Result<Template>
+
 // PARTICIPANTS
 export type ParticipantListResult = Result<
     PaginatedData<Participant, 'participant'>

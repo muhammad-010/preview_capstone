@@ -1,20 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type Status = 'Active' | 'Inactive'
 
 export interface ActivateDeactivate {
     status: Status
 }
 
-export type TenantEventStatus = 'Active' | 'Upcoming' | 'Live' | 'Completed'
-
-export type ParticipantStatus = 'Pending' | 'Checked In'
-
-export type ParticipantSessionStatus = 'none' | 'partial' | 'completed'
-
-export type ParticipantCategory = 'VIP' | 'Regular'
-
-export type SendChannel = 'email' | 'whatsapp'
-
-export type InvitationStatus = 'On Queue' | 'Success' | 'Failed'
+export interface Setting {
+    value: boolean
+}
 
 /**
  * Represents YYYY-MM-DDTHH:mm:ssZ on FE (since JS toISOString)
@@ -93,6 +86,8 @@ export interface TenantForm {
 }
 
 // EVENTS
+export type TenantEventStatus = 'Active' | 'Upcoming' | 'Live' | 'Completed'
+
 export interface TenantEventCapacity {
     total: number
     used: number
@@ -164,7 +159,42 @@ export interface CustomAttributeForm {
     name: string
 }
 
+// EVENT SETTINGS
+export type TenantEventSettingKeys = 'confirmation_attendance' | 'public_ticket_retrieval'
+
+export type TenantEventSetting = Record<TenantEventSettingKeys, Setting>
+
+// TEMPLATE
+export interface Template {
+    template_id: number
+    type: string
+    variants: TemplateVariant[]
+}
+
+export interface TemplateElement {
+    element_id: number
+    type: string
+    value: string
+    position_x: number
+    position_y: number
+    style: Record<string, any>
+    setting: Record<string, any>
+}
+
+export interface TemplateVariant {
+    variant_id: number
+    slug: string
+    setting: Record<string, any>
+    element: TemplateElement[]
+}
+
 // PARTICIPANT
+export type ParticipantStatus = 'Pending' | 'Checked In'
+export type ParticipantSessionStatus = 'none' | 'partial' | 'completed'
+export type ParticipantCategory = 'VIP' | 'Regular'
+export type SendChannel = 'email' | 'whatsapp'
+export type InvitationStatus = 'On Queue' | 'Success' | 'Failed'
+
 export type ParticipantPhone = Phone
 
 export interface ParticipantInvitationLog {
