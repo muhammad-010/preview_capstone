@@ -79,6 +79,7 @@ const checkInProgressLabel = computed(() => `
                             variant="outline"
                             icon="lucide:ticket"
                             class="cursor-pointer"
+                            :disabled="!(event.public_ticket_retrieval?.value ?? true)"
                             @click="navigateTo(`/guest/show-ticket/${event.event_id}`, {
                                 external: true,
                                 open: { target: '_blank' },

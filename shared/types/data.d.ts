@@ -117,6 +117,8 @@ export interface TenantEvent {
     assigned_users?: User[]
     assign_user_ids: number[]
     participant_status?: TenantEventParticipantStatus
+
+    public_ticket_retrieval?: Setting
 }
 
 export interface TenantEventForm {
