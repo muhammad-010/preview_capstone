@@ -11,7 +11,6 @@ defineProps<{
         <NuxtImg
             :src="logo ?? '/logo.png'"
             :width="200"
-            class="mt-2"
         />
         <!-- <Transition name="fade">
             <p

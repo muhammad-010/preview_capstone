@@ -38,6 +38,7 @@ async function logout() {
             :default-size="15"
             :collapsed-size="4"
             toggle-side="right"
+            :ui="{ header: 'py-2 h-auto' }"
         >
             <template #header="{ collapsed }">
                 <MiscCompanyLogo
