@@ -2,12 +2,20 @@
 import { formatPercentage } from '~~/shared/utils/format.methods'
 
 const route = useRoute()
-const id = Number(route.params.event_id)
+const eventId = Number(route.params.event_id)
 const { tenantId } = useUserState()
 
-async function useDetail(tId: number, id: number) {
+const checkInSessionDialog = ref(false)
+const targetCheckIn = ref(0)
+
+function openCheckInSessionDialog(id: number) {
+    targetCheckIn.value = id
+    checkInSessionDialog.value = true
+}
+
+async function useDetail(tenantId: number, eventId: number) {
     const statusColors = TENANT_EVENT_STATUS_COLORS
-    const { data, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
+    const { data, refresh } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/detail`, {
         transform: res => ({
             ...res.data,
             start_time: formatLongDate(res.data.start_time || ''),
@@ -42,13 +50,13 @@ async function useDetail(tId: number, id: number) {
     }
 }
 
-async function useList(tId: number, id: number) {
+async function useList(tenantId: number, eventId: number) {
     const search = ref('')
     const query = ref('')
     const page = ref(1)
     const limit = ref(5)
     const toast = useToast()
-    const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event/${id}/participant`, {
+    const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/participant`, {
         transform: res => res.data,
         query: { query, page, limit },
         watch: [page, limit],
@@ -103,8 +111,8 @@ const [
         clearSearch,
     },
 ] = await Promise.all([
-    useDetail(tenantId.value, id),
-    useList(tenantId.value, id),
+    useDetail(tenantId.value, eventId),
+    useList(tenantId.value, eventId),
 ])
 
 useHead({
@@ -160,7 +168,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                             icon="lucide:scan-qr-code"
                             class="cursor-pointer"
                             :disabled="!SCANNABLE_EVENT.includes(event.status)"
-                            :to="`/check-in/${event.event_id}`"
+                            @click="() => openCheckInSessionDialog(eventId)"
                         >
                             Start Scanning
                         </UButton>
@@ -222,10 +230,17 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     </div>
                 </template>
 
+                <PageParticipantCheckIn
+                    v-model:open="checkInSessionDialog"
+                    :tenant-id="tenantId"
+                    :event-id="targetCheckIn"
+                    scan
+                />
+
                 <PageMyEventParticipantTable
                     v-model:limit="limit"
                     v-model:page="page"
-                    :event-id="id"
+                    :event-id="eventId"
                     :data="participants"
                     :total="total"
                     :pending="pending"

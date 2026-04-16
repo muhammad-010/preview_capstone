@@ -29,6 +29,10 @@ const settings = [
         label: 'Custom Attributes',
         slot: 'custom-attributes',
     },
+    {
+        label: 'Additional Features',
+        slot: 'additional-features',
+    },
 ]
 
 const overviewRef = ref()
@@ -96,6 +100,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                 <UAccordion
                     :items="settings"
                     :unmount-on-hide="false"
+                    type="multiple"
                     :ui="{ trigger: 'text-lg font-bold cursor-pointer', trailingIcon: 'hidden' }"
                 >
                     <template #leading>
@@ -104,12 +109,21 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                             class="shrink-0 group-data-[state=open]:rotate-180 transition-transform duration-200"
                         />
                     </template>
+
                     <template #custom-attributes>
                         <PageCustomAttributeList
                             :tenant-id="tenantId"
                             :event-id="id"
                             :custom-attributes="customAttributes"
                             @refresh="onRefreshCustomAttributeList"
+                        />
+                    </template>
+
+                    <template #additional-features>
+                        <PageEventSetting
+                            :tenant-id="tenantId"
+                            :event-id="id"
+                            @refresh="refreshDetail"
                         />
                     </template>
                 </UAccordion>
