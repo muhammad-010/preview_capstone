@@ -125,10 +125,13 @@ async function uploadTemplate() {
                 <UFileUpload
                     v-model="uploadFile"
                     icon="lucide:file-spreadsheet"
-                    highlight
+                    variant="area"
+                    layout="list"
+                    position="inside"
                     label="Click to upload or Drop your files here"
                     description="XLSX only"
                     class="cursor-pointer"
+                    highlight
                     :accept="FILE_EXT_XLSX"
                 />
             </MiscLoadingOverlay>
