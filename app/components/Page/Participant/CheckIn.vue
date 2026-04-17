@@ -11,6 +11,7 @@ const target = defineModel<ParticipantCheckInTarget>('target', { default: () => 
     sessionId: 0,
     name: '',
     maxAttendance: 0,
+    customAttributes: [],
 }) })
 const sessionDialog = defineModel<boolean>('open', { default: false })
 const emit = defineEmits([EMIT_TABLE_REFRESH])
@@ -46,6 +47,7 @@ function resetTarget() {
         sessionName: '',
         name: '',
         maxAttendance: 0,
+        customAttributes: [],
     }
 }
 

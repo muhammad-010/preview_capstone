@@ -22,11 +22,13 @@ defineExpose({ saveData })
 const isCreate = !props.attributeId
 const schema = z.object({
     name: zodStringRequired('Attribute name is required'),
+    is_visible: zodBooleanRequired(),
 })
 type Schema = z.output<typeof schema>
 
 const state = reactive<Partial<CustomAttributeForm>>(props.fields ?? {
     name: '',
+    is_visible: false,
 })
 
 async function addData(payload: FormSubmitEvent<Schema>) {
@@ -111,6 +113,17 @@ function submitData(payload: FormSubmitEvent<Schema>) {
                     v-model="state.name"
                     type="text"
                     class="w-full"
+                />
+            </UFormField>
+
+            <UFormField
+                label="Visible When Check-In"
+                name="is_visible"
+                required
+                :class="`${isModal ? '' : 'my-2'} w-full`"
+            >
+                <USwitch
+                    v-model="state.is_visible"
                 />
             </UFormField>
         </div>

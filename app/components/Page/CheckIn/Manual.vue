@@ -4,9 +4,11 @@ import { FetchError } from 'ofetch'
 
 const props = defineProps<{
     eventId: number
+    tenantId?: number
     title?: string
     buttonLabel?: string
     isPreview?: boolean
+    isPublic?: boolean
 }>()
 const emit = defineEmits([EMIT_MODAL_SELECT])
 
@@ -44,6 +46,26 @@ function clearPhoneNumber() {
     participants.value = []
 }
 
+async function publicPhoneNumber(phoneNumber: string): Promise<ParticipantListResult> {
+    return await $api<ParticipantListResult>(`/api/public/event/${props.eventId}/participant`, {
+        query: {
+            page: 1,
+            limit: 10,
+            phone_number: phoneNumber,
+        },
+    })
+}
+
+async function privatePhoneNumber(phoneNumber: string): Promise<ParticipantListResult> {
+    return await $api<ParticipantListResult>(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
+        query: {
+            page: 1,
+            limit: 10,
+            query: phoneNumber,
+        },
+    })
+}
+
 async function submitPhoneNumber(event: FormSubmitEvent<Schema>) {
     if (props.isPreview) return
 
@@ -54,13 +76,14 @@ async function submitPhoneNumber(event: FormSubmitEvent<Schema>) {
 
     phoneNumberLoading.value = true
     try {
-        const res = await $api(`/api/public/event/${props.eventId}/participant`, {
-            query: {
-                page: 1,
-                limit: 10,
-                phone_number: event.data.phoneNumber,
-            },
-        })
+        let res: ParticipantListResult
+        if (props.isPublic) {
+            res = await publicPhoneNumber(event.data.phoneNumber)
+        }
+        else {
+            res = await privatePhoneNumber(event.data.phoneNumber)
+        }
+
         if (!res.data.participant.length) {
             openFailedDialog('No Participant Found')
             return
@@ -87,6 +110,9 @@ function selectParticipant(pId: number) {
     const participant = participants.value.find(p => p.participant_id === pId)
     emit(EMIT_MODAL_SELECT, participant)
     participantDialog.value = false
+    setInterval(() => {
+        clearPhoneNumber()
+    }, 500)
 }
 </script>
 

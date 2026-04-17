@@ -27,14 +27,6 @@ const emit = defineEmits([EMIT_MODAL_SELECT])
                             <h5>{{ participant.name }}</h5>
                             {{ participant.phone_number }}
                         </div>
-
-                        <div>
-                            <UBadge
-                                :color="PARTICIPANT_STATUS_COLORS[participant.status]"
-                                variant="subtle"
-                                :label="participant.status"
-                            />
-                        </div>
                     </div>
                 </UCard>
             </div>
