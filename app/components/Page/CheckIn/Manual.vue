@@ -46,82 +46,59 @@ function clearPhoneNumber() {
     participants.value = []
 }
 
-async function publicSubmitPhoneNumber(event: FormSubmitEvent<Schema>) {
-    if (props.isPreview) return
-
-    if (latestPhoneNumber.value !== '' && event.data.phoneNumber === latestPhoneNumber.value) {
-        participantDialog.value = true
-        return
-    }
-
-    phoneNumberLoading.value = true
-    try {
-        const res = await $api(`/api/public/event/${props.eventId}/participant`, {
-            query: {
-                page: 1,
-                limit: 10,
-                phone_number: event.data.phoneNumber,
-            },
-        })
-        if (!res.data.participant.length) {
-            openFailedDialog('No Participant Found')
-            return
-        }
-        participants.value = structuredClone(res.data.participant)
-        participantDialog.value = true
-        latestPhoneNumber.value = event.data.phoneNumber
-    }
-    catch (error) {
-        if (error instanceof FetchError && error.response) {
-            openFailedDialog(error.response._data.data.message)
-        }
-    }
-    finally {
-        phoneNumberLoading.value = false
-    }
+async function publicPhoneNumber(phoneNumber: string): Promise<ParticipantListResult> {
+    return await $api<ParticipantListResult>(`/api/public/event/${props.eventId}/participant`, {
+        query: {
+            page: 1,
+            limit: 10,
+            phone_number: phoneNumber,
+        },
+    })
 }
 
-async function privateSubmitPhoneNumber(event: FormSubmitEvent<Schema>) {
-    if (props.isPreview) return
-
-    if (latestPhoneNumber.value !== '' && event.data.phoneNumber === latestPhoneNumber.value) {
-        participantDialog.value = true
-        return
-    }
-
-    phoneNumberLoading.value = true
-    try {
-        const res = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
-            query: {
-                page: 1,
-                limit: 10,
-                query: event.data.phoneNumber,
-            },
-        })
-        if (!res.data.participant.length) {
-            openFailedDialog('No Participant Found')
-            return
-        }
-        participants.value = structuredClone(res.data.participant)
-        participantDialog.value = true
-        latestPhoneNumber.value = event.data.phoneNumber
-    }
-    catch (error) {
-        if (error instanceof FetchError && error.response) {
-            openFailedDialog(error.response._data.data.message)
-        }
-    }
-    finally {
-        phoneNumberLoading.value = false
-    }
+async function privatePhoneNumber(phoneNumber: string): Promise<ParticipantListResult> {
+    return await $api<ParticipantListResult>(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
+        query: {
+            page: 1,
+            limit: 10,
+            query: phoneNumber,
+        },
+    })
 }
 
 async function submitPhoneNumber(event: FormSubmitEvent<Schema>) {
-    if (props.isPublic) {
-        await publicSubmitPhoneNumber(event)
+    if (props.isPreview) return
+
+    if (latestPhoneNumber.value !== '' && event.data.phoneNumber === latestPhoneNumber.value) {
+        participantDialog.value = true
+        return
     }
-    else {
-        await privateSubmitPhoneNumber(event)
+
+    phoneNumberLoading.value = true
+    try {
+        let res: ParticipantListResult
+        if (props.isPublic) {
+            res = await publicPhoneNumber(event.data.phoneNumber)
+        }
+        else {
+            res = await privatePhoneNumber(event.data.phoneNumber)
+        }
+
+        if (!res.data.participant.length) {
+            openFailedDialog('No Participant Found')
+            return
+        }
+        participants.value = structuredClone(res.data.participant)
+        participantDialog.value = true
+        latestPhoneNumber.value = event.data.phoneNumber
+    }
+    catch (error) {
+        if (error instanceof FetchError && error.response) {
+            openFailedDialog(error.response._data.data.message)
+        }
+    }
+    finally {
+        phoneNumberLoading.value = false
     }
 }
 
@@ -133,6 +110,9 @@ function selectParticipant(pId: number) {
     const participant = participants.value.find(p => p.participant_id === pId)
     emit(EMIT_MODAL_SELECT, participant)
     participantDialog.value = false
+    setInterval(() => {
+        clearPhoneNumber()
+    }, 500)
 }
 </script>
 
