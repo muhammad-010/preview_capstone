@@ -14,8 +14,10 @@ const checkInFailedDialog = defineModel<boolean>('open-failed', { default: false
 const participant = defineModel<ParticipantCheckInTarget>('participant', { default: () => ({
     id: 0,
     sessionId: 0,
+    sessionName: '',
     name: '',
     maxAttendance: 0,
+    customAttributes: [],
 }),
 })
 const errorMessage = defineModel<string>('error-message', { default: '' })
@@ -132,7 +134,6 @@ function openConfirmAttendanceDialog() {
 }
 
 // TARGET DATA
-const participantId = ref(0)
 const participantQr = ref('')
 
 function resetRef() {
@@ -142,20 +143,26 @@ function resetRef() {
     checkInSuccessDialog.value = false
     checkInFailedDialog.value = false
     setTimeout(() => {
-        participantId.value = 0
         participantQr.value = ''
         errorMessage.value = ''
     }, 500)
 }
 
-watch(checkInSuccessDialog, (value, oldValue) => {
-    if (!value && value !== oldValue) {
-        resetRef()
-    }
-})
+watch([checkInSuccessDialog, checkInFailedDialog], ([successDialog, failedDialog], [oldSuccessDialog, oldFailedDialog]) => {
+    const successClosed = oldSuccessDialog && !successDialog
+    const failedClosed = oldFailedDialog && !failedDialog
 
-watch(checkInFailedDialog, (value, oldValue) => {
-    if (!value && value !== oldValue) {
+    if (successClosed) {
+        participant.value = {
+            id: 0,
+            sessionId: 0,
+            sessionName: '',
+            name: '',
+            maxAttendance: 0,
+            customAttributes: [],
+        }
+    }
+    if (successClosed || failedClosed) {
         resetRef()
     }
 })
@@ -192,11 +199,10 @@ async function qrDetected(qrCodes: DetectedBarcode[]) {
             },
         })
         participant.value = {
-            id: 0,
-            sessionId: 0,
-            sessionName: '',
+            ...participant.value,
             name: data.participant.name || '',
             maxAttendance: data.participant.max_attendance || 0,
+            customAttributes: data.participant.custom_attributes || [],
         }
         if (data.confirmation_attendance) {
             openConfirmAttendanceDialog()
@@ -233,13 +239,10 @@ async function selectParticipant(selectedParticipant: Participant | undefined) {
 
     if (!selectedParticipant) return
 
-    participantId.value = selectedParticipant.participant_id || 0
     participant.value = {
+        ...participant.value,
         id: selectedParticipant.participant_id || 0,
-        sessionId: 0,
-        sessionName: '',
         name: selectedParticipant.name,
-        maxAttendance: 0,
     }
     await manualCheckIn()
 }
@@ -247,16 +250,20 @@ async function selectParticipant(selectedParticipant: Participant | undefined) {
 async function manualCheckIn() {
     if (props.isPreview) return
 
-    if (!participantId.value) return
+    if (!participant.value.id) return
 
     try {
         const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/manual`, {
             method: 'POST',
             body: {
-                participant_id: participantId.value,
+                participant_id: participant.value.id,
             },
         })
-        participant.value.maxAttendance = data.participant.max_attendance
+        participant.value = {
+            ...participant.value,
+            maxAttendance: data.participant.max_attendance || 0,
+            customAttributes: data.participant.custom_attributes || [],
+        }
         if (data.confirmation_attendance) {
             openConfirmAttendanceDialog()
         }
@@ -327,7 +334,7 @@ async function confirmAttendanceManual(event: FormSubmitEvent<ConfirmAttendanceS
         await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/confirm/manual`, {
             method: 'POST',
             body: {
-                participant_id: participantId.value,
+                participant_id: participant.value.id,
                 count_attendance: Number(event.data.count),
             },
         })
@@ -409,6 +416,7 @@ async function confirmAttendance(event: FormSubmitEvent<ConfirmAttendanceSchema>
 
             <PageCheckInManual
                 :event-id="eventId"
+                :tenant-id="tenantId"
                 title="Manual Check In"
                 button-label="Check In"
                 :is-preview="isPreview"

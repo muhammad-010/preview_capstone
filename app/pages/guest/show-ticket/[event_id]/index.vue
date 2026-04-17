@@ -113,10 +113,11 @@ definePageMeta({
 
 <template>
     <div>
-        <CheckInManual
+        <PageCheckInManual
             :event-id="id"
             title="Generate Ticket By Phone Number"
             button-label="Show Ticket"
+            is-public
             @select="selectParticipant"
         />
 

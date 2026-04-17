@@ -233,6 +233,7 @@ const manualCheckInTarget = ref<ParticipantCheckInTarget>({
     sessionName: '',
     name: '',
     maxAttendance: 0,
+    customAttributes: [],
 })
 const manualCheckInDialog = ref(false)
 
@@ -243,6 +244,7 @@ function openConfirmManualCheckIn(id: number, name: string) {
         sessionName: '',
         name,
         maxAttendance: 0,
+        customAttributes: [],
     }
     manualCheckInDialog.value = true
 }

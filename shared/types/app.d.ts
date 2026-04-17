@@ -49,6 +49,7 @@ export interface ParticipantCheckInTarget {
     sessionName: string
     name: string
     maxAttendance: number
+    customAttributes: CustomAttribute[]
 }
 
 export type EditorMode = 'invitation-email' | 'check-in-page'

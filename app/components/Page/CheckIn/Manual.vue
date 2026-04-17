@@ -4,9 +4,11 @@ import { FetchError } from 'ofetch'
 
 const props = defineProps<{
     eventId: number
+    tenantId?: number
     title?: string
     buttonLabel?: string
     isPreview?: boolean
+    isPublic?: boolean
 }>()
 const emit = defineEmits([EMIT_MODAL_SELECT])
 
@@ -44,7 +46,7 @@ function clearPhoneNumber() {
     participants.value = []
 }
 
-async function submitPhoneNumber(event: FormSubmitEvent<Schema>) {
+async function publicSubmitPhoneNumber(event: FormSubmitEvent<Schema>) {
     if (props.isPreview) return
 
     if (latestPhoneNumber.value !== '' && event.data.phoneNumber === latestPhoneNumber.value) {
@@ -76,6 +78,50 @@ async function submitPhoneNumber(event: FormSubmitEvent<Schema>) {
     }
     finally {
         phoneNumberLoading.value = false
+    }
+}
+
+async function privateSubmitPhoneNumber(event: FormSubmitEvent<Schema>) {
+    if (props.isPreview) return
+
+    if (latestPhoneNumber.value !== '' && event.data.phoneNumber === latestPhoneNumber.value) {
+        participantDialog.value = true
+        return
+    }
+
+    phoneNumberLoading.value = true
+    try {
+        const res = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
+            query: {
+                page: 1,
+                limit: 10,
+                query: event.data.phoneNumber,
+            },
+        })
+        if (!res.data.participant.length) {
+            openFailedDialog('No Participant Found')
+            return
+        }
+        participants.value = structuredClone(res.data.participant)
+        participantDialog.value = true
+        latestPhoneNumber.value = event.data.phoneNumber
+    }
+    catch (error) {
+        if (error instanceof FetchError && error.response) {
+            openFailedDialog(error.response._data.data.message)
+        }
+    }
+    finally {
+        phoneNumberLoading.value = false
+    }
+}
+
+async function submitPhoneNumber(event: FormSubmitEvent<Schema>) {
+    if (props.isPublic) {
+        await publicSubmitPhoneNumber(event)
+    }
+    else {
+        await privateSubmitPhoneNumber(event)
     }
 }
 

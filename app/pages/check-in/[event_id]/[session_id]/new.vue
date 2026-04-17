@@ -12,6 +12,7 @@ const targetParticipant = ref<ParticipantCheckInTarget>({
     sessionName: '',
     name: '',
     maxAttendance: 0,
+    customAttributes: [],
 })
 const errorMessage = ref<string>('')
 
@@ -54,6 +55,14 @@ definePageMeta({
             <template #subtitle>
                 <h2>Name: {{ targetParticipant.name }}</h2>
                 <h2>Max Pax: {{ targetParticipant.maxAttendance }}</h2>
+                <template v-if="targetParticipant.customAttributes.length">
+                    <h2
+                        v-for="(attr, id) in targetParticipant.customAttributes"
+                        :key="id"
+                    >
+                        {{ attr.name }}: {{ attr.value }}
+                    </h2>
+                </template>
             </template>
         </ModalCheckInSuccess>
 

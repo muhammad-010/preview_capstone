@@ -83,6 +83,13 @@ function useColumns() {
             header: 'Name',
         },
         {
+            accessorKey: 'is_visible',
+            header: 'Visible When Check-In',
+            cell: ({ row }) => {
+                return h('span', {}, row.original.is_visible ? 'Yes' : 'No')
+            },
+        },
+        {
             accessorKey: 'custom_attribute_id',
             header: 'Action',
             meta: {

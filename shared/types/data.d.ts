@@ -155,10 +155,12 @@ export interface CustomAttribute {
     custom_attribute_id: number
     name?: string
     value?: string
+    is_visible?: boolean
 }
 
 export interface CustomAttributeForm {
     name: string
+    is_visible: boolean
 }
 
 // EVENT SETTINGS

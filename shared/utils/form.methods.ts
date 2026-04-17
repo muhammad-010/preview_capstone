@@ -44,7 +44,6 @@ export function tenantEventFormToTenantEvent(data: TenantEventForm): TenantEvent
         start_time: data.start_time,
         end_time: data.end_time,
         rule_config: {
-            confirmation_attendance: data.confirmation_attendance,
             capacity: {
                 total: data.capacity,
             },
