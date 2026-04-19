@@ -41,6 +41,15 @@ export interface TablePagination {
     pageSize: number
 }
 
+export type BackgroundStyleBreakpoint = '--sm-bg' | '--md-bg' | '--lg-bg' | '--xl-bg'
+export type PositionXStyleBreakpoint = '--sm-pos-x' | '--md-pos-x' | '--lg-pos-x' | '--xl-pos-x'
+export type PositionYStyleBreakpoint = '--sm-pos-y' | '--md-pos-y' | '--lg-pos-y' | '--xl-pos-y'
+
+export interface LayoutBackgroundSetting {
+    tailwindClass: string[]
+    style: Partial<Record<BackgroundStyleBreakpoint, string>>
+}
+
 export type CheckInMethod = 'check-in-scan' | 'check-in-manual'
 
 export interface ParticipantCheckInTarget {

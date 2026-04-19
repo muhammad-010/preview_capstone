@@ -127,11 +127,20 @@ naming pattern and rules same as [app/utils](#apputils) and [server/utils](#serv
 # DEPRECATION
 
 ## API
-- /tenant/[tenant_id]/event/[event_id]/participant/check-in
-- /tenant/[tenant_id]/event/[event_id]/participant/check-in/manual
-- /tenant/[tenant_id]/event/[event_id]/participant/check-in/confirm
-- /tenant/[tenant_id]/event/[event_id]/participant/check-in/confirm/manual
+- api/tenant/[tenant_id]/event/[event_id]/participant/check-in
+- api/tenant/[tenant_id]/event/[event_id]/participant/check-in/manual
+- api/tenant/[tenant_id]/event/[event_id]/participant/check-in/confirm
+- api/tenant/[tenant_id]/event/[event_id]/participant/check-in/confirm/manual
 
 ## APP
-- check-in/[event_id]/index
-- check-in/[event_id]/new
+- components/CheckIn/Manual
+- components/CheckIn/ManualPreview
+- components/CheckIn/Scan
+- components/CheckIn/ScanPreview
+- components/Pages/CheckIn/Layout
+- layouts/check-in-preview
+- layouts/check-in (rename scan into check-in)
+- middleware/checkIn
+- pages/check-in/[event_id]/index
+- pages/check-in/[event_id]/new
+- pages/check-in/[event_id]/[session_id]/index (rename new into index)
