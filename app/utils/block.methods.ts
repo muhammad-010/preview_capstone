@@ -4,46 +4,47 @@ export function getBlockStyleValue(style: BlockStyle[], key: string): string | b
 
 export function compileBlockStyle(block: Block) {
     if (block.id === BLOCK_TEXT_ID) {
-        const fontFamily = getBlockStyleValue(block.style, 'fontSans')
-            ? `${getBlockStyleValue(block.style, 'fontFamily')}, sans-serif`
-            : `${getBlockStyleValue(block.style, 'fontFamily')}, serif`
-        const fontSize = String(getBlockStyleValue(block.style, 'fontSize'))
-        const fontWeight = getBlockStyleValue(block.style, 'fontBold') ? 'bold' : 'normal'
-        const fontStyle = getBlockStyleValue(block.style, 'fontItalic') ? 'italic' : 'normal'
-        return `color:${getBlockStyleValue(block.style, 'textColor')}; font-family:${fontFamily}; font-size:${fontSize}rem; font-weight:${fontWeight}; font-style:${fontStyle};`
+        return `
+            ${BLOCK_STYLE_COLOR}:${getBlockStyleValue(block.style, BLOCK_STYLE_COLOR)};
+            ${BLOCK_STYLE_FONT_FAMILY}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_FAMILY)};
+            ${BLOCK_STYLE_FONT_SIZE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_SIZE)}rem;
+            ${BLOCK_STYLE_FONT_WEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_WEIGHT) ? 'bold' : 'normal'};
+            ${BLOCK_STYLE_FONT_STYLE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_STYLE) ? 'italic' : 'normal'};
+        `
     }
 
     if (block.id === BLOCK_IMAGE_ID) {
-        const width = String(getBlockStyleValue(block.style, 'width'))
-        const same = getBlockStyleValue(block.style, 'heightSameAsWidth')
-        const height = same ? `${width}px` : `${getBlockStyleValue(block.style, 'height')}px`
-        return `width:${width}px; height:${height};`
+        return `
+            ${BLOCK_STYLE_WIDTH}:${getBlockStyleValue(block.style, BLOCK_STYLE_WIDTH)}px;
+            ${BLOCK_STYLE_HEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_HEIGHT)}px;
+        `
     }
 
-    if (block.id === STATIC_BLOCK_QR_CODE_ID) {
-        const size = String(getBlockStyleValue(block.style, 'size'))
-        return `width:${size}rem; height:${size}rem;`
-    }
+    // if (block.id === STATIC_BLOCK_SCANNER_QR_ID) {
+    //     const size = String(getBlockStyleValue(block.style, 'size'))
+    //     return `width:${size}rem; height:${size}rem;`
+    // }
 
-    if (block.id === STATIC_BLOCK_INPUT_CARD_ID) {
-        const buttonColor = String(getBlockStyleValue(block.style, 'buttonColor'))
-        const titleFontSize = String(getBlockStyleValue(block.style, 'titleFontSize'))
-        const inputFontSize = String(getBlockStyleValue(block.style, 'inputFontSize'))
-        return `button-color:${buttonColor}; title-font-size:${titleFontSize}rem; input-font-size:${inputFontSize}rem;`
-    }
+    // if (block.id === STATIC_BLOCK_INPUT_CARD_ID) {
+    //     const buttonColor = String(getBlockStyleValue(block.style, 'buttonColor'))
+    //     const titleFontSize = String(getBlockStyleValue(block.style, 'titleFontSize'))
+    //     const inputFontSize = String(getBlockStyleValue(block.style, 'inputFontSize'))
+    //     return `button-color:${buttonColor}; title-font-size:${titleFontSize}rem; input-font-size:${inputFontSize}rem;`
+    // }
 
     return ''
 }
 
-export function getAbsoluteDivStyle(block: Block, isPortrait: boolean) {
+export function getAbsoluteDivStyle(block: Block) {
     if (!import.meta.client) return ''
     if (!block) return ''
 
-    const pos = isPortrait
-        ? block.portraitPos
-        : block.landscapePos
-
-    return `position: absolute;left: ${pos.x}%;top: ${pos.y}%;transform: translate(-50%, -50%);`
+    return `
+        position: absolute;
+        left: ${block.x}%;
+        top: ${block.y}%;
+        transform: translate(-50%, -50%);
+    `
 }
 
 export function invitationEmailHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
@@ -69,7 +70,7 @@ export function invitationEmailHtml(bgImage: BackgroundImage, width: number, hei
                 position: relative;
             }
             .background {
-                background-image: url(${bgImage.portraitDataURL});
+                background-image: url(${bgImage.dataUrl});
                 background-size: cover;
                 background-position: center;
             }
@@ -130,24 +131,18 @@ export function checkInPageHtml(bgImage: BackgroundImage, width: number, height:
                 .content {
                     z-index: 1;
                 }
-                .container.is-lg .bg-blur {
-                    background-image: var(--lg-bg);
-                }
-                .container.is-lg .bg-main {
-                    background-image: var(--lg-bg);
-                }
             </style>
         </head>
         <body style="margin:0;padding:0;">
-            <div class="container ${width >= 1024 ? 'is-lg' : ''}">
+            <div class="container">
                 <div
                     class="bg-blur"
-                    style="--bg: url(${bgImage.portraitDataURL}); --lg-bg: url(${bgImage.landscapeDataURL});"
+                    style="--bg: url(${bgImage.dataUrl});"
                 ></div>
 
                 <div
                     class="bg-main"
-                    style="--bg: url(${bgImage.portraitDataURL}); --lg-bg: url(${bgImage.landscapeDataURL});"
+                    style="--bg: url(${bgImage.dataUrl});"
                 ></div>
 
                 <div class="content">

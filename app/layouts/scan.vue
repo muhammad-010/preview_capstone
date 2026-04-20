@@ -2,39 +2,34 @@
 const colorMode = useColorMode()
 colorMode.value = 'light'
 
-const props = defineProps<{
-    smBackground?: string
-    mdBackground?: string
-    lgBackground?: string
-    xlBackground?: string
-}>()
+const props = useAttrs()
 
 const isBackgroundActive = computed(() => {
-    return Boolean(props.smBackground)
-        && Boolean(props.mdBackground)
-        && Boolean(props.lgBackground)
-        && Boolean(props.xlBackground)
+    return Boolean(props[LAYOUT_ATTRS_SM_BACKGROUND])
+        || Boolean(props[LAYOUT_ATTRS_MD_BACKGROUND])
+        || Boolean(props[LAYOUT_ATTRS_LG_BACKGROUND])
+        || Boolean(props[LAYOUT_ATTRS_XL_BACKGROUND])
 })
 
-const backgroundStyleClass = computed<LayoutBackgroundSetting>(() => {
-    const res: LayoutBackgroundSetting = {
+const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
+    const res: ResponsiveElementSetting = {
         tailwindClass: [],
         style: {},
     }
-    if (props.smBackground) {
-        res.style['--sm-bg'] = `url(${props.smBackground})`
+    if (props[LAYOUT_ATTRS_SM_BACKGROUND]) {
+        res.style['--sm-bg'] = `url(${props[LAYOUT_ATTRS_SM_BACKGROUND]})`
         res.tailwindClass.push('sm:bg-(--sm-bg)')
     }
-    if (props.mdBackground) {
-        res.style['--md-bg'] = `url(${props.mdBackground})`
-        res.tailwindClass.push('md:bg-(--md-bg)')
+    if (props[LAYOUT_ATTRS_MD_BACKGROUND]) {
+        res.style['--md-bg'] = `url(${props[LAYOUT_ATTRS_MD_BACKGROUND]})`
+        res.tailwindClass.push('md:bg-(image:--md-bg)')
     }
-    if (props.lgBackground) {
-        res.style['--lg-bg'] = `url(${props.lgBackground})`
+    if (props[LAYOUT_ATTRS_LG_BACKGROUND]) {
+        res.style['--lg-bg'] = `url(${props[LAYOUT_ATTRS_LG_BACKGROUND]})`
         res.tailwindClass.push('lg:bg-(--lg-bg)')
     }
-    if (props.xlBackground) {
-        res.style['--xl-bg'] = `url(${props.xlBackground})`
+    if (props[LAYOUT_ATTRS_XL_BACKGROUND]) {
+        res.style['--xl-bg'] = `url(${props[LAYOUT_ATTRS_XL_BACKGROUND]})`
         res.tailwindClass.push('xl:bg-(--xl-bg)')
     }
 

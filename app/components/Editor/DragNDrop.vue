@@ -15,8 +15,8 @@ const props = defineProps<{
     defaultScale?: number
 }>()
 
-const DRAGGABLE_BLOCK_WIDTH = 208
-const DRAGGABLE_BLOCK_HEIGHT = 44
+const DRAG_X_LIMIT = 10
+const DRAG_Y_LIMIT = 10
 const DRAG_DATATRANSFER_COPY = 'copy'
 const EVENT_MOUSEMOVE = 'mousemove'
 const EVENT_MOUSEUP = 'mouseup'
@@ -48,37 +48,34 @@ watch(selectedCanvasSizeLabel, () => {
 
 // BACKGROUND IMAGE
 const bgImage = ref<BackgroundImage>({
-    portrait: null,
-    landscape: null,
-    portraitDataURL: '',
-    landscapeDataURL: '',
+    file: null,
+    dataUrl: '',
 })
 
-function bgImageToDataURL(orientation: Orientation) {
-    const file = bgImage.value[orientation]
+function bgImageToDataURL() {
+    const file = bgImage.value.file
     if (!file) {
-        bgImage.value[`${orientation}DataURL`] = ''
+        bgImage.value.dataUrl = ''
         return
     }
 
     const reader = new FileReader()
     reader.onload = () => {
-        bgImage.value[`${orientation}DataURL`] = reader.result as string
+        bgImage.value.dataUrl = reader.result as string
     }
     reader.readAsDataURL(file)
 }
 
-watch(() => bgImage.value.portrait, () => bgImageToDataURL(EDITOR_CANVAS_PORTRAIT))
-watch(() => bgImage.value.landscape, () => bgImageToDataURL(EDITOR_CANVAS_LANDSCAPE))
+watch(() => bgImage.value.file, () => bgImageToDataURL())
 
-function onBgImageUpload(e: Event, orientation: Orientation) {
+function onBgImageUpload(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (!file) return
-    bgImage.value[orientation] = file
+    bgImage.value.file = file
 }
 
-function clearBgImage(orientation: Orientation) {
-    bgImage.value[orientation] = null
+function clearBgImage() {
+    bgImage.value.file = null
 }
 
 // BLOCKS
@@ -92,12 +89,10 @@ function syncStaticBlock(item: Block) {
     if (!staticBlock) return
 
     staticBlock.style = structuredClone(toRaw(item.style))
-    staticBlock.data = structuredClone(toRaw(item.data))
+    staticBlock.config = structuredClone(toRaw(item.config))
     staticBlock.compiledStyle = item.compiledStyle
-    staticBlock.portraitPos.x = item.portraitPos.x
-    staticBlock.portraitPos.y = item.portraitPos.y
-    staticBlock.landscapePos.x = item.landscapePos.x
-    staticBlock.landscapePos.y = item.landscapePos.y
+    staticBlock.x = item.x
+    staticBlock.y = item.y
 }
 
 // DRAG BLOCKS
@@ -110,13 +105,12 @@ function startDrag(e: MouseEvent, item: Block) {
     dragging.value = item.uid
     selectedUid.value = item.uid
 
-    const pos = canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? item.portraitPos : item.landscapePos
     offset.value = {
-        x: e.clientX - percentToPx(pos.x, canvasWidth.value) * canvasScale.value,
-        y: e.clientY - percentToPx(pos.y, canvasHeight.value) * canvasScale.value,
+        x: e.clientX - percentToPx(item.x, canvasWidth.value) * canvasScale.value,
+        y: e.clientY - percentToPx(item.y, canvasHeight.value) * canvasScale.value,
     }
 
-    tempPosition.value = { x: pos.x, y: pos.y }
+    tempPosition.value = { x: item.x, y: item.y }
 }
 
 function onMouseMove(e: MouseEvent) {
@@ -125,8 +119,8 @@ function onMouseMove(e: MouseEvent) {
     const newXPx = (e.clientX - offset.value.x) / canvasScale.value
     const newYPx = (e.clientY - offset.value.y) / canvasScale.value
 
-    const maxXPercent = Math.max(0, ((canvasWidth.value - DRAGGABLE_BLOCK_WIDTH) / canvasWidth.value) * 100)
-    const maxYPercent = Math.max(0, ((canvasHeight.value - DRAGGABLE_BLOCK_HEIGHT) / canvasHeight.value) * 100)
+    const maxXPercent = Math.max(0, ((canvasWidth.value - DRAG_X_LIMIT) / canvasWidth.value) * 100)
+    const maxYPercent = Math.max(0, ((canvasHeight.value - DRAG_Y_LIMIT) / canvasHeight.value) * 100)
 
     const newX = Math.max(0, Math.min(pxToPercent(newXPx, canvasWidth.value), maxXPercent))
     const newY = Math.max(0, Math.min(pxToPercent(newYPx, canvasHeight.value), maxYPercent))
@@ -155,8 +149,8 @@ function onCanvasDrop(e: DragEvent) {
     if (!block) return
 
     const canvasRect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const xPx = Math.max(0, Math.min((e.clientX - canvasRect.left) / canvasScale.value, canvasWidth.value - DRAGGABLE_BLOCK_WIDTH))
-    const yPx = Math.max(0, Math.min((e.clientY - canvasRect.top) / canvasScale.value, canvasHeight.value - DRAGGABLE_BLOCK_HEIGHT))
+    const xPx = Math.max(0, Math.min((e.clientX - canvasRect.left) / canvasScale.value, canvasWidth.value - DRAG_X_LIMIT))
+    const yPx = Math.max(0, Math.min((e.clientY - canvasRect.top) / canvasScale.value, canvasHeight.value - DRAG_Y_LIMIT))
     const x = Math.round(pxToPercent(xPx, canvasWidth.value))
     const y = Math.round(pxToPercent(yPx, canvasHeight.value))
     const uid = crypto.randomUUID()
@@ -165,16 +159,10 @@ function onCanvasDrop(e: DragEvent) {
         uid,
         id: block.id,
         label: block.label,
-        data: structuredClone(toRaw(block.data)),
+        config: structuredClone(toRaw(block.config)),
         style: structuredClone(toRaw(block.style)),
-        portraitPos: {
-            x: canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? x : 0,
-            y: canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? y : 0,
-        },
-        landscapePos: {
-            x: canvasOrientation.value === EDITOR_CANVAS_LANDSCAPE ? x : 0,
-            y: canvasOrientation.value === EDITOR_CANVAS_LANDSCAPE ? y : 0,
-        },
+        x,
+        y,
         compiledStyle: block.compiledStyle,
         html: block.html,
         editableData: block.editableData,
@@ -190,9 +178,8 @@ function stopDrag() {
     const item = blockContainer.value.find(i => i.uid === dragging.value)
     if (!item) return
 
-    const pos = canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? item.portraitPos : item.landscapePos
-    pos.x = Math.round(tempPosition.value.x)
-    pos.y = Math.round(tempPosition.value.y)
+    item.x = Math.round(tempPosition.value.x)
+    item.y = Math.round(tempPosition.value.y)
 
     if (STATIC_BLOCK_IDS.includes(item.id)) {
         syncStaticBlock(item)
@@ -220,8 +207,7 @@ const itemPosition = computed(() => (item: Block) => {
     if (dragging.value === item.uid) {
         return tempPosition.value
     }
-    const pos = canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? item.portraitPos : item.landscapePos
-    return { x: pos.x, y: pos.y }
+    return { x: item.x, y: item.y }
 })
 
 function toggleStaticBlock(id: string) {
@@ -239,15 +225,15 @@ function toggleStaticBlock(id: string) {
         if (!block) return
 
         const style = structuredClone(toRaw(block.style))
-        const data = structuredClone(toRaw(block.data))
+        const data = structuredClone(toRaw(block.config))
         blockContainer.value.push({
             uid: id, // Use id as uid for static
             id: block.id,
             label: block.label,
-            data,
+            config: data,
             style,
-            portraitPos: structuredClone(toRaw(block.portraitPos)),
-            landscapePos: structuredClone(toRaw(block.landscapePos)),
+            x: block.x,
+            y: block.y,
             compiledStyle: block.compiledStyle,
             html: block.html,
             editableData: block.editableData,
@@ -262,20 +248,14 @@ function removeBlock(uid: string) {
 
 function duplicateBlock(item: Block) {
     const style = structuredClone(toRaw(item.style))
-    const data = structuredClone(toRaw(item.data))
-    const portraitPos = structuredClone(toRaw(item.portraitPos))
-    portraitPos.x = item.portraitPos.x + 5
-    portraitPos.y = item.portraitPos.y + 5
-    const landscapePos = structuredClone(toRaw(item.landscapePos))
-    landscapePos.x = item.landscapePos.x + 5
-    landscapePos.y = item.landscapePos.y + 5
+    const config = structuredClone(toRaw(item.config))
     const newItem = {
         ...item,
-        data,
         uid: crypto.randomUUID(),
+        config,
         style,
-        portraitPos,
-        landscapePos,
+        x: item.x + 5,
+        y: item.y + 5,
     } as Block
     newItem.compiledStyle = compileBlockStyle(newItem)
     blockContainer.value.push(newItem)
@@ -303,7 +283,7 @@ function setStyleValue(style: BlockStyle[], key: string, value: string | boolean
 function updateBlockData(key: string, value: string) {
     if (!selectedItem.value) return
 
-    const dataItem = selectedItem.value.data.find(d => d.key === key)
+    const dataItem = selectedItem.value.config.find(d => d.key === key)
     if (dataItem) {
         dataItem.value = value
     }
@@ -313,12 +293,10 @@ function updateBlockData(key: string, value: string) {
     }
 }
 
-function updatePosition(key: CoordinateKey, value: number, orientation?: Orientation) {
+function updatePosition(value: number, coord: CoordinateKey) {
     if (!selectedItem.value) return
 
-    const targetOrientation = orientation || canvasOrientation.value
-    const settings = targetOrientation === EDITOR_CANVAS_PORTRAIT ? selectedItem.value.portraitPos : selectedItem.value.landscapePos
-    settings[key] = value
+    selectedItem.value[coord] = value
     if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
         syncStaticBlock(selectedItem.value)
     }
@@ -331,24 +309,23 @@ let previewTimeout: ReturnType<typeof setTimeout>
 
 function renderBlock(block: Block) {
     if (!block) return ''
-    const absoluteStyle = getAbsoluteDivStyle(block, canvasOrientation.value === EDITOR_CANVAS_PORTRAIT)
+    const absoluteStyle = getAbsoluteDivStyle(block)
     return `
     <div style="${absoluteStyle}">
-        ${block.html(block.data, block.compiledStyle)}
+        ${block.html(block.config, block.compiledStyle)}
     </div>
     `
 }
 
 function getPreviewHTML(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
     if (!props.htmlPreviewFn) {
-        const image = height >= width ? bgImage.portraitDataURL : bgImage.landscapeDataURL
         return `
         <!DOCTYPE html>
         <html>
         <head>
             <style>
                 .container {
-                    background-image: url(${image});
+                    background-image: url(${bgImage.dataUrl});
                     background-size: contain;
                     background-position: center;
                     background-no-repeat: no-repeat;
@@ -414,9 +391,9 @@ function saveToLocalStorage() {
         customBlock.push({
             id: block.id,
             style: block.style.map(b => ({ key: b.key, value: b.value })),
-            data: block.data.map(b => ({ key: b.key, value: b.value })),
-            portraitPos: structuredClone(toRaw(block.portraitPos)),
-            landscapePos: structuredClone(toRaw(block.landscapePos)),
+            data: block.config.map(b => ({ key: b.key, value: b.value })),
+            x: block.x,
+            y: block.y,
             compiledStyle: compileBlockStyle(block),
         })
     }
@@ -429,16 +406,15 @@ function saveToLocalStorage() {
         staticBlock.push({
             id: block.id,
             style: block.style.map(b => ({ key: b.key, value: b.value })),
-            data: block.data.map(b => ({ key: b.key, value: b.value })),
-            portraitPos: structuredClone(toRaw(block.portraitPos)),
-            landscapePos: structuredClone(toRaw(block.landscapePos)),
+            data: block.config.map(b => ({ key: b.key, value: b.value })),
+            x: block.x,
+            y: block.y,
             compiledStyle: compileBlockStyle(block),
         })
     }
 
     const settings = {
-        bgPortraitDataURL: bgImage.value.portraitDataURL,
-        bgLandscapeDataURL: bgImage.value.landscapeDataURL,
+        bgDataUrl: bgImage.value.dataUrl,
         customBlock,
         staticBlock,
     } as SavedSetttings
@@ -681,44 +657,20 @@ function preview() {
                         </div>
                     </template>
 
-                    <div
-                        v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_PORTRAIT)"
-                        class="mb-4"
-                    >
+                    <div class="mb-4">
                         <h4 class="text-sm font-medium mb-2">
-                            Portrait Background Image
+                            Background Image
                         </h4>
                         <UFieldGroup>
                             <UInput
                                 type="file"
                                 accept="image/*"
-                                @change="(e) => onBgImageUpload(e, 'portrait')"
+                                @change="(e) => onBgImageUpload(e)"
                             />
                             <UButton
-                                v-if="bgImage.portrait"
+                                v-if="bgImage.file"
                                 icon="lucide:x"
-                                @click="clearBgImage('portrait')"
-                            />
-                        </UFieldGroup>
-                    </div>
-
-                    <div
-                        v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_LANDSCAPE)"
-                        class="mb-4"
-                    >
-                        <h4 class="text-sm font-medium mb-2">
-                            Landscape Background Image
-                        </h4>
-                        <UFieldGroup>
-                            <UInput
-                                type="file"
-                                accept="image/*"
-                                @change="(e) => onBgImageUpload(e, 'landscape')"
-                            />
-                            <UButton
-                                v-if="bgImage.landscape"
-                                icon="lucide:x"
-                                @click="clearBgImage('landscape')"
+                                @click="clearBgImage()"
                             />
                         </UFieldGroup>
                     </div>
@@ -736,7 +688,7 @@ function preview() {
                             class="mb-4"
                         >
                             <div
-                                v-for="dataItem in selectedItem.data"
+                                v-for="dataItem in selectedItem.config"
                                 :key="dataItem.key"
                                 class="mb-4"
                             >
@@ -749,55 +701,25 @@ function preview() {
                             </div>
                         </div>
 
-                        <div
-                            v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_PORTRAIT)"
-                            class="mb-4"
-                        >
+                        <div class="mb-4">
                             <h4 class="text-sm font-medium mb-2">
-                                Portrait Position
+                                Position
                             </h4>
                             <div class="grid grid-cols-2 gap-2">
                                 <UFormField label="X (%)">
                                     <UInput
-                                        :model-value="selectedItem.portraitPos.x"
+                                        :model-value="selectedItem.x"
                                         type="number"
                                         :step="0.2"
-                                        @update:model-value="(value) => updatePosition('x', Number(value), 'portrait')"
+                                        @update:model-value="(value) => updatePosition(Number(value), 'x')"
                                     />
                                 </UFormField>
                                 <UFormField label="Y (%)">
                                     <UInput
-                                        :model-value="selectedItem.portraitPos.y"
+                                        :model-value="selectedItem.y"
                                         type="number"
                                         :step="0.2"
-                                        @update:model-value="(value) => updatePosition('y', Number(value), 'portrait')"
-                                    />
-                                </UFormField>
-                            </div>
-                        </div>
-
-                        <div
-                            v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_LANDSCAPE)"
-                            class="mb-4"
-                        >
-                            <h4 class="text-sm font-medium mb-2">
-                                Landscape Position
-                            </h4>
-                            <div class="grid grid-cols-2 gap-2">
-                                <UFormField label="X (%)">
-                                    <UInput
-                                        :model-value="selectedItem.landscapePos.x"
-                                        type="number"
-                                        :step="0.2"
-                                        @update:model-value="(value) => updatePosition('x', Number(value), 'landscape')"
-                                    />
-                                </UFormField>
-                                <UFormField label="Y (%)">
-                                    <UInput
-                                        :model-value="selectedItem.landscapePos.y"
-                                        type="number"
-                                        :step="0.2"
-                                        @update:model-value="(value) => updatePosition('y', Number(value), 'landscape')"
+                                        @update:model-value="(value) => updatePosition(Number(value), 'y')"
                                     />
                                 </UFormField>
                             </div>

@@ -1,9 +1,11 @@
 <script setup lang="ts">
+const route = useRoute()
+const eventId = Number(route.params.event_id)
 const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
 ])
 const staticBlocks = ref([
-    STATIC_BLOCK_QR_CODE,
+    STATIC_BLOCK_SCANNER_QR,
     STATIC_BLOCK_INPUT_CARD,
 ])
 
@@ -20,12 +22,11 @@ definePageMeta({
         :html-preview-fn="checkInPageHtml"
         :default-orientation="EDITOR_CANVAS_PORTRAIT"
         :canvas-size-options="CANVAS_SIZE_PRESETS_CHECK_IN_PAGE"
-        default-canvas-size="1024x768 (Tablet)"
+        default-canvas-size="Tablet"
         rotateable
         with-preview
-        preview-path="/check-in-preview"
-        :preview-key="PREVIEW_EDITOR_CHECK_IN_PAGE"
+        :preview-path="`/events/${eventId}/check-in-preview`"
+        :preview-key="LOCALSTORAGE_CHECK_IN_PREVIEW"
         page-title="Check In Page Key Visual Editor"
-        :default-scale="0.60"
     />
 </template>

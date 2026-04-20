@@ -182,6 +182,7 @@ export interface TemplateElement {
 export interface TemplateVariant {
     variant_id: number
     slug: string
+    background_image_url: string | null
     setting: Record<string, any>
     elements: TemplateElement[]
 }

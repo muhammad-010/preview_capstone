@@ -23,6 +23,33 @@ const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`,
 })
 const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
 
+const { data: templateData } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/session/${sessionId}/template/render/scanqr`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const template = computed<Template>(() => templateData.value ?? {} as Template)
+const smBackground = computed(() => {
+    const variant = template.value.variants.find(v => v.slug === BREAKPOINT_SM)
+    if (!variant || !variant.background_image_url) return undefined
+    return variant.background_image_url
+})
+const mdBackground = computed(() => {
+    const variant = template.value.variants.find(v => v.slug === BREAKPOINT_MD)
+    if (!variant || !variant.background_image_url) return undefined
+    return variant.background_image_url
+})
+const lgBackground = computed(() => {
+    const variant = template.value.variants.find(v => v.slug === BREAKPOINT_LG)
+    if (!variant || !variant.background_image_url) return undefined
+    return variant.background_image_url
+})
+const xlBackground = computed(() => {
+    const variant = template.value.variants.find(v => v.slug === BREAKPOINT_XL)
+    if (!variant || !variant.background_image_url) return undefined
+    return variant.background_image_url
+})
+
 useHead({
     title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),
 })
@@ -35,6 +62,10 @@ definePageMeta({
     <div>
         <NuxtLayout
             name="scan"
+            :sm-background="smBackground"
+            :md-background="mdBackground"
+            :lg-background="lgBackground"
+            :xl-background="xlBackground"
         >
             <PageCheckInMain
                 v-model:open-success="checkInSuccessDialog"

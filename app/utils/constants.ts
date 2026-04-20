@@ -35,6 +35,21 @@ export const STATE_CHECK_IN_EVENT_ID = 'checkIn:eventId'
 export const STATE_CHECK_IN_SESSION_ID = 'checkIn:sessionId'
 export const STATE_EVENT_DETAIL_ACTIVE_TAB = 'eventDetail:activeTab'
 
+// LOCALSTORAGE
+export const LOCALSTORAGE_CHECK_IN_PREVIEW = 'check-in-preview'
+
+// CHECK IN LAYOUT ATTRS
+export const LAYOUT_ATTRS_SM_BACKGROUND = 'sm-background'
+export const LAYOUT_ATTRS_MD_BACKGROUND = 'md-background'
+export const LAYOUT_ATTRS_LG_BACKGROUND = 'lg-background'
+export const LAYOUT_ATTRS_XL_BACKGROUND = 'xl-background'
+
+// BREAKPOINT
+export const BREAKPOINT_SM = 'sm'
+export const BREAKPOINT_MD = 'md'
+export const BREAKPOINT_LG = 'lg'
+export const BREAKPOINT_XL = 'xl'
+
 // PAGINATION LIMIT
 export const PAGINATION_LIMIT = [5, 10, 25, 50]
 

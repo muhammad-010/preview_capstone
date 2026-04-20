@@ -14,7 +14,7 @@ const renderableBlocks = computed(() => {
             return {
                 ...base,
 
-                data: saved.data,
+                config: saved.data,
                 style: saved.style,
                 compiledStyle: saved.compiledStyle,
                 portraitPos: saved.portraitPos,
@@ -57,7 +57,7 @@ function getBlockStyle(block: Block) {
             v-for="block in renderableBlocks"
             :key="block.uid"
             :style="getBlockStyle(block)"
-            v-html="block.html(block.data, block.compiledStyle)"
+            v-html="block.html(block.config, block.compiledStyle)"
         />
     </div>
 </template>

@@ -42,12 +42,14 @@ export interface TablePagination {
 }
 
 export type BackgroundStyleBreakpoint = '--sm-bg' | '--md-bg' | '--lg-bg' | '--xl-bg'
-export type PositionXStyleBreakpoint = '--sm-pos-x' | '--md-pos-x' | '--lg-pos-x' | '--xl-pos-x'
-export type PositionYStyleBreakpoint = '--sm-pos-y' | '--md-pos-y' | '--lg-pos-y' | '--xl-pos-y'
+export type PositionStyleBreakpoint = '--sm-pos-x' | '--sm-pos-y' | '--md-pos-x' | '--md-pos-y' | '--lg-pos-x' | '--lg-pos-y' | '--xl-pos-x' | '--xl-pos-y'
 
-export interface LayoutBackgroundSetting {
+export interface ResponsiveElementSetting {
     tailwindClass: string[]
-    style: Partial<Record<BackgroundStyleBreakpoint, string>>
+    style: Partial<Record<
+        BackgroundStyleBreakpoint | PositionStyleBreakpoint,
+        string
+    >>
 }
 
 export type CheckInMethod = 'check-in-scan' | 'check-in-manual'
@@ -73,10 +75,8 @@ export interface Coordinate {
 export type CoordinateKey = keyof Coordinate
 
 export interface BackgroundImage {
-    portrait: File | null
-    landscape: File | null
-    portraitDataURL: string
-    landscapeDataURL: string
+    file: File | null
+    dataUrl: string
 }
 
 export interface BlockStyle {
@@ -87,7 +87,7 @@ export interface BlockStyle {
     options?: string[]
 }
 
-export interface BlockData {
+export interface BlockSetting {
     key: string
     value: string
     label?: string
@@ -97,12 +97,12 @@ export interface Block {
     uid: string
     id: string
     label: string
-    data: BlockData[]
+    config: BlockSetting[]
     style: BlockStyle[]
-    portraitPos: Coordinate
-    landscapePos: Coordinate
+    x: number
+    y: number
     compiledStyle: string
-    html: (data: BlockData[], compiledStyle: string) => string
+    html: (setting: BlockSetting[], compiledStyle: string) => string
     editableData: boolean
 }
 
@@ -110,21 +110,21 @@ export interface CanvasSize {
     width: number
     height: number
     label: string
+    breakpoint: string
     orientation: Orientation
 }
 
 export interface SavedBlockSettings {
     id: string
     style: BlockStyle[]
-    data: BlockData[]
-    portraitPos: Coordinate
-    landscapePos: Coordinate
+    data: BlockSetting[]
+    x: number
+    y: number
     compiledStyle: string
 }
 
 export interface SavedSetttings {
-    bgPortraitDataURL: string
-    bgLandscapeDataURL: string
+    bgDataUrl: string
     customBlock: SavedBlockSettings[]
     staticBlock: SavedBlockSettings[]
 }

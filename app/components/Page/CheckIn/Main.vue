@@ -6,8 +6,10 @@ import { FetchError } from 'ofetch'
 const props = defineProps<{
     tenantId: number
     eventId: number
-    sessionId: number
+    sessionId?: number
     isPreview?: boolean
+    customBlockSettings?: SavedBlockSettings[]
+    staticBlockSettings?: SavedBlockSettings[]
 }>()
 const checkInSuccessDialog = defineModel<boolean>('open-success', { default: false })
 const checkInFailedDialog = defineModel<boolean>('open-failed', { default: false })
@@ -170,7 +172,7 @@ watch([checkInSuccessDialog, checkInFailedDialog], ([successDialog, failedDialog
 // SCAN QR
 const pauseQr = ref(false)
 async function qrDetected(qrCodes: DetectedBarcode[]) {
-    if (props.isPreview) return
+    if (props.isPreview || !props.sessionId) return
 
     if (qrCodes.length <= 0) {
         toast.add({
@@ -248,7 +250,7 @@ async function selectParticipant(selectedParticipant: Participant | undefined) {
 }
 
 async function manualCheckIn() {
-    if (props.isPreview) return
+    if (props.isPreview || !props.sessionId) return
 
     if (!participant.value.id) return
 
@@ -300,7 +302,7 @@ function validateConfirmAttendance(state: Partial<ConfirmAttendanceSchema>): For
 }
 
 async function confirmAttendanceQr(event: FormSubmitEvent<ConfirmAttendanceSchema>) {
-    if (props.isPreview) return
+    if (props.isPreview || !props.sessionId) return
 
     try {
         await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/confirm`, {
@@ -328,7 +330,7 @@ async function confirmAttendanceQr(event: FormSubmitEvent<ConfirmAttendanceSchem
 }
 
 async function confirmAttendanceManual(event: FormSubmitEvent<ConfirmAttendanceSchema>) {
-    if (props.isPreview) return
+    if (props.isPreview || !props.sessionId) return
 
     try {
         await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/confirm/manual`, {
@@ -367,21 +369,32 @@ async function confirmAttendance(event: FormSubmitEvent<ConfirmAttendanceSchema>
             break
     }
 }
+
+function getStaticBlockStyle(id: string) {
+    if (!import.meta.client) return ''
+    if (!props.staticBlockSettings) return ''
+
+    const block = props.staticBlockSettings.find(b => b.id === id)
+    if (!block) return ''
+
+    return `
+        position: absolute;
+        left: ${block.x}%;
+        top: ${block.y}%;
+        transform: translate(-50%, -50%);
+    `
+}
 </script>
 
 <template>
     <div class="max-w-[60vw]">
-        <!-- <MiscBlockLoader
-            :block-settings="settings.customBlock"
-        /> -->
+        <MiscBlockLoader
+            :block-settings="props.customBlockSettings || []"
+        />
 
-        <!-- <div
-            v-if="activeCheckInMethod === CHECK_IN_METHOD_SCAN"
-            :style="getStaticBlockStyle('qr-code')"
-        > -->
         <div
             v-if="activeCheckInMethod === CHECK_IN_METHOD_SCAN"
-            style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"
+            :style="getStaticBlockStyle(STATIC_BLOCK_SCANNER_QR_ID)"
         >
             <div class="flex justify-center mb-4">
                 <UButton
@@ -398,13 +411,9 @@ async function confirmAttendance(event: FormSubmitEvent<ConfirmAttendanceSchema>
             />
         </div>
 
-        <!-- <div
-            v-else-if="activeCheckInMethod === CHECK_IN_METHOD_MANUAL"
-            :style="getStaticBlockStyle('input-card')"
-        > -->
         <div
             v-else-if="activeCheckInMethod === CHECK_IN_METHOD_MANUAL"
-            style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"
+            :style="getStaticBlockStyle(STATIC_BLOCK_INPUT_CARD_ID)"
         >
             <div class="flex justify-center mb-4">
                 <UButton
