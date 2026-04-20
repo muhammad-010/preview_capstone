@@ -6,7 +6,6 @@ const props = defineProps<{
     htmlPreviewFn: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
     canvasSizeOptions: CanvasSize[]
     defaultOrientation: Orientation
-    defaultCanvasSize?: string
     rotateable?: boolean
     withPreview?: boolean
     previewPath?: string
@@ -21,9 +20,11 @@ const DRAG_DATATRANSFER_COPY = 'copy'
 const EVENT_MOUSEMOVE = 'mousemove'
 const EVENT_MOUSEUP = 'mouseup'
 
+const router = useRouter()
+
 // CANVAS SETTINGS
-const selectedCanvasSizeLabel = ref(props.defaultCanvasSize || props.canvasSizeOptions[0]!.label)
-const selectedCanvasSize = computed(() => props.canvasSizeOptions.find(size => size.label === selectedCanvasSizeLabel.value) || props.canvasSizeOptions[0]!)
+const selectedCanvasSizeId = ref(props.canvasSizeOptions[0]!.id)
+const selectedCanvasSize = computed(() => props.canvasSizeOptions.find(size => size.id === selectedCanvasSizeId.value) || props.canvasSizeOptions[0]!)
 const canvasOrientation = ref<Orientation>(props.defaultOrientation)
 const shouldFlipCanvas = computed(() => canvasOrientation.value !== selectedCanvasSize.value!.orientation)
 const canvasWidth = computed(() => {
@@ -42,9 +43,63 @@ const canvasOrientationSelections = props.rotateable
             EDITOR_CANVAS_LANDSCAPE,
         ]
     : [props.defaultOrientation]
-watch(selectedCanvasSizeLabel, () => {
+watch(selectedCanvasSizeId, () => {
     canvasOrientation.value = selectedCanvasSize.value!.orientation
 })
+
+// VARIANTS
+const selectVariantPopover = ref<boolean>(false)
+const selectedVariantIds = ref<string[]>([])
+const removeVariantModal = ref<boolean>(false)
+const removeVariantTarget = ref<string | null>(null)
+const activeVariantId = ref<string | null>(null)
+const selectedCanvasVariants = computed(() => props.canvasSizeOptions.filter(c => selectedVariantIds.value.includes(c.id)))
+const unselectedCanvasVariants = computed(() => props.canvasSizeOptions.filter(c => !selectedVariantIds.value.includes(c.id)))
+const removeVariantTargetCanvas = computed(() => props.canvasSizeOptions.find(c => c.id === removeVariantTarget.value)?.label ?? '')
+
+function addVariant(id: string) {
+    if (selectedVariantIds.value.includes(id)) return
+    selectedVariantIds.value.push(id)
+    activeVariantId.value = id
+    selectVariantPopover.value = false
+}
+
+function confirmRemoveVariant(id: string) {
+    removeVariantTarget.value = id
+    removeVariantModal.value = true
+}
+
+function removeVariant() {
+    if (!removeVariantTarget.value) return
+
+    const id = removeVariantTarget.value
+    const index = selectedVariantIds.value.indexOf(id)
+    if (index === -1) return
+
+    const wasActive = activeVariantId.value === id
+
+    const next = selectedVariantIds.value[index + 1]
+    const prev = selectedVariantIds.value[index - 1]
+
+    selectedVariantIds.value.splice(index, 1)
+
+    if (!wasActive) return
+
+    const candidate = next ?? prev ?? null
+
+    if (candidate) {
+        toggleActiveVariant(candidate)
+    }
+    else {
+        activeVariantId.value = null
+    }
+    removeVariantModal.value = false
+}
+
+function toggleActiveVariant(id: string) {
+    if (!selectedVariantIds.value.includes(id)) return
+    activeVariantId.value = activeVariantId.value === id ? null : id
+}
 
 // BACKGROUND IMAGE
 const bgImage = ref<BackgroundImage>({
@@ -433,11 +488,26 @@ function preview() {
 <template>
     <div class="flex flex-col p-8">
         <div class="flex justify-between mb-4">
-            <h2>{{ pageTitle || 'Editor' }}</h2>
+            <div class="flex items-center gap-4">
+                <UButton
+                    class="cursor-pointer"
+                    label="Back"
+                    icon="lucide:chevron-left"
+                    color="neutral"
+                    variant="ghost"
+                    :disabled="loadingPreview"
+                    @click="router.go(-1)"
+                />
+
+                <h2>{{ pageTitle || 'Editor' }}</h2>
+            </div>
+
             <div class="flex gap-4">
                 <UButton
                     class="cursor-pointer"
                     label="Refresh Preview"
+                    color="neutral"
+                    variant="outline"
                     :disabled="loadingPreview"
                     @click="refreshGeneratedHtml"
                 />
@@ -446,6 +516,8 @@ function preview() {
                     v-if="withPreview && previewPath"
                     class="cursor-pointer"
                     label="Preview Page"
+                    color="neutral"
+                    variant="outline"
                     @click="preview"
                 />
 
@@ -492,14 +564,72 @@ function preview() {
                     <div class="mb-4">
                         <UFormField label="Size">
                             <USelect
-                                v-model="selectedCanvasSizeLabel"
+                                v-model="selectedCanvasSizeId"
                                 :items="canvasSizeOptions"
-                                value-key="label"
+                                value-key="id"
                                 class="w-full"
                             />
                         </UFormField>
                     </div>
                 </UCard>
+
+                <!-- VARIANTS -->
+                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                    <template #header>
+                        <h3>Variants</h3>
+                    </template>
+                    <div class="space-y-2">
+                        <div
+                            v-for="canvas in selectedCanvasVariants"
+                            :key="`selcanvar-${canvas.id}`"
+                            class="flex items-center gap-2 py-2 px-4 border rounded-lg w-52"
+                            :class="activeVariantId === canvas.id ? 'border-green-500' : 'border-neutral-950/25 dark:border-neutral-50/25'"
+                        >
+                            <UIcon
+                                :name="activeVariantId === canvas.id ? 'lucide:eye' : 'lucide:eye-off'"
+                                :class="`cursor-pointer ${activeVariantId === canvas.id ? 'text-success' : 'text-dimmed'}`"
+                                @click="toggleActiveVariant(canvas.id)"
+                            />
+                            {{ canvas.label }}
+                            <UIcon
+                                name="lucide:trash"
+                                class="cursor-pointer text-error ml-auto"
+                                @click="confirmRemoveVariant(canvas.id)"
+                            />
+                        </div>
+                        <UPopover v-model:open="selectVariantPopover">
+                            <UButton
+                                icon="lucide:plus"
+                                color="neutral"
+                                variant="outline"
+                                class="w-52"
+                                :disabled="!unselectedCanvasVariants.length"
+                            />
+
+                            <template #content>
+                                <div class="p-2">
+                                    <UFieldGroup orientation="vertical">
+                                        <div
+                                            v-for="canvas in unselectedCanvasVariants"
+                                            :key="`unselcanvar-${canvas.id}`"
+                                            class="cursor-pointer flex items-center gap-2 py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 hover:border-primary first:rounded-t last:rounded-b w-52"
+                                            @click="addVariant(canvas.id)"
+                                        >
+                                            {{ canvas.label }}
+                                        </div>
+                                    </UFieldGroup>
+                                </div>
+                            </template>
+                        </UPopover>
+                    </div>
+                </UCard>
+
+                <ModalConfirmNegativeAction
+                    v-model:open="removeVariantModal"
+                    title="Remove Variant"
+                    :body="`Are you sure want to delete variant ${removeVariantTargetCanvas}? All your changes will be deleted and can not restored.`"
+                    @confirm="() => removeVariant()"
+                />
 
                 <!-- BLOCKS -->
                 <UCard :ui="{ body: 'p-2 sm:p-3' }">
@@ -510,7 +640,7 @@ function preview() {
                         <div
                             v-for="card in customBlocks"
                             :key="card.id"
-                            class="py-2 px-4 border border-slate-950/25 dark:border-slate-50/25 hover:bg-slate-100 dark:hover:bg-slate-950 rounded cursor-move w-52"
+                            class="py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 hover:bg-neutral-100 dark:hover:bg-neutral-950 rounded cursor-move w-52"
                             draggable="true"
                             @dragstart="onBlockDragStart($event, card.id)"
                             @dragend="onBlockDragEnd"
@@ -532,7 +662,7 @@ function preview() {
                         <div
                             v-for="block in staticBlocks"
                             :key="block.id"
-                            class="flex items-center justify-between py-2 px-4 border border-slate-950/25 dark:border-slate-50/25 rounded w-52"
+                            class="flex items-center justify-between py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 rounded w-52"
                         >
                             <span>{{ block.label }}</span>
                             <UCheckbox
@@ -566,7 +696,7 @@ function preview() {
                 <div :class="canvasOrientation === 'portrait' ? 'flex gap-4 justify-evenly items-center min-h-full' : 'flex flex-col gap-4 justify-evenly items-center min-h-full'">
                     <!-- CANVAS -->
                     <div
-                        :class="`border border-slate-950/25 dark:border-slate-50/25 bg-slate-100 dark:bg-slate-900 rounded relative overflow-hidden`"
+                        :class="`border border-neutral-950/25 dark:border-neutral-50/25 bg-neutral-100 dark:bg-neutral-900 rounded relative overflow-hidden`"
                         :style="{
                             width: canvasWidth * canvasScale + 'px',
                             height: canvasHeight * canvasScale + 'px',
@@ -593,15 +723,15 @@ function preview() {
                                 <UChip position="top-left">
                                     <div
                                         :class="[
-                                            'py-2 px-4 border border-slate-950/25 dark:border-slate-50/25 hover:bg-slate-100 dark:hover:bg-slate-950 rounded w-52',
-                                            selectedUid === item.uid ? 'border-slate-500 dark:border-slate-400' : '',
+                                            'py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 hover:bg-neutral-100 dark:hover:bg-neutral-950 rounded w-52',
+                                            selectedUid === item.uid ? 'border-neutral-500 dark:border-neutral-400' : '',
                                         ]"
                                     >
                                         <div class="flex justify-between">
                                             {{ customBlocks.find(c => c.id === item.id)?.label || staticBlocks.find(c => c.id === item.id)?.label }}
 
                                             <div
-                                                v-if="!['qr-code', 'input-card'].includes(item.id)"
+                                                v-if="!STATIC_BLOCK_IDS.includes(item.id)"
                                                 class="flex gap-2"
                                             >
                                                 <UButton
@@ -626,7 +756,7 @@ function preview() {
                     <!-- PREVIEW -->
                     <MiscLoadingOverlay :loading="loadingPreview">
                         <div
-                            :class="`border border-slate-950/25 dark:border-slate-50/25 rounded overflow-hidden`"
+                            :class="`border border-neutral-950/25 dark:border-neutral-50/25 rounded overflow-hidden`"
                             :style="{
                                 width: canvasWidth * canvasScale + 'px',
                                 height: canvasHeight * canvasScale + 'px',

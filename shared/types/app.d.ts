@@ -107,6 +107,7 @@ export interface Block {
 }
 
 export interface CanvasSize {
+    id: string
     width: number
     height: number
     label: string

@@ -22,7 +22,6 @@ definePageMeta({
         :html-preview-fn="checkInPageHtml"
         :default-orientation="EDITOR_CANVAS_PORTRAIT"
         :canvas-size-options="CANVAS_SIZE_PRESETS_CHECK_IN_PAGE"
-        default-canvas-size="Tablet"
         rotateable
         with-preview
         :preview-path="`/events/${eventId}/check-in-preview`"
