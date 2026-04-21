@@ -41,22 +41,6 @@ export interface TablePagination {
     pageSize: number
 }
 
-export type BackgroundStyleBreakpoint = '--sm-bg' | '--md-bg' | '--lg-bg' | '--xl-bg'
-export type PositionStyleBreakpoint = '--sm-pos-x' | '--sm-pos-y' | '--md-pos-x' | '--md-pos-y' | '--lg-pos-x' | '--lg-pos-y' | '--xl-pos-x' | '--xl-pos-y'
-
-export interface ResponsiveElementSetting {
-    tailwindClass: string[]
-    style: Partial<Record<
-        BackgroundStyleBreakpoint | PositionStyleBreakpoint,
-        string
-    >>
-}
-
-export interface LayoutAttr {
-    twPrefix: string
-    cssVar: BackgroundStyleBreakpoint | PositionStyleBreakpoint
-}
-
 export type CheckInMethod = 'check-in-scan' | 'check-in-manual'
 
 export interface ParticipantCheckInTarget {
@@ -92,8 +76,6 @@ export interface CanvasSize {
     breakpoint: string
     orientation: Orientation
 }
-
-export type Breakpoint = typeof BREAKPOINTS[number]
 
 export interface BlockStyle {
     key: string

@@ -5,10 +5,9 @@ colorMode.value = 'light'
 const props = useAttrs()
 
 const isBackgroundActive = computed(() => {
-    return Boolean(props[LAYOUT_ATTRS_SM_BACKGROUND])
-        || Boolean(props[LAYOUT_ATTRS_MD_BACKGROUND])
-        || Boolean(props[LAYOUT_ATTRS_LG_BACKGROUND])
-        || Boolean(props[LAYOUT_ATTRS_XL_BACKGROUND])
+    return BREAKPOINTS.some((bp) => {
+        return Boolean(props[`${bp}${STYLING_BACKGROUND_SUFFIX}`])
+    })
 })
 
 const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
@@ -17,11 +16,17 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
         style: {},
     }
 
-    for (const [bp, cfg] of Object.entries(LAYOUT_ATTRS_BACKGROUNDS)) {
-        const prop = props[`${bp}${LAYOUT_ATTRS_BACKGROUND_SUFFIX}`]
+    for (const bp of BREAKPOINTS) {
+        const {
+            key,
+            cssVariable,
+            tailwindClass,
+            getValue,
+        } = responsiveStyleClass(bp, STYLING_BACKGROUND_SUFFIX)
+        const prop = props[key]
         if (prop) {
-            res.style[cfg.cssVar] = `url(${prop})`
-            res.tailwindClass.push(`${cfg.twPrefix}bg-(${cfg.cssVar})`)
+            res.style[cssVariable] = getValue(prop)
+            res.tailwindClass.push(tailwindClass)
         }
     }
 
@@ -33,11 +38,16 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
     <UContainer
         class="relative flex flex-col justify-center items-center h-screen max-w-full overflow-hidden"
     >
+        <!--
+            FOR TRIGGERING TAILWIND SO IT GENERATE CLASSES FROM responsiveStyleClass
+            <div class="hidden sm:bg-(image:--sm-background) md:bg-(image:--md-background) lg:bg-(image:--lg-background) xl:bg-(image:--xl-background)" />
+        -->
+
         <div
             v-if="isBackgroundActive"
             class="absolute inset-0 bg-cover bg-center blur-2xl brightness-75 scale-110"
-            :class="backgroundStyleClass.tailwindClass"
             :style="backgroundStyleClass.style"
+            :class="backgroundStyleClass.tailwindClass"
         />
 
         <div
@@ -48,8 +58,8 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
         <div
             v-if="isBackgroundActive"
             class="absolute inset-0 bg-contain bg-center bg-no-repeat"
-            :class="backgroundStyleClass.tailwindClass"
             :style="backgroundStyleClass.style"
+            :class="backgroundStyleClass.tailwindClass"
         />
 
         <div class="z-1">

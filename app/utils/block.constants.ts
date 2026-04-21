@@ -30,13 +30,13 @@ export const STATIC_BLOCK_IDS: string[] = [
     STATIC_BLOCK_INPUT_CARD_ID,
 ]
 
-export const BLOCK_STYLE_COLOR = 'color'
-export const BLOCK_STYLE_FONT_FAMILY = 'font-family'
-export const BLOCK_STYLE_FONT_SIZE = 'font-size'
-export const BLOCK_STYLE_FONT_WEIGHT = 'font-weight'
-export const BLOCK_STYLE_FONT_STYLE = 'font-style'
-export const BLOCK_STYLE_WIDTH = 'width'
-export const BLOCK_STYLE_HEIGHT = 'height'
+export const BLOCK_STYLE_COLOR = STYLE_COLOR
+export const BLOCK_STYLE_FONT_FAMILY = STYLE_FONT_FAMILY
+export const BLOCK_STYLE_FONT_SIZE = STYLE_FONT_SIZE
+export const BLOCK_STYLE_FONT_WEIGHT = STYLE_FONT_SIZE
+export const BLOCK_STYLE_FONT_STYLE = STYLE_FONT_STYLE
+export const BLOCK_STYLE_WIDTH = STYLE_WIDTH
+export const BLOCK_STYLE_HEIGHT = STYLE_HEIGHT
 export const BLOCK_STYLE_LIST: string[] = [
     BLOCK_STYLE_COLOR,
     BLOCK_STYLE_FONT_FAMILY,
