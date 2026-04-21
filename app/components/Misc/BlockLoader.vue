@@ -1,54 +1,19 @@
 <!-- eslint-disable vue/no-v-html -->
 <script setup lang="ts">
 const props = defineProps<{
-    blockSettings: SavedBlockSettings[]
+    blockSettings: Block[]
 }>()
 
-const availabelBlocks = ref<Block[]>([BLOCK_TEXT_DEFAULT])
+const availableBlocks = ref<ElementBlock[]>([BLOCK_TEXT_DEFAULT])
 const renderableBlocks = computed(() => {
     return props.blockSettings
         .map((saved) => {
-            const base = availabelBlocks.value.find(ab => ab.id === saved.id)
+            const base = availableBlocks.value.find(ab => ab.id === saved.id)
             if (!base) return undefined
-
-            return {
-                ...base,
-
-                config: saved.data,
-                style: saved.style,
-                compiledStyle: saved.compiledStyle,
-                portraitPos: saved.portraitPos,
-                landscapePos: saved.landscapePos,
-            } as Block
+            return blockToElementBlock(saved, base)
         })
-        .filter((b): b is Block => Boolean(b))
+        .filter((b): b is ElementBlock => Boolean(b))
 })
-const isMobile = ref(false)
-
-onMounted(() => {
-    const media = window.matchMedia('(max-width: 1024px)')
-
-    const update = () => (isMobile.value = media.matches)
-    update()
-
-    media.addEventListener('change', update)
-})
-
-function getBlockStyle(block: Block) {
-    if (!import.meta.client) return ''
-    if (!block) return ''
-
-    const pos = isMobile.value
-        ? block.portraitPos
-        : block.landscapePos
-
-    return `
-        position: absolute;
-        left: ${pos.x}%;
-        top: ${pos.y}%;
-        transform: translate(-50%, -50%);
-    `
-}
 </script>
 
 <template>
@@ -56,8 +21,8 @@ function getBlockStyle(block: Block) {
         <div
             v-for="block in renderableBlocks"
             :key="block.uid"
-            :style="getBlockStyle(block)"
-            v-html="block.html(block.config, block.compiledStyle)"
+            :style="getAbsoluteDivStyle(block)"
+            v-html="block.html(block.setting, block.compiledStyle)"
         />
     </div>
 </template>

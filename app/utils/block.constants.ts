@@ -19,6 +19,10 @@ export const CANVAS_SIZE_PRESETS_CHECK_IN_PAGE: CanvasSize[] = [
 
 export const BLOCK_TEXT_ID = 'text'
 export const BLOCK_IMAGE_ID = 'image'
+export const BLOCK_IDS: string[] = [
+    BLOCK_TEXT_ID,
+    BLOCK_IMAGE_ID,
+]
 export const STATIC_BLOCK_SCANNER_QR_ID = 'scanner-qr'
 export const STATIC_BLOCK_INPUT_CARD_ID = 'input-card'
 export const STATIC_BLOCK_IDS: string[] = [
@@ -54,11 +58,11 @@ export const BLOCK_CONFIG_LIST: string[] = [
     BLOCK_CONFIG_BUTTON_TEXT,
 ]
 
-export const BLOCK_TEXT_DEFAULT: Block = {
+export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     uid: '',
     id: BLOCK_TEXT_ID,
     label: 'Text',
-    config: [{ key: BLOCK_CONFIG_VALUE, label: 'Text', value: 'Hello World' }],
+    setting: [{ key: BLOCK_CONFIG_VALUE, label: 'Text', value: 'Hello World' }],
     style: [
         { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
         { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
@@ -78,11 +82,11 @@ export const BLOCK_TEXT_DEFAULT: Block = {
     editableData: true,
 }
 
-export const BLOCK_IMAGE_DEFAULT: Block = {
+export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     uid: '',
     id: BLOCK_IMAGE_ID,
     label: 'Image',
-    config: [{ key: BLOCK_CONFIG_VALUE, label: 'Image URL', value: 'https://placehold.co/100' }],
+    setting: [{ key: BLOCK_CONFIG_VALUE, label: 'Image URL', value: 'https://placehold.co/100' }],
     style: [
         { key: BLOCK_STYLE_WIDTH, label: 'Width', type: 'number', value: '100' },
         { key: BLOCK_STYLE_HEIGHT, label: 'Height', type: 'number', value: '100' },
@@ -101,11 +105,16 @@ export const BLOCK_IMAGE_DEFAULT: Block = {
     editableData: true,
 }
 
-export const STATIC_BLOCK_SCANNER_QR: Block = {
+export const CUSTOM_BLOCKS: ElementBlock[] = [
+    BLOCK_TEXT_DEFAULT,
+    BLOCK_IMAGE_DEFAULT,
+]
+
+export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
     uid: '',
     id: STATIC_BLOCK_SCANNER_QR_ID,
     label: 'QR Code',
-    config: [{ key: BLOCK_CONFIG_VALUE, label: 'Image URL', value: 'https://placehold.co/100?text=QR+Code' }],
+    setting: [{ key: BLOCK_CONFIG_VALUE, label: 'Image URL', value: 'https://placehold.co/100?text=QR+Code' }],
     style: [],
     x: 50,
     y: 50,
@@ -121,11 +130,11 @@ export const STATIC_BLOCK_SCANNER_QR: Block = {
     editableData: false,
 }
 
-export const STATIC_BLOCK_INPUT_CARD: Block = {
+export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
     uid: '',
     id: STATIC_BLOCK_INPUT_CARD_ID,
     label: 'Input Card',
-    config: [
+    setting: [
         { key: BLOCK_CONFIG_TITLE, label: 'Title', value: 'Title' },
         { key: BLOCK_CONFIG_INPUT_PLACEHOLDER, label: 'Input Placeholder', value: 'Placeholder' },
         { key: BLOCK_CONFIG_BUTTON_TEXT, label: 'Button Text', value: 'Submit' },
@@ -153,3 +162,8 @@ export const STATIC_BLOCK_INPUT_CARD: Block = {
     },
     editableData: true,
 }
+
+export const STATIC_BLOCKS: ElementBlock[] = [
+    STATIC_BLOCK_SCANNER_QR,
+    STATIC_BLOCK_INPUT_CARD,
+]

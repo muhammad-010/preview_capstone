@@ -16,21 +16,13 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
         tailwindClass: [],
         style: {},
     }
-    if (props[LAYOUT_ATTRS_SM_BACKGROUND]) {
-        res.style['--sm-bg'] = `url(${props[LAYOUT_ATTRS_SM_BACKGROUND]})`
-        res.tailwindClass.push('sm:bg-(--sm-bg)')
-    }
-    if (props[LAYOUT_ATTRS_MD_BACKGROUND]) {
-        res.style['--md-bg'] = `url(${props[LAYOUT_ATTRS_MD_BACKGROUND]})`
-        res.tailwindClass.push('md:bg-(image:--md-bg)')
-    }
-    if (props[LAYOUT_ATTRS_LG_BACKGROUND]) {
-        res.style['--lg-bg'] = `url(${props[LAYOUT_ATTRS_LG_BACKGROUND]})`
-        res.tailwindClass.push('lg:bg-(--lg-bg)')
-    }
-    if (props[LAYOUT_ATTRS_XL_BACKGROUND]) {
-        res.style['--xl-bg'] = `url(${props[LAYOUT_ATTRS_XL_BACKGROUND]})`
-        res.tailwindClass.push('xl:bg-(--xl-bg)')
+
+    for (const [bp, cfg] of Object.entries(LAYOUT_ATTRS_BACKGROUNDS)) {
+        const prop = props[`${bp}${LAYOUT_ATTRS_BACKGROUND_SUFFIX}`]
+        if (prop) {
+            res.style[cfg.cssVar] = `url(${prop})`
+            res.tailwindClass.push(`${cfg.twPrefix}bg-(${cfg.cssVar})`)
+        }
     }
 
     return res

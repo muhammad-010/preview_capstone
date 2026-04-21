@@ -52,6 +52,11 @@ export interface ResponsiveElementSetting {
     >>
 }
 
+export interface LayoutAttr {
+    twPrefix: string
+    cssVar: BackgroundStyleBreakpoint | PositionStyleBreakpoint
+}
+
 export type CheckInMethod = 'check-in-scan' | 'check-in-manual'
 
 export interface ParticipantCheckInTarget {
@@ -79,6 +84,17 @@ export interface BackgroundImage {
     dataUrl: string
 }
 
+export interface CanvasSize {
+    id: string
+    width: number
+    height: number
+    label: string
+    breakpoint: string
+    orientation: Orientation
+}
+
+export type Breakpoint = typeof BREAKPOINTS[number]
+
 export interface BlockStyle {
     key: string
     value: string | boolean | number
@@ -94,38 +110,32 @@ export interface BlockSetting {
 }
 
 export interface Block {
-    uid: string
     id: string
-    label: string
-    config: BlockSetting[]
+    breakpoiint?: Breakpoint
+    setting: BlockSetting[]
     style: BlockStyle[]
     x: number
     y: number
     compiledStyle: string
+}
+
+export interface ElementBlock extends Block {
+    uid: string
+    label: string
     html: (setting: BlockSetting[], compiledStyle: string) => string
     editableData: boolean
 }
 
-export interface CanvasSize {
-    id: string
-    width: number
-    height: number
-    label: string
-    breakpoint: string
-    orientation: Orientation
+export interface SavedVariant {
+    variantId?: number
+    slug: string
+    bgImage: string
+    customBlock: Block[]
+    staticBlock: Block[]
 }
 
-export interface SavedBlockSettings {
-    id: string
-    style: BlockStyle[]
-    data: BlockSetting[]
-    x: number
-    y: number
-    compiledStyle: string
-}
-
-export interface SavedSetttings {
-    bgDataUrl: string
-    customBlock: SavedBlockSettings[]
-    staticBlock: SavedBlockSettings[]
+export interface SavedTemplate {
+    templateId?: number
+    type?: string
+    settings: SavedVariant[]
 }

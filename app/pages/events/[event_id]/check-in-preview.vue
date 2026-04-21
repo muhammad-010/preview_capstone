@@ -10,8 +10,9 @@ const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`,
 })
 const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
 
-const settings = ref<SavedSetttings>({
-    bgDataUrl: '',
+const settings = ref<SavedVariant>({
+    bgImage: '',
+    slug: BREAKPOINT_MD,
     customBlock: [],
     staticBlock: [],
 })
@@ -29,7 +30,7 @@ function getLocalStorage<T>(key: string): T | null {
 }
 
 onMounted(() => {
-    const rawSettings = getLocalStorage<SavedSetttings>(LOCALSTORAGE_CHECK_IN_PREVIEW)
+    const rawSettings = getLocalStorage<SavedVariant>(LOCALSTORAGE_CHECK_IN_PREVIEW)
     if (rawSettings) {
         settings.value = rawSettings
     }
@@ -47,7 +48,7 @@ definePageMeta({
     <div>
         <NuxtLayout
             name="scan"
-            :md-background="settings.bgDataUrl"
+            :md-background="settings.bgImage"
         >
             <PageCheckInMain
                 :tenant-id="tenantId"

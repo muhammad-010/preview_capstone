@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function getBlockStyleValue(style: BlockStyle[], key: string): string | boolean | number | undefined {
     return style.find(s => s.key === key)?.value
 }
@@ -35,7 +36,7 @@ export function compileBlockStyle(block: Block) {
     return ''
 }
 
-export function getAbsoluteDivStyle(block: Block) {
+export function getAbsoluteDivStyle(block: ElementBlock) {
     if (!import.meta.client) return ''
     if (!block) return ''
 
@@ -153,4 +154,129 @@ export function checkInPageHtml(bgImage: BackgroundImage, width: number, height:
         </body>
     </html>
     `
+}
+
+function filterStyles(
+    styles: Record<string, any>,
+    blockDef: ElementBlock,
+): BlockStyle[] {
+    return Object.entries(styles).reduce<BlockStyle[]>((acc, [key, value]) => {
+        const def = blockDef.style.find(s => s.key === key)
+        if (!def) return acc
+
+        acc.push({
+            key,
+            value,
+            label: def.label,
+            type: def.type,
+            options: def.options,
+        })
+
+        return acc
+    }, [])
+}
+
+function filterSettings(
+    settings: Record<string, any>,
+    blockDef: ElementBlock,
+): BlockSetting[] {
+    return Object.entries(settings).reduce<BlockSetting[]>((acc, [key, value]) => {
+        const def = blockDef.setting.find(s => s.key === key)
+        if (!def) return acc
+
+        acc.push({
+            key,
+            value: String(value),
+            label: def.label,
+        })
+
+        return acc
+    }, [])
+}
+
+export function blockToElementBlock(block: Block, baseEl: ElementBlock): ElementBlock {
+    return {
+        ...baseEl,
+        setting: block.setting,
+        style: block.style,
+        compiledStyle: compileBlockStyle(block),
+        x: block.x,
+        y: block.y,
+    }
+}
+
+export function blockToTemplateElement(sBlock: Block): TemplateElement {
+    return {
+        element_id: 0,
+        value: '',
+        type: sBlock.id,
+        position_x: sBlock.x,
+        position_y: sBlock.y,
+        style: Object.fromEntries(sBlock.style.map(s => [s.key, s.value])),
+        setting: Object.fromEntries(sBlock.setting.map(s => [s.key, s.value])),
+    }
+}
+
+export function templateElementToBlock(el: TemplateElement, blockDef: ElementBlock): Block {
+    return {
+        id: el.type,
+        x: el.position_x,
+        y: el.position_y,
+        style: filterStyles(el.style, blockDef),
+        setting: filterSettings(el.setting, blockDef),
+        compiledStyle: blockDef.compiledStyle,
+    }
+}
+
+export function variantToSavedSettings(variant: TemplateVariant): SavedVariant {
+    const customBlock: Block[] = []
+    const staticBlock: Block[] = []
+
+    for (const el of variant.elements) {
+        const isCustom = BLOCK_IDS.some(b => b === el.type)
+        const blockDef = isCustom
+            ? CUSTOM_BLOCKS.find(b => b.id === el.type)
+            : STATIC_BLOCKS.find(b => b.id === el.type)
+        if (!blockDef) continue
+
+        const saved: Block = templateElementToBlock(el, blockDef)
+        if (variant.slug && BREAKPOINTS.includes(variant.slug as Breakpoint)) {
+            saved.breakpoiint = variant.slug as Breakpoint
+        }
+
+        if (isCustom) {
+            customBlock.push(saved)
+        }
+        else {
+            staticBlock.push(saved)
+        }
+    }
+
+    return {
+        variantId: variant.variant_id,
+        bgImage: variant.background_image_url || '',
+        slug: variant.slug,
+        customBlock,
+        staticBlock,
+    }
+}
+
+export function savedSettingsToVariant(ss: SavedVariant): TemplateVariant {
+    const elements: TemplateElement[] = []
+
+    const allBlocks = [...ss.customBlock, ...ss.staticBlock]
+
+    for (const block of allBlocks) {
+        const el = blockToTemplateElement(block)
+
+        elements.push(el)
+    }
+
+    return {
+        variant_id: 0,
+        slug: ss.slug,
+        background_image_url: ss.bgImage || null,
+        setting: {},
+        elements,
+    }
 }

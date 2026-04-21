@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const props = defineProps<{
     editorMode: EditorMode
-    customBlocks: Block[]
-    staticBlocks: Block[]
+    customBlocks: ElementBlock[]
+    staticBlocks: ElementBlock[]
     htmlPreviewFn: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
     canvasSizeOptions: CanvasSize[]
     defaultOrientation: Orientation
@@ -134,17 +134,17 @@ function clearBgImage() {
 }
 
 // BLOCKS
-const blockContainer = ref<Block[]>([])
+const blockContainer = ref<ElementBlock[]>([])
 const activeStaticBlocks = ref<string[]>([])
 
-function syncStaticBlock(item: Block) {
+function syncStaticBlock(item: ElementBlock) {
     if (!STATIC_BLOCK_IDS.includes(item.id)) return
 
     const staticBlock = props.staticBlocks.find(b => b.id === item.id)
     if (!staticBlock) return
 
     staticBlock.style = structuredClone(toRaw(item.style))
-    staticBlock.config = structuredClone(toRaw(item.config))
+    staticBlock.setting = structuredClone(toRaw(item.setting))
     staticBlock.compiledStyle = item.compiledStyle
     staticBlock.x = item.x
     staticBlock.y = item.y
@@ -156,7 +156,7 @@ const draggingBlock = ref<string | null>(null)
 const offset = ref<Coordinate>({ x: 0, y: 0 })
 const tempPosition = ref<Coordinate>({ x: 0, y: 0 })
 
-function startDrag(e: MouseEvent, item: Block) {
+function startDrag(e: MouseEvent, item: ElementBlock) {
     dragging.value = item.uid
     selectedUid.value = item.uid
 
@@ -214,7 +214,7 @@ function onCanvasDrop(e: DragEvent) {
         uid,
         id: block.id,
         label: block.label,
-        config: structuredClone(toRaw(block.config)),
+        setting: structuredClone(toRaw(block.setting)),
         style: structuredClone(toRaw(block.style)),
         x,
         y,
@@ -258,7 +258,7 @@ const selectedUid = ref<string | null>(null)
 const selectedItem = computed(() =>
     blockContainer.value.find(i => i.uid === selectedUid.value),
 )
-const itemPosition = computed(() => (item: Block) => {
+const itemPosition = computed(() => (item: ElementBlock) => {
     if (dragging.value === item.uid) {
         return tempPosition.value
     }
@@ -280,12 +280,12 @@ function toggleStaticBlock(id: string) {
         if (!block) return
 
         const style = structuredClone(toRaw(block.style))
-        const data = structuredClone(toRaw(block.config))
+        const data = structuredClone(toRaw(block.setting))
         blockContainer.value.push({
             uid: id, // Use id as uid for static
             id: block.id,
             label: block.label,
-            config: data,
+            setting: data,
             style,
             x: block.x,
             y: block.y,
@@ -301,17 +301,17 @@ function removeBlock(uid: string) {
     blockContainer.value = blockContainer.value.filter(i => i.uid !== uid)
 }
 
-function duplicateBlock(item: Block) {
+function duplicateBlock(item: ElementBlock) {
     const style = structuredClone(toRaw(item.style))
-    const config = structuredClone(toRaw(item.config))
+    const config = structuredClone(toRaw(item.setting))
     const newItem = {
         ...item,
         uid: crypto.randomUUID(),
-        config,
+        setting: config,
         style,
         x: item.x + 5,
         y: item.y + 5,
-    } as Block
+    } as ElementBlock
     newItem.compiledStyle = compileBlockStyle(newItem)
     blockContainer.value.push(newItem)
 }
@@ -338,7 +338,7 @@ function setStyleValue(style: BlockStyle[], key: string, value: string | boolean
 function updateBlockData(key: string, value: string) {
     if (!selectedItem.value) return
 
-    const dataItem = selectedItem.value.config.find(d => d.key === key)
+    const dataItem = selectedItem.value.setting.find(d => d.key === key)
     if (dataItem) {
         dataItem.value = value
     }
@@ -362,12 +362,12 @@ const generatedHtml = ref('')
 const loadingPreview = ref(false)
 let previewTimeout: ReturnType<typeof setTimeout>
 
-function renderBlock(block: Block) {
+function renderBlock(block: ElementBlock) {
     if (!block) return ''
     const absoluteStyle = getAbsoluteDivStyle(block)
     return `
     <div style="${absoluteStyle}">
-        ${block.html(block.config, block.compiledStyle)}
+        ${block.html(block.setting, block.compiledStyle)}
     </div>
     `
 }
@@ -435,8 +435,8 @@ watch([
 function saveToLocalStorage() {
     if (!props.previewKey) return
 
-    const customBlock: SavedBlockSettings[] = []
-    const staticBlock: SavedBlockSettings[] = []
+    const customBlock: Block[] = []
+    const staticBlock: Block[] = []
 
     const customBlockList = blockContainer.value.filter(b => !STATIC_BLOCK_IDS.includes(b.id))
     for (let i = 0; i < customBlockList.length; i++) {
@@ -446,7 +446,7 @@ function saveToLocalStorage() {
         customBlock.push({
             id: block.id,
             style: block.style.map(b => ({ key: b.key, value: b.value })),
-            data: block.config.map(b => ({ key: b.key, value: b.value })),
+            setting: block.setting.map(b => ({ key: b.key, value: b.value })),
             x: block.x,
             y: block.y,
             compiledStyle: compileBlockStyle(block),
@@ -461,7 +461,7 @@ function saveToLocalStorage() {
         staticBlock.push({
             id: block.id,
             style: block.style.map(b => ({ key: b.key, value: b.value })),
-            data: block.config.map(b => ({ key: b.key, value: b.value })),
+            setting: block.setting.map(b => ({ key: b.key, value: b.value })),
             x: block.x,
             y: block.y,
             compiledStyle: compileBlockStyle(block),
@@ -469,10 +469,11 @@ function saveToLocalStorage() {
     }
 
     const settings = {
-        bgDataUrl: bgImage.value.dataUrl,
+        bgImage: bgImage.value.dataUrl,
+        slug: BREAKPOINT_MD,
         customBlock,
         staticBlock,
-    } as SavedSetttings
+    } as SavedVariant
 
     localStorage.setItem(props.previewKey, JSON.stringify(settings))
 }
@@ -530,7 +531,7 @@ function preview() {
         </div>
 
         <div class="grid grid-cols-7 h-[90vh] gap-4">
-            <!-- LEFT: Block list + resizable HTML preview -->
+            <!-- LEFT: ElementBlock list + resizable HTML preview -->
             <div class="flex flex-col gap-4">
                 <!-- CANVAS SETTINGS -->
                 <UCard :ui="{ body: 'p-2 sm:p-3' }">
@@ -809,7 +810,7 @@ function preview() {
                 <!-- SETTINGS -->
                 <UCard :ui="{ body: 'p-2 sm:p-3' }">
                     <template #header>
-                        <h3>Block Settings</h3>
+                        <h3>ElementBlock Settings</h3>
                     </template>
 
                     <div v-if="selectedItem">
@@ -818,7 +819,7 @@ function preview() {
                             class="mb-4"
                         >
                             <div
-                                v-for="dataItem in selectedItem.config"
+                                v-for="dataItem in selectedItem.setting"
                                 :key="dataItem.key"
                                 class="mb-4"
                             >

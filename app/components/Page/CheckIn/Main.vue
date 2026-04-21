@@ -8,8 +8,8 @@ const props = defineProps<{
     eventId: number
     sessionId?: number
     isPreview?: boolean
-    customBlockSettings?: SavedBlockSettings[]
-    staticBlockSettings?: SavedBlockSettings[]
+    customBlockSettings?: Block[]
+    staticBlockSettings?: Block[]
 }>()
 const checkInSuccessDialog = defineModel<boolean>('open-success', { default: false })
 const checkInFailedDialog = defineModel<boolean>('open-failed', { default: false })
