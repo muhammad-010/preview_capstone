@@ -46,6 +46,12 @@ const canvasOrientationSelections = props.rotateable
 watch(selectedCanvasSizeId, () => {
     canvasOrientation.value = selectedCanvasSize.value!.orientation
 })
+const canvasStyle = computed(() => ({
+    width: canvasWidth.value + 'px',
+    height: canvasHeight.value + 'px',
+    transform: `scale(${canvasScale.value})`,
+    transformOrigin: 'top left',
+}))
 
 // VARIANTS
 const selectVariantPopover = ref<boolean>(false)
@@ -134,6 +140,7 @@ function clearBgImage() {
 }
 
 // BLOCKS
+const blockUid = ref<number>(0)
 const blockContainer = ref<ElementBlock[]>([])
 const activeStaticBlocks = ref<string[]>([])
 
@@ -151,6 +158,7 @@ function syncStaticBlock(item: ElementBlock) {
 }
 
 // DRAG BLOCKS
+const selectedUid = ref<string | null>(null)
 const dragging = ref<string | null>(null)
 const draggingBlock = ref<string | null>(null)
 const offset = ref<Coordinate>({ x: 0, y: 0 })
@@ -206,9 +214,7 @@ function onCanvasDrop(e: DragEvent) {
     const canvasRect = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const xPx = Math.max(0, Math.min((e.clientX - canvasRect.left) / canvasScale.value, canvasWidth.value - DRAG_X_LIMIT))
     const yPx = Math.max(0, Math.min((e.clientY - canvasRect.top) / canvasScale.value, canvasHeight.value - DRAG_Y_LIMIT))
-    const x = Math.round(pxToPercent(xPx, canvasWidth.value))
-    const y = Math.round(pxToPercent(yPx, canvasHeight.value))
-    const uid = crypto.randomUUID()
+    const uid = `${++blockUid.value}`
 
     blockContainer.value.push({
         uid,
@@ -216,8 +222,8 @@ function onCanvasDrop(e: DragEvent) {
         label: block.label,
         setting: structuredClone(toRaw(block.setting)),
         style: structuredClone(toRaw(block.style)),
-        x,
-        y,
+        x: Math.round(pxToPercent(xPx, canvasWidth.value)),
+        y: Math.round(pxToPercent(yPx, canvasHeight.value)),
         compiledStyle: block.compiledStyle,
         html: block.html,
         editableData: block.editableData,
@@ -254,7 +260,6 @@ onBeforeUnmount(() => {
 })
 
 // BLOCK MANIPULATIONS
-const selectedUid = ref<string | null>(null)
 const selectedItem = computed(() =>
     blockContainer.value.find(i => i.uid === selectedUid.value),
 )
@@ -279,14 +284,12 @@ function toggleStaticBlock(id: string) {
         const block = props.staticBlocks.find(b => b.id === id)
         if (!block) return
 
-        const style = structuredClone(toRaw(block.style))
-        const data = structuredClone(toRaw(block.setting))
         blockContainer.value.push({
-            uid: id, // Use id as uid for static
+            uid: id,
             id: block.id,
             label: block.label,
-            setting: data,
-            style,
+            setting: structuredClone(toRaw(block.setting)),
+            style: structuredClone(toRaw(block.style)),
             x: block.x,
             y: block.y,
             compiledStyle: block.compiledStyle,
@@ -302,17 +305,15 @@ function removeBlock(uid: string) {
 }
 
 function duplicateBlock(item: ElementBlock) {
-    const style = structuredClone(toRaw(item.style))
-    const config = structuredClone(toRaw(item.setting))
     const newItem = {
         ...item,
-        uid: crypto.randomUUID(),
-        setting: config,
-        style,
+        uid: `${++blockUid.value}`,
+        setting: structuredClone(toRaw(item.setting)),
+        style: structuredClone(toRaw(item.style)),
         x: item.x + 5,
         y: item.y + 5,
+        compiledStyle: compileBlockStyle(item),
     } as ElementBlock
-    newItem.compiledStyle = compileBlockStyle(newItem)
     blockContainer.value.push(newItem)
 }
 
@@ -320,27 +321,24 @@ function onBlockDragEnd() {
     draggingBlock.value = null
 }
 
-function setStyleValue(style: BlockStyle[], key: string, value: string | boolean | number) {
-    const item = style.find(s => s.key === key)
-    if (item) {
-        item.value = value
-    }
-
-    if (selectedItem.value) {
-        selectedItem.value.compiledStyle = compileBlockStyle(selectedItem.value)
-    }
-
-    if (selectedItem.value && STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
-        syncStaticBlock(selectedItem.value)
-    }
-}
-
-function updateBlockData(key: string, value: string) {
+function updateBlock(target: 'setting' | 'style', key: string, value: string | boolean | number) {
     if (!selectedItem.value) return
 
-    const dataItem = selectedItem.value.setting.find(d => d.key === key)
+    let dataItem: BlockSetting | undefined
+    switch (target) {
+        case 'setting':
+            dataItem = selectedItem.value.setting.find(s => s.key === key)
+            break
+        case 'style':
+            dataItem = selectedItem.value.style.find(s => s.key === key)
+            break
+        default:
+            return
+    }
+
     if (dataItem) {
         dataItem.value = value
+        if (target === 'style') selectedItem.value.compiledStyle = compileBlockStyle(selectedItem.value)
     }
 
     if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
@@ -638,16 +636,16 @@ function preview() {
                         <h3>Blocks</h3>
                     </template>
                     <div class="space-y-2">
-                        <div
+                        <EditorBlock
                             v-for="card in customBlocks"
                             :key="card.id"
-                            class="py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 hover:bg-neutral-100 dark:hover:bg-neutral-950 rounded cursor-move w-52"
-                            draggable="true"
+                            draggable
+                            hoverable
+                            :label="card.label"
+                            class="cursor-move"
                             @dragstart="onBlockDragStart($event, card.id)"
                             @dragend="onBlockDragEnd"
-                        >
-                            {{ card.label }}
-                        </div>
+                        />
                     </div>
                 </UCard>
 
@@ -660,17 +658,17 @@ function preview() {
                         <h3>Static Blocks</h3>
                     </template>
                     <div class="space-y-2">
-                        <div
+                        <EditorBlock
                             v-for="block in staticBlocks"
                             :key="block.id"
-                            class="flex items-center justify-between py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 rounded w-52"
+                            class="flex items-center justify-between"
                         >
                             <span>{{ block.label }}</span>
                             <UCheckbox
                                 :model-value="activeStaticBlocks.includes(block.id)"
                                 @update:model-value="toggleStaticBlock(block.id)"
                             />
-                        </div>
+                        </EditorBlock>
                     </div>
                 </UCard>
 
@@ -696,23 +694,14 @@ function preview() {
             <div class="col-span-5 overflow-y-auto p-4 scrollbar">
                 <div :class="canvasOrientation === 'portrait' ? 'flex gap-4 justify-evenly items-center min-h-full' : 'flex flex-col gap-4 justify-evenly items-center min-h-full'">
                     <!-- CANVAS -->
-                    <div
-                        :class="`border border-neutral-950/25 dark:border-neutral-50/25 bg-neutral-100 dark:bg-neutral-900 rounded relative overflow-hidden`"
-                        :style="{
-                            width: canvasWidth * canvasScale + 'px',
-                            height: canvasHeight * canvasScale + 'px',
-                        }"
+                    <EditorCanvasContainer
+                        class="bg-neutral-100 dark:bg-neutral-900"
+                        :width="`${canvasWidth * canvasScale}px`"
+                        :height="`${canvasHeight * canvasScale}px`"
                         @dragover="onCanvasDragOver"
                         @drop="onCanvasDrop"
                     >
-                        <div
-                            :style="{
-                                width: canvasWidth + 'px',
-                                height: canvasHeight + 'px',
-                                transform: `scale(${canvasScale})`,
-                                transformOrigin: 'top left',
-                            }"
-                        >
+                        <div :style="canvasStyle">
                             <div
                                 v-for="item in blockContainer"
                                 :key="item.uid"
@@ -722,58 +711,47 @@ function preview() {
                                 @click.stop="selectedUid = item.uid"
                             >
                                 <UChip position="top-left">
-                                    <div
+                                    <EditorBlock
+                                        class="flex items-center justify-between"
                                         :class="[
-                                            'py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 hover:bg-neutral-100 dark:hover:bg-neutral-950 rounded w-52',
                                             selectedUid === item.uid ? 'border-neutral-500 dark:border-neutral-400' : '',
                                         ]"
                                     >
-                                        <div class="flex justify-between">
-                                            {{ customBlocks.find(c => c.id === item.id)?.label || staticBlocks.find(c => c.id === item.id)?.label }}
+                                        {{ customBlocks.find(c => c.id === item.id)?.label || staticBlocks.find(c => c.id === item.id)?.label }}
 
-                                            <div
-                                                v-if="!STATIC_BLOCK_IDS.includes(item.id)"
-                                                class="flex gap-2"
-                                            >
-                                                <UButton
-                                                    size="xs"
-                                                    label="Dup"
-                                                    @click.stop="duplicateBlock(item)"
-                                                />
-                                                <UButton
-                                                    size="xs"
-                                                    color="error"
-                                                    label="Del"
-                                                    @click.stop="removeBlock(item.uid)"
-                                                />
-                                            </div>
+                                        <div
+                                            v-if="!STATIC_BLOCK_IDS.includes(item.id)"
+                                            class="flex gap-2"
+                                        >
+                                            <UButton
+                                                size="xs"
+                                                label="Dup"
+                                                @click.stop="duplicateBlock(item)"
+                                            />
+                                            <UButton
+                                                size="xs"
+                                                color="error"
+                                                label="Del"
+                                                @click.stop="removeBlock(item.uid)"
+                                            />
                                         </div>
-                                    </div>
+                                    </EditorBlock>
                                 </UChip>
                             </div>
                         </div>
-                    </div>
+                    </EditorCanvasContainer>
 
                     <!-- PREVIEW -->
                     <MiscLoadingOverlay :loading="loadingPreview">
-                        <div
-                            :class="`border border-neutral-950/25 dark:border-neutral-50/25 rounded overflow-hidden`"
-                            :style="{
-                                width: canvasWidth * canvasScale + 'px',
-                                height: canvasHeight * canvasScale + 'px',
-                            }"
+                        <EditorCanvasContainer
+                            :width="`${canvasWidth * canvasScale}px`"
+                            :height="`${canvasHeight * canvasScale}px`"
                         >
                             <iframe
-                                :style="{
-                                    width: canvasWidth + 'px',
-                                    height: canvasHeight + 'px',
-                                    transform: `scale(${canvasScale})`,
-                                    transformOrigin: 'top left',
-                                    border: 'none',
-                                }"
+                                :style="{ ...canvasStyle, border: 'none' }"
                                 :srcdoc="generatedHtml"
                             />
-                        </div>
+                        </EditorCanvasContainer>
                     </MiscLoadingOverlay>
                 </div>
             </div>
@@ -796,7 +774,7 @@ function preview() {
                             <UInput
                                 type="file"
                                 accept="image/*"
-                                @change="(e) => onBgImageUpload(e)"
+                                @change="(e: Event) => onBgImageUpload(e)"
                             />
                             <UButton
                                 v-if="bgImage.file"
@@ -810,7 +788,7 @@ function preview() {
                 <!-- SETTINGS -->
                 <UCard :ui="{ body: 'p-2 sm:p-3' }">
                     <template #header>
-                        <h3>ElementBlock Settings</h3>
+                        <h3>Block Settings</h3>
                     </template>
 
                     <div v-if="selectedItem">
@@ -818,18 +796,13 @@ function preview() {
                             v-if="selectedItem.editableData"
                             class="mb-4"
                         >
-                            <div
-                                v-for="dataItem in selectedItem.setting"
-                                :key="dataItem.key"
+                            <EditorDynamicInput
+                                v-for="setting in selectedItem.setting"
+                                :key="setting.key"
                                 class="mb-4"
-                            >
-                                <UFormField :label="dataItem.label">
-                                    <UInput
-                                        :model-value="dataItem.value"
-                                        @update:model-value="(value) => updateBlockData(dataItem.key, value)"
-                                    />
-                                </UFormField>
-                            </div>
+                                :field="setting"
+                                @update="(e) => updateBlock('setting', setting.key, e)"
+                            />
                         </div>
 
                         <div class="mb-4">
@@ -842,7 +815,7 @@ function preview() {
                                         :model-value="selectedItem.x"
                                         type="number"
                                         :step="0.2"
-                                        @update:model-value="(value) => updatePosition(Number(value), 'x')"
+                                        @update:model-value="(value: any) => updatePosition(Number(value), 'x')"
                                     />
                                 </UFormField>
                                 <UFormField label="Y (%)">
@@ -850,79 +823,19 @@ function preview() {
                                         :model-value="selectedItem.y"
                                         type="number"
                                         :step="0.2"
-                                        @update:model-value="(value) => updatePosition(Number(value), 'y')"
+                                        @update:model-value="(value: any) => updatePosition(Number(value), 'y')"
                                     />
                                 </UFormField>
                             </div>
                         </div>
 
-                        <div
-                            v-for="(field, index) in selectedItem.style"
-                            :key="field.key"
+                        <EditorDynamicInput
+                            v-for="style in selectedItem.style"
+                            :key="style.key"
                             class="mb-4"
-                        >
-                            <template v-if="selectedItem.style[index]">
-                                <UCheckbox
-                                    v-if="field.type === 'checkbox'"
-                                    :model-value="Boolean(getBlockStyleValue(selectedItem.style, field.key))"
-                                    :label="field.label"
-                                    @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
-                                />
-
-                                <UFormField
-                                    v-else
-                                    class="mb-2"
-                                    :label="field.label"
-                                >
-                                    <USelect
-                                        v-if="field.type === 'select' && field.options"
-                                        :model-value="String(getBlockStyleValue(selectedItem.style, field.key))"
-                                        :items="field.options"
-                                        class="w-full"
-                                        @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
-                                    />
-
-                                    <UPopover v-else-if="field.type === 'color'">
-                                        <UButton
-                                            label="Choose color"
-                                            color="neutral"
-                                            variant="outline"
-                                        >
-                                            <template #leading>
-                                                <span
-                                                    :style="{ backgroundColor: String(getBlockStyleValue(selectedItem.style, field.key)) }"
-                                                    class="size-3 rounded-full"
-                                                />
-                                            </template>
-                                        </UButton>
-
-                                        <template #content>
-                                            <UColorPicker
-                                                :model-value="String(getBlockStyleValue(selectedItem.style, field.key))"
-                                                @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e || '#000000')"
-                                            />
-                                        </template>
-                                    </UPopover>
-
-                                    <UInput
-                                        v-else-if="field.type === 'number'"
-                                        type="number"
-                                        :model-value="Number(getBlockStyleValue(selectedItem.style, field.key))"
-                                        class="w-full"
-                                        :step="0.1"
-                                        @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
-                                    />
-
-                                    <UInput
-                                        v-else
-                                        :type="field.type"
-                                        :model-value="String(getBlockStyleValue(selectedItem.style, field.key))"
-                                        class="w-full"
-                                        @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
-                                    />
-                                </UFormField>
-                            </template>
-                        </div>
+                            :field="style"
+                            @update="(e) => selectedItem && updateBlock('style', style.key, e)"
+                        />
                     </div>
 
                     <div v-else>

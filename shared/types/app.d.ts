@@ -77,7 +77,7 @@ export interface CanvasSize {
     orientation: Orientation
 }
 
-export interface BlockStyle {
+export interface BlockSetting {
     key: string
     value: string | boolean | number
     label?: string
@@ -85,17 +85,10 @@ export interface BlockStyle {
     options?: string[]
 }
 
-export interface BlockSetting {
-    key: string
-    value: string
-    label?: string
-}
-
 export interface Block {
     id: string
-    breakpoiint?: Breakpoint
     setting: BlockSetting[]
-    style: BlockStyle[]
+    style: BlockSetting[]
     x: number
     y: number
     compiledStyle: string

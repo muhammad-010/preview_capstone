@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export function getBlockStyleValue(style: BlockStyle[], key: string): string | boolean | number | undefined {
+export function getBlockStyleValue(style: BlockSetting[], key: string): string | boolean | number | undefined {
     return style.find(s => s.key === key)?.value
 }
 
@@ -159,8 +159,8 @@ export function checkInPageHtml(bgImage: BackgroundImage, width: number, height:
 function filterStyles(
     styles: Record<string, any>,
     blockDef: ElementBlock,
-): BlockStyle[] {
-    return Object.entries(styles).reduce<BlockStyle[]>((acc, [key, value]) => {
+): BlockSetting[] {
+    return Object.entries(styles).reduce<BlockSetting[]>((acc, [key, value]) => {
         const def = blockDef.style.find(s => s.key === key)
         if (!def) return acc
 
@@ -207,7 +207,6 @@ export function blockToElementBlock(block: Block, baseEl: ElementBlock): Element
 
 export function blockToTemplateElement(sBlock: Block): TemplateElement {
     return {
-        element_id: 0,
         value: '',
         type: sBlock.id,
         position_x: sBlock.x,
@@ -240,9 +239,6 @@ export function variantToSavedSettings(variant: TemplateVariant): SavedVariant {
         if (!blockDef) continue
 
         const saved: Block = templateElementToBlock(el, blockDef)
-        if (variant.slug && BREAKPOINTS.includes(variant.slug as Breakpoint)) {
-            saved.breakpoiint = variant.slug as Breakpoint
-        }
 
         if (isCustom) {
             customBlock.push(saved)
@@ -273,7 +269,7 @@ export function savedSettingsToVariant(ss: SavedVariant): TemplateVariant {
     }
 
     return {
-        variant_id: 0,
+        variant_id: ss.variantId,
         slug: ss.slug,
         background_image_url: ss.bgImage || null,
         setting: {},
