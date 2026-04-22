@@ -217,16 +217,12 @@ function onCanvasDrop(e: DragEvent) {
     const uid = `${++blockUid.value}`
 
     blockContainer.value.push({
+        ...block,
         uid,
-        id: block.id,
-        label: block.label,
         setting: structuredClone(toRaw(block.setting)),
         style: structuredClone(toRaw(block.style)),
         x: Math.round(pxToPercent(xPx, canvasWidth.value)),
         y: Math.round(pxToPercent(yPx, canvasHeight.value)),
-        compiledStyle: block.compiledStyle,
-        html: block.html,
-        editableData: block.editableData,
     })
 
     selectedUid.value = uid
@@ -285,16 +281,10 @@ function toggleStaticBlock(id: string) {
         if (!block) return
 
         blockContainer.value.push({
+            ...block,
             uid: id,
-            id: block.id,
-            label: block.label,
             setting: structuredClone(toRaw(block.setting)),
             style: structuredClone(toRaw(block.style)),
-            x: block.x,
-            y: block.y,
-            compiledStyle: block.compiledStyle,
-            html: block.html,
-            editableData: block.editableData,
         })
         selectedUid.value = id
     }
@@ -312,7 +302,6 @@ function duplicateBlock(item: ElementBlock) {
         style: structuredClone(toRaw(item.style)),
         x: item.x + 5,
         y: item.y + 5,
-        compiledStyle: compileBlockStyle(item),
     } as ElementBlock
     blockContainer.value.push(newItem)
 }
@@ -321,35 +310,31 @@ function onBlockDragEnd() {
     draggingBlock.value = null
 }
 
-function updateBlock(target: 'setting' | 'style', key: string, value: string | boolean | number) {
+function updateBlock(target: 'position' | 'setting' | 'style', key: CoordinateKey | string, value: string | boolean | number) {
     if (!selectedItem.value) return
 
-    let dataItem: BlockSetting | undefined
-    switch (target) {
-        case 'setting':
-            dataItem = selectedItem.value.setting.find(s => s.key === key)
-            break
-        case 'style':
-            dataItem = selectedItem.value.style.find(s => s.key === key)
-            break
-        default:
-            return
+    if (target === 'position') {
+        selectedItem.value[key as CoordinateKey] = Number(value)
+    }
+    else {
+        let dataItem: BlockSetting | undefined
+        switch (target) {
+            case 'setting':
+                dataItem = selectedItem.value.setting.find(s => s.key === key)
+                break
+            case 'style':
+                dataItem = selectedItem.value.style.find(s => s.key === key)
+                break
+            default:
+                return
+        }
+
+        if (dataItem) {
+            dataItem.value = value
+            if (target === 'style') selectedItem.value.compiledStyle = compileBlockStyle(selectedItem.value)
+        }
     }
 
-    if (dataItem) {
-        dataItem.value = value
-        if (target === 'style') selectedItem.value.compiledStyle = compileBlockStyle(selectedItem.value)
-    }
-
-    if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
-        syncStaticBlock(selectedItem.value)
-    }
-}
-
-function updatePosition(value: number, coord: CoordinateKey) {
-    if (!selectedItem.value) return
-
-    selectedItem.value[coord] = value
     if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
         syncStaticBlock(selectedItem.value)
     }
@@ -365,7 +350,7 @@ function renderBlock(block: ElementBlock) {
     const absoluteStyle = getAbsoluteDivStyle(block)
     return `
     <div style="${absoluteStyle}">
-        ${block.html(block.setting, block.compiledStyle)}
+        ${block.html(block.setting, block.compiledStyle, block.value)}
     </div>
     `
 }
@@ -433,38 +418,27 @@ watch([
 function saveToLocalStorage() {
     if (!props.previewKey) return
 
-    const customBlock: Block[] = []
-    const staticBlock: Block[] = []
+    const customBlock = blockContainer.value
+        .filter(b => !STATIC_BLOCK_IDS.includes(b.id))
+        .map(block => ({
+            id: block.id,
+            style: block.style.map(s => ({ key: s.key, value: s.value })),
+            setting: block.setting.map(s => ({ key: s.key, value: s.value })),
+            x: block.x,
+            y: block.y,
+            compiledStyle: compileBlockStyle(block),
+        }))
 
-    const customBlockList = blockContainer.value.filter(b => !STATIC_BLOCK_IDS.includes(b.id))
-    for (let i = 0; i < customBlockList.length; i++) {
-        const block = customBlockList[i]
-        if (!block) continue
-
-        customBlock.push({
+    const staticBlock = props.staticBlocks
+        .filter(b => STATIC_BLOCK_IDS.includes(b.id))
+        .map(block => ({
             id: block.id,
             style: block.style.map(b => ({ key: b.key, value: b.value })),
             setting: block.setting.map(b => ({ key: b.key, value: b.value })),
             x: block.x,
             y: block.y,
             compiledStyle: compileBlockStyle(block),
-        })
-    }
-
-    const staticBlockList = props.staticBlocks
-    for (let i = 0; i < staticBlockList.length; i++) {
-        const block = staticBlockList[i]
-        if (!block) continue
-
-        staticBlock.push({
-            id: block.id,
-            style: block.style.map(b => ({ key: b.key, value: b.value })),
-            setting: block.setting.map(b => ({ key: b.key, value: b.value })),
-            x: block.x,
-            y: block.y,
-            compiledStyle: compileBlockStyle(block),
-        })
-    }
+        }))
 
     const settings = {
         bgImage: bgImage.value.dataUrl,
@@ -485,7 +459,7 @@ function preview() {
 </script>
 
 <template>
-    <div class="flex flex-col p-8">
+    <div class="flex flex-col p-4">
         <div class="flex justify-between mb-4">
             <div class="flex items-center gap-4">
                 <UButton
@@ -793,6 +767,16 @@ function preview() {
 
                     <div v-if="selectedItem">
                         <div
+                            v-if="selectedItem.withValue"
+                            class="mb-4"
+                        >
+                            <UFormField label="Value">
+                                <UInput
+                                    v-model="selectedItem.value"
+                                />
+                            </UFormField>
+                        </div>
+                        <div
                             v-if="selectedItem.editableData"
                             class="mb-4"
                         >
@@ -815,7 +799,7 @@ function preview() {
                                         :model-value="selectedItem.x"
                                         type="number"
                                         :step="0.2"
-                                        @update:model-value="(value: any) => updatePosition(Number(value), 'x')"
+                                        @update:model-value="(value: any) => updateBlock('position', 'x', Number(value))"
                                     />
                                 </UFormField>
                                 <UFormField label="Y (%)">
@@ -823,7 +807,7 @@ function preview() {
                                         :model-value="selectedItem.y"
                                         type="number"
                                         :step="0.2"
-                                        @update:model-value="(value: any) => updatePosition(Number(value), 'y')"
+                                        @update:model-value="(value: any) => updateBlock('position', 'y', Number(value))"
                                     />
                                 </UFormField>
                             </div>

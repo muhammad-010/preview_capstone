@@ -1,14 +1,9 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
     field: BlockSetting
 }>()
-
 const emit = defineEmits([EMIT_INPUT_UPDATE])
-
-function getValue() {
-    return props.field.value
-}
 
 function setValue(e: any) {
     emit(EMIT_INPUT_UPDATE, e)
@@ -20,7 +15,7 @@ function setValue(e: any) {
         <!-- Checkbox -->
         <UCheckbox
             v-if="field.type === 'checkbox'"
-            :model-value="Boolean(getValue())"
+            :model-value="Boolean(field.value)"
             :label="field.label"
             @update:model-value="setValue"
         />
@@ -33,7 +28,7 @@ function setValue(e: any) {
             <!-- Select -->
             <USelect
                 v-if="field.type === 'select' && field.options"
-                :model-value="String(getValue())"
+                :model-value="String(field.value)"
                 :items="field.options"
                 class="w-full"
                 @update:model-value="setValue"
@@ -48,7 +43,7 @@ function setValue(e: any) {
                 >
                     <template #leading>
                         <span
-                            :style="{ backgroundColor: String(getValue()) }"
+                            :style="{ backgroundColor: String(field.value) }"
                             class="size-3 rounded-full"
                         />
                     </template>
@@ -56,7 +51,7 @@ function setValue(e: any) {
 
                 <template #content>
                     <UColorPicker
-                        :model-value="String(getValue())"
+                        :model-value="String(field.value)"
                         @update:model-value="(e) => setValue(e || '#000000')"
                     />
                 </template>
@@ -66,7 +61,7 @@ function setValue(e: any) {
             <UInput
                 v-else-if="field.type === 'number'"
                 type="number"
-                :model-value="Number(getValue())"
+                :model-value="Number(field.value)"
                 class="w-full"
                 :step="0.1"
                 @update:model-value="setValue"
@@ -76,7 +71,7 @@ function setValue(e: any) {
             <UInput
                 v-else
                 :type="field.type"
-                :model-value="String(getValue())"
+                :model-value="String(field.value)"
                 class="w-full"
                 @update:model-value="setValue"
             />

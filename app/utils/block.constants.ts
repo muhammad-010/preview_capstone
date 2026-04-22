@@ -47,22 +47,21 @@ export const BLOCK_STYLE_LIST: string[] = [
     BLOCK_STYLE_HEIGHT,
 ]
 
-export const BLOCK_CONFIG_VALUE = 'value'
-export const BLOCK_CONFIG_TITLE = 'title'
-export const BLOCK_CONFIG_INPUT_PLACEHOLDER = 'input-placeholder'
-export const BLOCK_CONFIG_BUTTON_TEXT = 'button-text'
-export const BLOCK_CONFIG_LIST: string[] = [
-    BLOCK_CONFIG_VALUE,
-    BLOCK_CONFIG_TITLE,
-    BLOCK_CONFIG_INPUT_PLACEHOLDER,
-    BLOCK_CONFIG_BUTTON_TEXT,
+export const BLOCK_SETTING_TITLE = 'title'
+export const BLOCK_SETTING_INPUT_PLACEHOLDER = 'input-placeholder'
+export const BLOCK_SETTING_BUTTON_TEXT = 'button-text'
+export const BLOCK_SETTING_LIST: string[] = [
+    BLOCK_SETTING_TITLE,
+    BLOCK_SETTING_INPUT_PLACEHOLDER,
+    BLOCK_SETTING_BUTTON_TEXT,
 ]
 
 export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     uid: '',
     id: BLOCK_TEXT_ID,
     label: 'Text',
-    setting: [{ key: BLOCK_CONFIG_VALUE, label: 'Text', value: 'Hello World' }],
+    value: 'Hello World',
+    setting: [],
     style: [
         { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
         { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
@@ -73,12 +72,13 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     x: 0,
     y: 0,
     compiledStyle: 'color: #000000; font-family: Arial, sans-serif; font-size: 1rem; font-weight: normal; font-style: normal;',
-    html: (settings: BlockSetting[], compiledStyle: string) => {
+    html: (settings: BlockSetting[], compiledStyle: string, value: string) => {
         return `
             <p style="${compiledStyle}">
-                ${settings.find(d => d.key === BLOCK_CONFIG_VALUE)?.value || ''}
+                ${value || ''}
             </p>`
     },
+    withValue: true,
     editableData: true,
 }
 
@@ -86,7 +86,8 @@ export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     uid: '',
     id: BLOCK_IMAGE_ID,
     label: 'Image',
-    setting: [{ key: BLOCK_CONFIG_VALUE, label: 'Image URL', value: 'https://placehold.co/100' }],
+    value: 'https://placehold.co/100',
+    setting: [],
     style: [
         { key: BLOCK_STYLE_WIDTH, label: 'Width', type: 'number', value: '100' },
         { key: BLOCK_STYLE_HEIGHT, label: 'Height', type: 'number', value: '100' },
@@ -94,14 +95,15 @@ export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     x: 0,
     y: 0,
     compiledStyle: 'width: 100px; height: 100px;',
-    html: (settings: BlockSetting[], compiledStyle: string) => {
+    html: (settings: BlockSetting[], compiledStyle: string, value: string) => {
         return `
             <img
-                src="${settings.find(d => d.key === BLOCK_CONFIG_VALUE)?.value || ''}"
+                src="${value || ''}"
                 style="${compiledStyle}"
             />
         `
     },
+    withValue: true,
     editableData: true,
 }
 
@@ -114,15 +116,16 @@ export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
     uid: '',
     id: STATIC_BLOCK_SCANNER_QR_ID,
     label: 'QR Code',
-    setting: [{ key: BLOCK_CONFIG_VALUE, label: 'Image URL', value: 'https://placehold.co/100?text=QR+Code' }],
+    value: 'https://placehold.co/100?text=QR+Code',
+    setting: [],
     style: [],
     x: 50,
     y: 50,
     compiledStyle: '',
-    html: (settings: BlockSetting[], compiledStyle: string) => {
+    html: (settings: BlockSetting[], compiledStyle: string, value: string) => {
         return `
             <img
-                src="${settings.find(d => d.key === BLOCK_CONFIG_VALUE)?.value || ''}"
+                src="${value || ''}"
                 style="${compiledStyle}"
             />
         `
@@ -134,20 +137,21 @@ export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
     uid: '',
     id: STATIC_BLOCK_INPUT_CARD_ID,
     label: 'Input Card',
+    value: '',
     setting: [
-        { key: BLOCK_CONFIG_TITLE, label: 'Title', value: 'Title' },
-        { key: BLOCK_CONFIG_INPUT_PLACEHOLDER, label: 'Input Placeholder', value: 'Placeholder' },
-        { key: BLOCK_CONFIG_BUTTON_TEXT, label: 'Button Text', value: 'Submit' },
+        { key: BLOCK_SETTING_TITLE, label: 'Title', value: 'Title' },
+        { key: BLOCK_SETTING_INPUT_PLACEHOLDER, label: 'Input Placeholder', value: 'Placeholder' },
+        { key: BLOCK_SETTING_BUTTON_TEXT, label: 'Button Text', value: 'Submit' },
     ],
     style: [],
     x: 50,
     y: 50,
     compiledStyle: '',
-    html: (settings: BlockSetting[], compiledStyle: string) => {
+    html: (settings: BlockSetting[], compiledStyle: string, _value: string) => {
         const _ = compiledStyle
-        const title = settings.find(d => d.key === BLOCK_CONFIG_TITLE)?.value || 'Title'
-        const placeholder = settings.find(d => d.key === BLOCK_CONFIG_INPUT_PLACEHOLDER)?.value || 'Placeholder'
-        const buttonText = settings.find(d => d.key === BLOCK_CONFIG_BUTTON_TEXT)?.value || 'Submit'
+        const title = settings.find(d => d.key === BLOCK_SETTING_TITLE)?.value || 'Title'
+        const placeholder = settings.find(d => d.key === BLOCK_SETTING_INPUT_PLACEHOLDER)?.value || 'Placeholder'
+        const buttonText = settings.find(d => d.key === BLOCK_SETTING_BUTTON_TEXT)?.value || 'Submit'
         return `
             <div style="width:200px; padding:16px; border:1px solid #ccc; border-radius:8px; background:#fff; text-align: center">
                 <h3 style="font-size:2rem; margin:0 0 12px 0;">

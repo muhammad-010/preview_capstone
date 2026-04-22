@@ -68,6 +68,13 @@ export interface BackgroundImage {
     dataUrl: string
 }
 
+export interface ElementBackgroundImage extends BackgroundImage {
+    perBreakpoint?: Partial<Record<
+        Breakpoint,
+        BackgroundImage
+    >>
+}
+
 export interface CanvasSize {
     id: string
     width: number
@@ -87,26 +94,32 @@ export interface BlockSetting {
 
 export interface Block {
     id: string
+    value: string
     setting: BlockSetting[]
     style: BlockSetting[]
     x: number
     y: number
     compiledStyle: string
+    withValue?: boolean
 }
 
 export interface ElementBlock extends Block {
     uid: string
     label: string
-    html: (setting: BlockSetting[], compiledStyle: string) => string
+    html: (setting: BlockSetting[], compiledStyle: string, value: string) => string
     editableData: boolean
+    perBreakpoint?: Partial<Record<
+        Breakpoint,
+        Block
+    >>
 }
 
 export interface SavedVariant {
     variantId?: number
     slug: string
     bgImage: string
-    customBlock: Block[]
-    staticBlock: Block[]
+    customBlock: ElementBlock[]
+    staticBlock: ElementBlock[]
 }
 
 export interface SavedTemplate {
@@ -114,3 +127,5 @@ export interface SavedTemplate {
     type?: string
     settings: SavedVariant[]
 }
+
+export type BackgroundPerBreakpoint = Record<Breakpoint, string | undefined>

@@ -29,26 +29,21 @@ const { data: templateData } = useApi(`/api/tenant/${tenantId.value}/event/${eve
     }),
 })
 const template = computed<Template>(() => templateData.value ?? {} as Template)
-const smBackground = computed(() => {
-    const variant = template.value.variants.find(v => v.slug === BREAKPOINT_SM)
-    if (!variant || !variant.background_image_url) return undefined
-    return variant.background_image_url
+const background = computed<Record<Breakpoint, string | undefined>>(() => {
+    const res = {} as Record<Breakpoint, string | undefined>
+    if (!template.value.variants) return res
+
+    for (const bp of BREAKPOINTS) {
+        const variant = template.value.variants.find(v => v.slug === bp)
+        res[bp] = variant?.background_image_url || undefined
+    }
+
+    return res
 })
-const mdBackground = computed(() => {
-    const variant = template.value.variants.find(v => v.slug === BREAKPOINT_MD)
-    if (!variant || !variant.background_image_url) return undefined
-    return variant.background_image_url
-})
-const lgBackground = computed(() => {
-    const variant = template.value.variants.find(v => v.slug === BREAKPOINT_LG)
-    if (!variant || !variant.background_image_url) return undefined
-    return variant.background_image_url
-})
-const xlBackground = computed(() => {
-    const variant = template.value.variants.find(v => v.slug === BREAKPOINT_XL)
-    if (!variant || !variant.background_image_url) return undefined
-    return variant.background_image_url
-})
+const blocks = computed<{
+    customBlocks: ElementBlock[]
+    staticBlocks: ElementBlock[]
+}>(() => mapTemplateToBlocks(template.value))
 
 useHead({
     title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),
@@ -62,10 +57,10 @@ definePageMeta({
     <div>
         <NuxtLayout
             name="scan"
-            :sm-background="smBackground"
-            :md-background="mdBackground"
-            :lg-background="lgBackground"
-            :xl-background="xlBackground"
+            :sm-background="background[BREAKPOINT_SM]"
+            :md-background="background[BREAKPOINT_MD]"
+            :lg-background="background[BREAKPOINT_LG]"
+            :xl-background="background[BREAKPOINT_XL]"
         >
             <PageCheckInMain
                 v-model:open-success="checkInSuccessDialog"
@@ -75,6 +70,8 @@ definePageMeta({
                 :tenant-id="tenantId"
                 :event-id="eventId"
                 :session-id="sessionId"
+                :custom-block-settings="blocks.customBlocks"
+                :static-block-settings="blocks.staticBlocks"
             />
 
             <ModalCheckInSuccess

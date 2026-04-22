@@ -36,7 +36,7 @@ export type ResponsiveCssVar = BackgroundCssVar
 export interface ResponsiveElementSetting {
     tailwindClass: string[]
     style: Partial<Record<
-        ResponsiveCssVar,
+        ResponsiveCssVar | string,
         string
     >>
 }

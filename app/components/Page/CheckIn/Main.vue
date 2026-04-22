@@ -8,8 +8,8 @@ const props = defineProps<{
     eventId: number
     sessionId?: number
     isPreview?: boolean
-    customBlockSettings?: Block[]
-    staticBlockSettings?: Block[]
+    customBlockSettings?: ElementBlock[]
+    staticBlockSettings?: ElementBlock[]
 }>()
 const checkInSuccessDialog = defineModel<boolean>('open-success', { default: false })
 const checkInFailedDialog = defineModel<boolean>('open-failed', { default: false })
@@ -370,20 +370,12 @@ async function confirmAttendance(event: FormSubmitEvent<ConfirmAttendanceSchema>
     }
 }
 
-function getStaticBlockStyle(id: string) {
-    if (!import.meta.client) return ''
-    if (!props.staticBlockSettings) return ''
-
-    const block = props.staticBlockSettings.find(b => b.id === id)
-    if (!block) return ''
-
-    return `
-        position: absolute;
-        left: ${block.x}%;
-        top: ${block.y}%;
-        transform: translate(-50%, -50%);
-    `
-}
+const checkInResponsivePos = computed(() => {
+    return getPositionStyle(props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_SCANNER_QR_ID))
+})
+const inputCardResponsivePos = computed(() => {
+    return getPositionStyle(props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_INPUT_CARD_ID))
+})
 </script>
 
 <template>
@@ -394,7 +386,8 @@ function getStaticBlockStyle(id: string) {
 
         <div
             v-if="activeCheckInMethod === CHECK_IN_METHOD_SCAN"
-            :style="getStaticBlockStyle(STATIC_BLOCK_SCANNER_QR_ID)"
+            :style="checkInResponsivePos.style"
+            :class="checkInResponsivePos.tailwindClass"
         >
             <div class="flex justify-center mb-4">
                 <UButton
@@ -413,7 +406,8 @@ function getStaticBlockStyle(id: string) {
 
         <div
             v-else-if="activeCheckInMethod === CHECK_IN_METHOD_MANUAL"
-            :style="getStaticBlockStyle(STATIC_BLOCK_INPUT_CARD_ID)"
+            :style="inputCardResponsivePos.style"
+            :class="inputCardResponsivePos.tailwindClass"
         >
             <div class="flex justify-center mb-4">
                 <UButton

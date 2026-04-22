@@ -48,6 +48,43 @@ export function getAbsoluteDivStyle(block: ElementBlock) {
     `
 }
 
+export function getPositionStyle(elBlock: ElementBlock | undefined): ResponsiveElementSetting {
+    const empty: ResponsiveElementSetting = {
+        tailwindClass: [],
+        style: {
+            position: 'absolute',
+            transform: 'translate(-50%, -50%)',
+        },
+    }
+    if (!elBlock || !elBlock.perBreakpoint) {
+        empty.style.top = '50%'
+        empty.style.left = '50%'
+        return empty
+    }
+
+    return Object.entries(elBlock.perBreakpoint).reduce<ResponsiveElementSetting>((acc, [bp, block]) => {
+        if (!BREAKPOINTS.includes(bp as Breakpoint)) return acc
+
+        const {
+            cssVariable: xCssVariable,
+            tailwindClass: xTailwindClass,
+            getValue: xGetValue,
+        } = responsiveStyleClass(bp as Breakpoint, STYLING_POS_X_SUFFIX)
+        acc.style[xCssVariable] = xGetValue(block.x)
+        acc.tailwindClass.push(xTailwindClass)
+
+        const {
+            cssVariable: yCssVariable,
+            tailwindClass: yTailwindClass,
+            getValue: yGetValue,
+        } = responsiveStyleClass(bp as Breakpoint, STYLING_POS_Y_SUFFIX)
+        acc.style[yCssVariable] = yGetValue(block.y)
+        acc.tailwindClass.push(yTailwindClass)
+
+        return acc
+    }, empty)
+}
+
 export function invitationEmailHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
     return `
     <!DOCTYPE html>
@@ -156,12 +193,18 @@ export function checkInPageHtml(bgImage: BackgroundImage, width: number, height:
     `
 }
 
-function filterStyles(
-    styles: Record<string, any>,
+function filterBlockData(
+    type: 'style' | 'setting',
+    data: Record<string, any>,
     blockDef: ElementBlock,
 ): BlockSetting[] {
-    return Object.entries(styles).reduce<BlockSetting[]>((acc, [key, value]) => {
-        const def = blockDef.style.find(s => s.key === key)
+    const allowedList = type === 'style' ? BLOCK_STYLE_LIST : BLOCK_SETTING_LIST
+    const defList = type === 'style' ? blockDef.style : blockDef.setting
+
+    return Object.entries(data).reduce<BlockSetting[]>((acc, [key, value]) => {
+        if (!allowedList.includes(key)) return acc
+
+        const def = defList.find(s => s.key === key)
         if (!def) return acc
 
         acc.push({
@@ -176,38 +219,9 @@ function filterStyles(
     }, [])
 }
 
-function filterSettings(
-    settings: Record<string, any>,
-    blockDef: ElementBlock,
-): BlockSetting[] {
-    return Object.entries(settings).reduce<BlockSetting[]>((acc, [key, value]) => {
-        const def = blockDef.setting.find(s => s.key === key)
-        if (!def) return acc
-
-        acc.push({
-            key,
-            value: String(value),
-            label: def.label,
-        })
-
-        return acc
-    }, [])
-}
-
-export function blockToElementBlock(block: Block, baseEl: ElementBlock): ElementBlock {
-    return {
-        ...baseEl,
-        setting: block.setting,
-        style: block.style,
-        compiledStyle: compileBlockStyle(block),
-        x: block.x,
-        y: block.y,
-    }
-}
-
 export function blockToTemplateElement(sBlock: Block): TemplateElement {
     return {
-        value: '',
+        value: sBlock.value,
         type: sBlock.id,
         position_x: sBlock.x,
         position_y: sBlock.y,
@@ -216,20 +230,9 @@ export function blockToTemplateElement(sBlock: Block): TemplateElement {
     }
 }
 
-export function templateElementToBlock(el: TemplateElement, blockDef: ElementBlock): Block {
-    return {
-        id: el.type,
-        x: el.position_x,
-        y: el.position_y,
-        style: filterStyles(el.style, blockDef),
-        setting: filterSettings(el.setting, blockDef),
-        compiledStyle: blockDef.compiledStyle,
-    }
-}
-
-export function variantToSavedSettings(variant: TemplateVariant): SavedVariant {
-    const customBlock: Block[] = []
-    const staticBlock: Block[] = []
+export function templateVariantToSavedVariant(variant: TemplateVariant): SavedVariant {
+    const customBlock: ElementBlock[] = []
+    const staticBlock: ElementBlock[] = []
 
     for (const el of variant.elements) {
         const isCustom = BLOCK_IDS.some(b => b === el.type)
@@ -238,7 +241,16 @@ export function variantToSavedSettings(variant: TemplateVariant): SavedVariant {
             : STATIC_BLOCKS.find(b => b.id === el.type)
         if (!blockDef) continue
 
-        const saved: Block = templateElementToBlock(el, blockDef)
+        const saved: ElementBlock = {
+            ...blockDef,
+            id: el.type,
+            x: el.position_x,
+            y: el.position_y,
+            value: el.value,
+            style: filterBlockData('style', el.style, blockDef),
+            setting: filterBlockData('setting', el.setting, blockDef),
+            compiledStyle: blockDef.compiledStyle,
+        }
 
         if (isCustom) {
             customBlock.push(saved)
@@ -257,7 +269,7 @@ export function variantToSavedSettings(variant: TemplateVariant): SavedVariant {
     }
 }
 
-export function savedSettingsToVariant(ss: SavedVariant): TemplateVariant {
+export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant {
     const elements: TemplateElement[] = []
 
     const allBlocks = [...ss.customBlock, ...ss.staticBlock]
@@ -274,5 +286,67 @@ export function savedSettingsToVariant(ss: SavedVariant): TemplateVariant {
         background_image_url: ss.bgImage || null,
         setting: {},
         elements,
+    }
+}
+
+export function mapTemplateToBlocks(template: Template): {
+    customBlocks: ElementBlock[]
+    staticBlocks: ElementBlock[]
+} {
+    const blockMap: Record<string, ElementBlock> = {}
+
+    const defaultMap: Record<string, ElementBlock> = {}
+    for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
+    for (const b of CUSTOM_BLOCKS) defaultMap[b.id] = b
+
+    for (const variant of template.variants) {
+        const bp = variant.slug as Breakpoint
+
+        for (const el of variant.elements) {
+            let block = blockMap[el.type]
+
+            if (!block) {
+                const base = defaultMap[el.type]
+
+                if (!base) continue
+                block = {
+                    ...base,
+                    value: el.value,
+                    perBreakpoint: {},
+                }
+
+                blockMap[el.type] = block
+            }
+
+            block.perBreakpoint![bp] = {
+                id: el.type,
+                x: el.position_x,
+                y: el.position_y,
+                value: el.value,
+                style: Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : structuredClone(toRaw(block.style)),
+                setting: Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : structuredClone(toRaw(block.setting)),
+                compiledStyle: '',
+            }
+            block.perBreakpoint![bp]!.compiledStyle = compileBlockStyle(block)
+        }
+    }
+
+    const allBlocks = Object.values(blockMap)
+
+    const staticBlocks: ElementBlock[] = []
+    const customBlocks: ElementBlock[] = []
+
+    for (const block of allBlocks) {
+        if (STATIC_BLOCK_IDS.includes(block.id)) {
+            staticBlocks.push(block)
+        }
+        else {
+            customBlocks.push(block)
+        }
+    }
+
+    return {
+        customBlocks,
+        staticBlocks,
     }
 }

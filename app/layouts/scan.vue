@@ -40,7 +40,13 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
     >
         <!--
             FOR TRIGGERING TAILWIND SO IT GENERATE CLASSES FROM responsiveStyleClass
-            <div class="hidden sm:bg-(image:--sm-background) md:bg-(image:--md-background) lg:bg-(image:--lg-background) xl:bg-(image:--xl-background)" />
+        <div
+            class="hidden
+                    sm:bg-(image:--sm-background) md:bg-(image:--md-background) lg:bg-(image:--lg-background) xl:bg-(image:--xl-background)
+                    sm:left-(--sm-pos-x) md:left-(--md-pos-x) lg:left-(--lg-pos-x) xl:left-(--xl-pos-x)
+                    sm:top-(--sm-pos-y) md:top-(--md-pos-y) lg:top-(--lg-pos-y) xl:top-(--xl-pos-y)
+                "
+        />
         -->
 
         <div
