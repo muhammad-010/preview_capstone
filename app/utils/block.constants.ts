@@ -77,9 +77,9 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     style: [
         { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
         // { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
-        { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'number', value: '1' },
+        { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'text', value: '1rem' },
         { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'select', value: '500', options: structuredClone(toRaw(BLOCK_STYLE_FONT_WEIGHT_OPTIONS)) },
-        { key: BLOCK_STYLE_FONT_STYLE, label: 'Italic', type: 'checkbox', value: false },
+        { key: BLOCK_STYLE_FONT_STYLE, label: 'Italic', type: 'checkbox', value: 'normal', trueValue: 'italic', falseValue: 'normal' },
     ],
     x: 0,
     y: 0,
@@ -101,8 +101,8 @@ export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     value: 'https://placehold.co/100',
     setting: [],
     style: [
-        { key: BLOCK_STYLE_WIDTH, label: 'Width', type: 'number', value: '100' },
-        { key: BLOCK_STYLE_HEIGHT, label: 'Height', type: 'number', value: '100' },
+        { key: BLOCK_STYLE_WIDTH, label: 'Width', type: 'text', value: '100px' },
+        { key: BLOCK_STYLE_HEIGHT, label: 'Height', type: 'text', value: '100px' },
     ],
     x: 0,
     y: 0,

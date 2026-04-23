@@ -90,6 +90,8 @@ export interface BlockSetting {
     label?: string
     type?: string
     options?: string[]
+    trueValue?: string
+    falseValue?: string
 }
 
 export interface Block {

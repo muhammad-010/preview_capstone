@@ -1,4 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+function isStylingSuffix(value: string): value is StylingSuffix {
+    return STYLING_SUFFIXES.includes(value as StylingSuffix)
+}
+
+function isBreakpoint(value: string): value is Breakpoint {
+    return BREAKPOINTS.includes(value as Breakpoint)
+}
+
 export function getBlockStyleValue(style: BlockSetting[], key: string): string | boolean | number | undefined {
     return style.find(s => s.key === key)?.value
 }
@@ -7,16 +15,16 @@ export function compileBlockStyle(block: Block) {
     if (block.id === BLOCK_TEXT_ID) {
         return `
             ${BLOCK_STYLE_COLOR}:${getBlockStyleValue(block.style, BLOCK_STYLE_COLOR)};
-            ${BLOCK_STYLE_FONT_SIZE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_SIZE)}rem;
+            ${BLOCK_STYLE_FONT_SIZE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_SIZE)};
             ${BLOCK_STYLE_FONT_WEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_WEIGHT)};
-            ${BLOCK_STYLE_FONT_STYLE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_STYLE) ? 'italic' : 'normal'};
+            ${BLOCK_STYLE_FONT_STYLE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_STYLE)};
         `
     }
 
     if (block.id === BLOCK_IMAGE_ID) {
         return `
-            ${BLOCK_STYLE_WIDTH}:${getBlockStyleValue(block.style, BLOCK_STYLE_WIDTH)}px;
-            ${BLOCK_STYLE_HEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_HEIGHT)}px;
+            ${BLOCK_STYLE_WIDTH}:${getBlockStyleValue(block.style, BLOCK_STYLE_WIDTH)};
+            ${BLOCK_STYLE_HEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_HEIGHT)};
         `
     }
 
@@ -35,7 +43,7 @@ export function compileBlockStyle(block: Block) {
     return ''
 }
 
-export function getAbsoluteDivStyle(block: ElementBlock) {
+export function getPositionStyle(block: Block) {
     if (!import.meta.client) return ''
     if (!block) return ''
 
@@ -47,7 +55,7 @@ export function getAbsoluteDivStyle(block: ElementBlock) {
     `
 }
 
-export function getPositionStyle(elBlock: ElementBlock | undefined): ResponsiveElementSetting {
+export function getResponsivePositionStyle(elBlock: ElementBlock | undefined): ResponsiveElementSetting {
     const empty: ResponsiveElementSetting = {
         tailwindClass: [],
         style: {
@@ -62,13 +70,13 @@ export function getPositionStyle(elBlock: ElementBlock | undefined): ResponsiveE
     }
 
     return Object.entries(elBlock.perBreakpoint).reduce<ResponsiveElementSetting>((acc, [bp, block]) => {
-        if (!BREAKPOINTS.includes(bp as Breakpoint)) return acc
+        if (!isBreakpoint(bp)) return acc
 
         const {
             cssVariable: xCssVariable,
             tailwindClass: xTailwindClass,
             getValue: xGetValue,
-        } = responsiveStyleClass(bp as Breakpoint, STYLING_POS_X_SUFFIX)
+        } = responsiveStyleClass(bp, STYLING_POS_X_SUFFIX)
         acc.style[xCssVariable] = xGetValue(block.x)
         acc.tailwindClass.push(xTailwindClass)
 
@@ -76,12 +84,45 @@ export function getPositionStyle(elBlock: ElementBlock | undefined): ResponsiveE
             cssVariable: yCssVariable,
             tailwindClass: yTailwindClass,
             getValue: yGetValue,
-        } = responsiveStyleClass(bp as Breakpoint, STYLING_POS_Y_SUFFIX)
+        } = responsiveStyleClass(bp, STYLING_POS_Y_SUFFIX)
         acc.style[yCssVariable] = yGetValue(block.y)
         acc.tailwindClass.push(yTailwindClass)
 
         return acc
     }, empty)
+}
+
+export function getResponsiveStyle(elBlock: ElementBlock | undefined): ResponsiveElementSetting {
+    const empty: ResponsiveElementSetting = {
+        tailwindClass: [],
+        style: {},
+    }
+    if (!elBlock || !elBlock.perBreakpoint) return empty
+
+    return Object.entries(elBlock.perBreakpoint).reduce<ResponsiveElementSetting>((acc, [bp, block]) => {
+        if (!isBreakpoint(bp)) return acc
+
+        const res = block.style.reduce<ResponsiveElementSetting>((accumulator, current) => {
+            if (!BLOCK_STYLE_LIST.includes(current.key)) return accumulator
+
+            const suffix = `-${current.key}`
+            if (!isStylingSuffix(suffix)) return accumulator
+
+            const {
+                cssVariable,
+                tailwindClass,
+                getValue,
+            } = responsiveStyleClass(bp, suffix)
+            accumulator.style[cssVariable] = getValue(current.value)
+            accumulator.tailwindClass.push(tailwindClass)
+
+            return accumulator
+        }, structuredClone(toRaw(empty)))
+
+        acc.style = { ...acc.style, ...res.style }
+        acc.tailwindClass = [...acc.tailwindClass, ...res.tailwindClass]
+        return acc
+    }, structuredClone(toRaw(empty)))
 }
 
 export function invitationEmailHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
@@ -218,17 +259,6 @@ function filterBlockData(
     }, [])
 }
 
-export function blockToTemplateElement(sBlock: Block): TemplateElement {
-    return {
-        value: sBlock.value,
-        type: sBlock.id,
-        position_x: sBlock.x,
-        position_y: sBlock.y,
-        style: Object.fromEntries(sBlock.style.map(s => [s.key, s.value])),
-        setting: Object.fromEntries(sBlock.setting.map(s => [s.key, s.value])),
-    }
-}
-
 export function templateVariantToSavedVariant(variant: TemplateVariant): SavedVariant {
     const customBlock: ElementBlock[] = []
     const staticBlock: ElementBlock[] = []
@@ -274,7 +304,14 @@ export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant
     const allBlocks = [...ss.customBlock, ...ss.staticBlock]
 
     for (const block of allBlocks) {
-        const el = blockToTemplateElement(block)
+        const el = {
+            value: block.value,
+            type: block.id,
+            position_x: block.x,
+            position_y: block.y,
+            style: Object.fromEntries(block.style.map(s => [s.key, s.value])),
+            setting: Object.fromEntries(block.setting.map(s => [s.key, s.value])),
+        }
 
         elements.push(el)
     }

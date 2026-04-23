@@ -1,16 +1,7 @@
 export type Breakpoint = typeof BREAKPOINTS[number]
 export type TailwindBreakpointPrefix = typeof TW_BREAKPOINTS[number]
 
-export type StylingSuffix = '-background'
-    | '-pos-x'
-    | '-pos-y'
-    | '-color'
-    // | '-font-family'
-    | '-font-size'
-    | '-font-weight'
-    | '-font-style'
-    | '-width'
-    | '-height'
+export type StylingSuffix = typeof STYLING_SUFFIXES[number]
 export type BackgroundCssVar = typeof STYLING_BACKGROUNDS[number]
 export type XPosCssVar = typeof STYLING_POS_XS[number]
 export type YPosCssVar = typeof STYLING_POS_YS[number]

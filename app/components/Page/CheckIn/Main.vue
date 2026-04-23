@@ -371,10 +371,10 @@ async function confirmAttendance(event: FormSubmitEvent<ConfirmAttendanceSchema>
 }
 
 const checkInResponsivePos = computed(() => {
-    return getPositionStyle(props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_SCANNER_QR_ID))
+    return getResponsivePositionStyle(props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_SCANNER_QR_ID))
 })
 const inputCardResponsivePos = computed(() => {
-    return getPositionStyle(props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_INPUT_CARD_ID))
+    return getResponsivePositionStyle(props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_INPUT_CARD_ID))
 })
 </script>
 

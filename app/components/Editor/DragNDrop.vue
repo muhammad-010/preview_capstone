@@ -347,7 +347,7 @@ let previewTimeout: ReturnType<typeof setTimeout>
 
 function renderBlock(block: ElementBlock) {
     if (!block) return ''
-    const absoluteStyle = getAbsoluteDivStyle(block)
+    const absoluteStyle = getPositionStyle(block)
     return `
     <div style="${absoluteStyle}">
         ${block.html(block.setting, block.compiledStyle, block.value)}

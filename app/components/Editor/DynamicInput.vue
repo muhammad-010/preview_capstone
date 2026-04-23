@@ -15,9 +15,11 @@ function setValue(e: any) {
         <!-- Checkbox -->
         <UCheckbox
             v-if="field.type === 'checkbox'"
-            :model-value="Boolean(field.value)"
+            :model-value="field.value === field.trueValue"
             :label="field.label"
-            @update:model-value="setValue"
+            :true-value="field.trueValue !== undefined ? field.trueValue : true"
+            :false-value="field.falseValue !== undefined ? field.falseValue : false"
+            @update:model-value="(e) => setValue(e ? field.trueValue : field.falseValue)"
         />
 
         <UFormField
