@@ -1,76 +1,12 @@
 <script setup lang="ts">
-import type { FormError, FormSubmitEvent } from '@nuxt/ui'
-import type { DetectedBarcode } from 'nuxt-qrcode'
-import { FetchError } from 'ofetch'
-
-const { $api } = useNuxtApp()
 const route = useRoute()
 const eventId = Number(route.params.event_id)
 const sessionId = Number(route.params.session_id)
 const { tenantId } = useUserState()
-const toast = useToast()
-const isClient = import.meta.client
-
-const checkInMethods = {
-    [CHECK_IN_METHOD_SCAN]: 'Scan QR',
-    [CHECK_IN_METHOD_MANUAL]: 'Input Phone Number',
-}
-const checkInMethodDialog = ref(true)
-const activeCheckInMethod = ref<typeof CHECK_IN_METHOD_SCAN | typeof CHECK_IN_METHOD_MANUAL | null>(null)
-const inverseCheckInMethodLabel = computed(() => {
-    switch (activeCheckInMethod.value) {
-        case CHECK_IN_METHOD_SCAN:
-            return `Switch to ${checkInMethods[CHECK_IN_METHOD_MANUAL]}`
-        case CHECK_IN_METHOD_MANUAL:
-            return `Switch to ${checkInMethods[CHECK_IN_METHOD_SCAN]}`
-        default:
-            return 'No check-in method selected'
-    }
-})
-function checkInQr() {
-    activeCheckInMethod.value = CHECK_IN_METHOD_SCAN
-    checkInMethodDialog.value = false
-}
-function checkInManual() {
-    activeCheckInMethod.value = CHECK_IN_METHOD_MANUAL
-    checkInMethodDialog.value = false
-}
-function switchCheckInMethod() {
-    switch (activeCheckInMethod.value) {
-        case CHECK_IN_METHOD_SCAN:
-            activeCheckInMethod.value = CHECK_IN_METHOD_MANUAL
-            break
-        case CHECK_IN_METHOD_MANUAL:
-            activeCheckInMethod.value = CHECK_IN_METHOD_SCAN
-            break
-        default:
-            break
-    }
-}
 
 const checkInSuccessDialog = ref(false)
 const checkInFailedDialog = ref(false)
-const confirmAttendanceDialog = ref(false)
-const errorMessage = ref<string>('')
-function openCheckInSuccess() {
-    confirmAttendanceDialog.value = false
-    checkInSuccessDialog.value = true
-    playSuccessSound()
-    setTimeout(() => {
-        checkInSuccessDialog.value = false
-    }, 5000)
-}
-function openCheckInFailed(msg: string) {
-    errorMessage.value = msg
-    checkInFailedDialog.value = true
-    playErrorSound()
-    setTimeout(() => {
-        checkInFailedDialog.value = false
-    }, 5000)
-}
-
-const participantQr = ref('')
-const participant = ref<ParticipantCheckInTarget>({
+const targetParticipant = ref<ParticipantCheckInTarget>({
     id: 0,
     sessionId: 0,
     sessionName: '',
@@ -78,477 +14,92 @@ const participant = ref<ParticipantCheckInTarget>({
     maxAttendance: 0,
     customAttributes: [],
 })
+const errorMessage = ref<string>('')
 
-let checkinAudio: HTMLAudioElement
-let successAudio: HTMLAudioElement
-let errorAudio: HTMLAudioElement
-onMounted(() => {
-    window.addEventListener('pointerdown', () => {
-        checkinAudio = new Audio('/checkin-sound.mp3')
-        successAudio = new Audio('/success-sound.mp3')
-        errorAudio = new Audio('/error-sound.mp3')
-        Promise.all([
-            checkinAudio.play().then(() => {
-                checkinAudio.pause()
-                checkinAudio.currentTime = 0
-            }),
-            successAudio.play().then(() => {
-                successAudio.pause()
-                successAudio.currentTime = 0
-            }),
-            errorAudio.play().then(() => {
-                errorAudio.pause()
-                errorAudio.currentTime = 0
-            }),
-        ])
-    }, { once: true })
+const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`, {
+    transform: res => ({
+        ...res.data,
+    }),
 })
-function playCheckinSound() {
-    if (isClient && checkinAudio) checkinAudio.play()
-}
-function playSuccessSound() {
-    if (isClient && successAudio) successAudio.play()
-}
-function playErrorSound() {
-    if (isClient && errorAudio) errorAudio.play()
-}
-function openConfirmAttendanceDialog() {
-    confirmAttendanceDialog.value = true
-    playCheckinSound()
-}
-function resetRef() {
-    confirmAttendanceDialog.value = false
-    checkInSuccessDialog.value = false
-    checkInFailedDialog.value = false
-    setTimeout(() => {
-        participantQr.value = ''
-        errorMessage.value = ''
-    }, 500)
-}
+const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
 
-watch([checkInSuccessDialog, checkInFailedDialog], ([successDialog, failedDialog], [oldSuccessDialog, oldFailedDialog]) => {
-    const successClosed = oldSuccessDialog && !successDialog
-    const failedClosed = oldFailedDialog && !failedDialog
-
-    if (successClosed || failedClosed) {
-        resetRef()
-    }
+const { data: templateData } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/session/${sessionId}/template/render/scanqr`, {
+    transform: res => ({
+        ...res.data,
+    }),
 })
+const template = computed<Template>(() => templateData.value ?? {} as Template)
+const background = computed<Record<Breakpoint, string | undefined>>(() => {
+    const res = {} as Record<Breakpoint, string | undefined>
+    if (!template.value.variants) return res
 
-async function useDetail(tenantId: number, eventId: number) {
-    const { data } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/detail`, {
-        transform: res => ({
-            ...res.data,
-        }),
-    })
-    const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
-
-    return {
-        event,
-    }
-}
-
-async function useScanQr(tenantId: number, eventId: number, sessionId: number) {
-    const pauseQr = ref(false)
-
-    async function qrDetected(qrCodes: DetectedBarcode[]) {
-        if (qrCodes.length <= 0) {
-            toast.add({
-                title: 'Error',
-                description: 'No QR read',
-                color: 'error',
-            })
-            return
-        }
-        const qrCode = qrCodes[0]
-        if (!qrCode || !qrCode.rawValue) {
-            toast.add({
-                title: 'Error',
-                description: 'Invalid QR code',
-                color: 'error',
-            })
-            return
-        }
-        participantQr.value = qrCode.rawValue
-
-        try {
-            const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in`, {
-                method: 'POST',
-                body: {
-                    token: participantQr.value,
-                },
-            })
-            participant.value = {
-                ...participant.value,
-                name: data.participant.name || '',
-                maxAttendance: data.participant.max_attendance || 0,
-                customAttributes: data.participant.custom_attributes || [],
-            }
-            if (data.confirmation_attendance) {
-                openConfirmAttendanceDialog()
-            }
-            else {
-                openCheckInSuccess()
-            }
-        }
-        catch (error) {
-            if (error instanceof FetchError && error.response) {
-                openCheckInFailed(error.response._data.data.message)
-            }
-            else {
-                toast.add({
-                    title: 'Error',
-                    description: 'Failed submitting QR',
-                    color: 'error',
-                })
-                console.error('Failed submitting QR', error)
-                playErrorSound()
-                resetRef()
-            }
-        }
-        finally {
-            setTimeout(() => {
-                pauseQr.value = false
-            }, 500)
-        }
+    for (const bp of BREAKPOINTS) {
+        const variant = template.value.variants.find(v => v.slug === bp)
+        res[bp] = variant?.background_image_url || undefined
     }
 
-    return {
-        pauseQr,
-        qrDetected,
-    }
-}
-
-async function useManual(tenantId: number, eventId: number, sessionId: number) {
-    async function selectParticipant(selectedParticipant: Participant | undefined) {
-        if (!selectedParticipant) return
-
-        participant.value = {
-            ...participant.value,
-            id: selectedParticipant.participant_id || 0,
-            name: selectedParticipant.name,
-        }
-        await manualCheckIn()
-    }
-
-    async function manualCheckIn() {
-        if (!participant.value.id) return
-
-        try {
-            const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in/manual`, {
-                method: 'POST',
-                body: {
-                    participant_id: participant.value.id,
-                },
-            })
-            participant.value = {
-                ...participant.value,
-                maxAttendance: data.participant.max_attendance || 0,
-                customAttributes: data.participant.custom_attributes || [],
-            }
-            if (data.confirmation_attendance) {
-                openConfirmAttendanceDialog()
-            }
-            else {
-                openCheckInSuccess()
-            }
-        }
-        catch (error) {
-            if (error instanceof FetchError && error.response) {
-                openCheckInFailed(error.response._data.data.message)
-            }
-            else {
-                toast.add({
-                    title: 'Error',
-                    description: 'Failed to manually check in participant',
-                    color: 'error',
-                })
-                console.error('Manual check in participant error', error)
-            }
-        }
-    }
-
-    return {
-        selectParticipant,
-        manualCheckIn,
-    }
-}
-
-async function useConfirmAttendance(tenantId: number, eventId: number, sessionId: number) {
-    const state = reactive({ count: 0 })
-    type Schema = typeof state
-
-    function validateConfirmAttendance(state: Partial<Schema>): FormError[] {
-        const errors = []
-        if (!state.count) errors.push({ name: 'count', message: 'Guest count is required, minimum is 1' })
-        else if (state.count > participant.value.maxAttendance) errors.push({ name: 'count', message: `Can not more than ${participant.value.maxAttendance}` })
-        return errors
-    }
-
-    async function confirmAttendanceQr(event: FormSubmitEvent<Schema>) {
-        try {
-            await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in/confirm`, {
-                method: 'POST',
-                body: {
-                    token: participantQr.value,
-                    count_attendance: Number(event.data.count),
-                },
-            })
-            openCheckInSuccess()
-        }
-        catch (error) {
-            if (error instanceof FetchError && error.response) {
-                openCheckInFailed(error.response._data.data.message)
-            }
-            else {
-                toast.add({
-                    title: 'Error',
-                    description: 'Failed confirming check-in',
-                    color: 'error',
-                })
-                console.error('Failed confirming check-in', error)
-            }
-        }
-    }
-
-    async function confirmAttendanceManual(event: FormSubmitEvent<Schema>) {
-        try {
-            await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in/confirm/manual`, {
-                method: 'POST',
-                body: {
-                    participant_id: participant.value.id,
-                    count_attendance: Number(event.data.count),
-                },
-            })
-            openCheckInSuccess()
-        }
-        catch (error) {
-            if (error instanceof FetchError && error.response) {
-                openCheckInFailed(error.response._data.data.message)
-            }
-            else {
-                toast.add({
-                    title: 'Error',
-                    description: 'Failed confirming check-in',
-                    color: 'error',
-                })
-                console.error('Failed confirming check-in', error)
-            }
-        }
-    }
-
-    async function confirmAttendance(event: FormSubmitEvent<Schema>) {
-        switch (activeCheckInMethod.value) {
-            case CHECK_IN_METHOD_SCAN:
-                confirmAttendanceQr(event)
-                break
-            case CHECK_IN_METHOD_MANUAL:
-                confirmAttendanceManual(event)
-                break
-            default:
-                break
-        }
-    }
-
-    return {
-        state,
-        validateConfirmAttendance,
-        confirmAttendance,
-    }
-}
-
-const [
-    {
-        event,
-    },
-
-    {
-        pauseQr,
-        qrDetected,
-    },
-
-    {
-        selectParticipant,
-    },
-] = await Promise.all([
-    useDetail(tenantId.value, eventId),
-    useScanQr(tenantId.value, eventId, sessionId),
-    useManual(tenantId.value, eventId, sessionId),
-])
-
-const {
-    state,
-    validateConfirmAttendance,
-    confirmAttendance,
-} = await useConfirmAttendance(tenantId.value, eventId, sessionId)
+    return res
+})
+const blocks = computed<{
+    customBlocks: ElementBlock[]
+    staticBlocks: ElementBlock[]
+}>(() => mapTemplateToBlocks(template.value))
 
 useHead({
     title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),
 })
 definePageMeta({
-    layout: 'check-in',
-    middleware: ['check-in'],
+    layout: false,
 })
-setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
-    [':event_id']: {
-        param: route.params.event_id as string,
-        label: event.value.name,
-    },
-}))
 </script>
 
 <template>
-    <div class="max-w-[60vw]">
-        <div class="flex justify-center mb-6">
-            <UButton
-                color="neutral"
-                :label="inverseCheckInMethodLabel"
-                @click="switchCheckInMethod"
+    <div>
+        <NuxtLayout
+            name="scan"
+            :sm-background="background[BREAKPOINT_SM]"
+            :md-background="background[BREAKPOINT_MD]"
+            :lg-background="background[BREAKPOINT_LG]"
+            :xl-background="background[BREAKPOINT_XL]"
+        >
+            <PageCheckInMain
+                v-model:open-success="checkInSuccessDialog"
+                v-model:open-failed="checkInFailedDialog"
+                v-model:participant="targetParticipant"
+                v-model:error-message="errorMessage"
+                :tenant-id="tenantId"
+                :event-id="eventId"
+                :session-id="sessionId"
+                :custom-block-settings="blocks.customBlocks"
+                :static-block-settings="blocks.staticBlocks"
             />
-        </div>
 
-        <PageCheckInScan
-            v-if="activeCheckInMethod === CHECK_IN_METHOD_SCAN"
-            v-model:pause-qr="pauseQr"
-            @qr-detect="qrDetected"
-        />
-
-        <PageCheckInManual
-            v-else-if="activeCheckInMethod === CHECK_IN_METHOD_MANUAL"
-            :event-id="eventId"
-            :tenant-id="tenantId"
-            title="Manual Check In"
-            button-label="Check In"
-            @select="selectParticipant"
-        />
-
-        <UModal
-            v-model:open="confirmAttendanceDialog"
-            :dismissible="false"
-        >
-            <template #header>
-                <div>
-                    <h2 class="text-highlighted font-semibold">
-                        Confirm Attendance
-                    </h2>
-                </div>
-            </template>
-            <template #body>
-                <div class="flex flex-col p-4">
-                    <div class="text-center mb-8">
-                        <div class="text-2xl">
-                            Please confirm guests attendance for {{ participant.name }}
-                        </div>
-                        <div class="text-xl">
-                            (Max {{ participant.maxAttendance }})
-                        </div>
-                    </div>
-
-                    <UForm
-                        :validate="validateConfirmAttendance"
-                        :state="state"
-                        class="flex flex-col items-center"
-                        @submit="confirmAttendance"
-                    >
-                        <UFormField
-                            label="Number of guests"
-                            name="count"
-                            required
-                            class="text-lg mb-8"
-                        >
-                            <UInput
-                                v-model="state.count"
-                                :ui="{
-                                    base: 'px-4 py-4 text-5xl text-center gap-2',
-                                    leading: 'ps-4',
-                                    trailing: 'pe-4',
-                                }"
-                            >
-                                <template #leading>
-                                    <UButton
-                                        color="neutral"
-                                        variant="link"
-                                        icon="lucide:minus"
-                                        size="xl"
-                                        :disabled="state.count === 0"
-                                        @click="state.count--"
-                                    />
-                                </template>
-                                <template #trailing>
-                                    <UButton
-                                        color="neutral"
-                                        variant="link"
-                                        icon="lucide:plus"
-                                        size="xl"
-                                        :disabled="state.count === participant.maxAttendance"
-                                        @click="state.count++"
-                                    />
-                                </template>
-                            </UInput>
-                        </UFormField>
-                        <button
-                            type="submit"
-                            class="cursor-pointer bg-primary text-white text-2xl font-semibold py-4 px-6 rounded-xl"
-                        >
-                            Check In
-                        </button>
-                    </UForm>
-                </div>
-            </template>
-        </UModal>
-
-        <UModal
-            v-model:open="checkInMethodDialog"
-            :dismissible="false"
-        >
-            <template #content>
-                <div class="flex flex-col gap-6 p-6">
-                    <div>
-                        <h2>Please select check-in method</h2>
-                    </div>
-
-                    <button
-                        class="cursor-pointer bg-success text-white text-2xl font-semibold py-4 px-6 rounded-xl"
-                        @click="checkInQr"
-                    >
-                        Scan QR
-                    </button>
-
-                    <button
-                        class="cursor-pointer bg-primary text-white text-2xl font-semibold py-4 px-6 rounded-xl"
-                        @click="checkInManual"
-                    >
-                        Input Phone Number
-                    </button>
-                </div>
-            </template>
-        </UModal>
-
-        <ModalCheckInSuccess
-            v-model:open="checkInSuccessDialog"
-            :event="event.name"
-            :participant="participant.name"
-        >
-            <template #title>
-                <h3>Check In Success!</h3>
-            </template>
-            <template #subtitle>
-                <h2>Name: {{ participant.name }}</h2>
-                <h2>Max Pax: {{ participant.maxAttendance }}</h2>
-                <template v-if="participant.customAttributes.length">
-                    <h2
-                        v-for="(attr, id) in participant.customAttributes"
-                        :key="id"
-                    >
-                        {{ attr.name }}: {{ attr.value }}
-                    </h2>
+            <ModalCheckInSuccess
+                v-model:open="checkInSuccessDialog"
+                :event="event.name"
+                :participant="targetParticipant.name"
+            >
+                <template #title>
+                    <h3>Check In Success!</h3>
                 </template>
-            </template>
-        </ModalCheckInSuccess>
+                <template #subtitle>
+                    <h2>Name: {{ targetParticipant.name }}</h2>
+                    <h2>Max Pax: {{ targetParticipant.maxAttendance }}</h2>
+                    <template v-if="targetParticipant.customAttributes.length">
+                        <h2
+                            v-for="(attr, id) in targetParticipant.customAttributes"
+                            :key="id"
+                        >
+                            {{ attr.name }}: {{ attr.value }}
+                        </h2>
+                    </template>
+                </template>
+            </ModalCheckInSuccess>
 
-        <ModalCheckInFailed
-            v-model:open="checkInFailedDialog"
-            :message="errorMessage"
-        />
+            <ModalCheckInFailed
+                v-model:open="checkInFailedDialog"
+                :message="errorMessage"
+            />
+        </NuxtLayout>
     </div>
 </template>
