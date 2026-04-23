@@ -64,58 +64,69 @@ export interface Coordinate {
 export type CoordinateKey = keyof Coordinate
 
 export interface BackgroundImage {
-    portrait: File | null
-    landscape: File | null
-    portraitDataURL: string
-    landscapeDataURL: string
+    file: File | null
+    dataUrl: string
 }
 
-export interface BlockStyle {
+export interface ElementBackgroundImage extends BackgroundImage {
+    perBreakpoint?: Partial<Record<
+        Breakpoint,
+        BackgroundImage
+    >>
+}
+
+export interface CanvasSize {
+    id: string
+    width: number
+    height: number
+    label: string
+    breakpoint: string
+    orientation: Orientation
+}
+
+export interface BlockSetting {
     key: string
     value: string | boolean | number
     label?: string
     type?: string
     options?: string[]
-}
-
-export interface BlockData {
-    key: string
-    value: string
-    label?: string
+    trueValue?: string
+    falseValue?: string
 }
 
 export interface Block {
+    id: string
+    value: string
+    setting: BlockSetting[]
+    style: BlockSetting[]
+    x: number
+    y: number
+    withValue?: boolean
+}
+
+export interface ElementBlock extends Block {
     uid: string
-    id: string
     label: string
-    data: BlockData[]
-    style: BlockStyle[]
-    portraitPos: Coordinate
-    landscapePos: Coordinate
-    compiledStyle: string
-    html: (data: BlockData[], compiledStyle: string) => string
+    previewStyle: string
     editableData: boolean
+    perBreakpoint?: Partial<Record<
+        Breakpoint,
+        Block
+    >>
 }
 
-export interface CanvasSize {
-    width: number
-    height: number
-    label: string
-    orientation: Orientation
+export interface SavedVariant {
+    variantId?: number
+    slug: string
+    bgImage: string
+    customBlock: ElementBlock[]
+    staticBlock: ElementBlock[]
 }
 
-export interface SavedBlockSettings {
-    id: string
-    style: BlockStyle[]
-    data: BlockData[]
-    portraitPos: Coordinate
-    landscapePos: Coordinate
-    compiledStyle: string
+export interface SavedTemplate {
+    templateId?: number
+    type?: string
+    settings: SavedVariant[]
 }
 
-export interface SavedSetttings {
-    bgPortraitDataURL: string
-    bgLandscapeDataURL: string
-    customBlock: SavedBlockSettings[]
-    staticBlock: SavedBlockSettings[]
-}
+export type BackgroundPerBreakpoint = Record<Breakpoint, string | undefined>

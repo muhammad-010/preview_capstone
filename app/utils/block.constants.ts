@@ -2,173 +2,145 @@ export const EDITOR_MODE_INVITATION_EMAIL = 'invitation-email'
 export const EDITOR_MODE_CHECK_IN_PAGE = 'check-in-page'
 export const EDITOR_CANVAS_WIDTH = 600
 export const EDITOR_CANVAS_HEIGHT = 1750
-export const EDITOR_CANVAS_SCALE = 0.55
+export const EDITOR_CANVAS_SCALE = 0.80
 export const EDITOR_CANVAS_PORTRAIT = 'portrait'
 export const EDITOR_CANVAS_LANDSCAPE = 'landscape'
 
-export const PREVIEW_EDITOR_INVITATION_EMAIL = 'preview-invitation-email'
-export const PREVIEW_EDITOR_CHECK_IN_PAGE = 'preview-check-in-page'
-
 export const CANVAS_SIZE_PRESETS_INVITATION_EMAIL: CanvasSize[] = [
-    { width: 600, height: 1750, label: '600x1750 (Email)', orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: '1', width: 432, height: 768, label: 'Medium', breakpoint: 'md', orientation: EDITOR_CANVAS_PORTRAIT },
 ]
 
 export const CANVAS_SIZE_PRESETS_CHECK_IN_PAGE: CanvasSize[] = [
-    { width: 360, height: 640, label: '360x640 (Android)', orientation: EDITOR_CANVAS_PORTRAIT },
-    { width: 390, height: 844, label: '390x844 (iPhone)', orientation: EDITOR_CANVAS_PORTRAIT },
-    { width: 1024, height: 768, label: '1024x768 (Tablet)', orientation: EDITOR_CANVAS_LANDSCAPE },
-    { width: 1366, height: 768, label: '1366x768 (Laptop)', orientation: EDITOR_CANVAS_LANDSCAPE },
-    { width: 1920, height: 1080, label: '1920x1080 (HD)', orientation: EDITOR_CANVAS_LANDSCAPE },
+    { id: '1', width: 360, height: 640, label: 'Mobile', breakpoint: 'sm', orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: '2', width: 432, height: 768, label: 'Tablet', breakpoint: 'md', orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: '3', width: 1024, height: 768, label: 'Laptop', breakpoint: 'lg', orientation: EDITOR_CANVAS_LANDSCAPE },
+    { id: '4', width: 1280, height: 720, label: 'Desktop', breakpoint: 'xl', orientation: EDITOR_CANVAS_LANDSCAPE },
 ]
 
 export const BLOCK_TEXT_ID = 'text'
 export const BLOCK_IMAGE_ID = 'image'
-export const STATIC_BLOCK_QR_CODE_ID = 'qr-code'
+export const BLOCK_IDS: string[] = [
+    BLOCK_TEXT_ID,
+    BLOCK_IMAGE_ID,
+]
+export const STATIC_BLOCK_SCANNER_QR_ID = 'scanner-qr'
 export const STATIC_BLOCK_INPUT_CARD_ID = 'input-card'
 export const STATIC_BLOCK_IDS: string[] = [
-    STATIC_BLOCK_QR_CODE_ID,
+    STATIC_BLOCK_SCANNER_QR_ID,
     STATIC_BLOCK_INPUT_CARD_ID,
 ]
 
-export const BLOCK_TEXT_DEFAULT: Block = {
+export const BLOCK_STYLE_COLOR = STYLE_COLOR
+// export const BLOCK_STYLE_FONT_FAMILY = STYLE_FONT_FAMILY
+export const BLOCK_STYLE_FONT_SIZE = STYLE_FONT_SIZE
+export const BLOCK_STYLE_FONT_WEIGHT = STYLE_FONT_WEIGHT
+export const BLOCK_STYLE_FONT_STYLE = STYLE_FONT_STYLE
+export const BLOCK_STYLE_WIDTH = STYLE_WIDTH
+export const BLOCK_STYLE_HEIGHT = STYLE_HEIGHT
+export const BLOCK_STYLE_LIST: string[] = [
+    BLOCK_STYLE_COLOR,
+    // BLOCK_STYLE_FONT_FAMILY,
+    BLOCK_STYLE_FONT_SIZE,
+    BLOCK_STYLE_FONT_WEIGHT,
+    BLOCK_STYLE_FONT_STYLE,
+    BLOCK_STYLE_WIDTH,
+    BLOCK_STYLE_HEIGHT,
+]
+
+export const BLOCK_STYLE_FONT_WEIGHT_OPTIONS = [
+    '100',
+    '200',
+    '300',
+    '400',
+    '500',
+    '600',
+    '700',
+    '800',
+    '900',
+]
+
+export const BLOCK_SETTING_TITLE = 'title'
+export const BLOCK_SETTING_INPUT_PLACEHOLDER = 'input-placeholder'
+export const BLOCK_SETTING_BUTTON_TEXT = 'button-text'
+export const BLOCK_SETTING_LIST: string[] = [
+    BLOCK_SETTING_TITLE,
+    BLOCK_SETTING_INPUT_PLACEHOLDER,
+    BLOCK_SETTING_BUTTON_TEXT,
+]
+
+export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     uid: '',
     id: BLOCK_TEXT_ID,
     label: 'Text',
-    data: [{ key: 'text', label: 'Text', value: 'Hello World' }],
+    value: 'Hello World',
+    setting: [],
     style: [
-        { key: 'textColor', label: 'Text Color', type: 'color', value: '#000000' },
-        { key: 'fontFamily', label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana'] },
-        { key: 'fontSans', label: 'Sans Serif Fallback', type: 'checkbox', value: true },
-        { key: 'fontSize', label: 'Font Size', type: 'number', value: '1' },
-        { key: 'fontBold', label: 'Bold', type: 'checkbox', value: false },
-        { key: 'fontItalic', label: 'Italic', type: 'checkbox', value: false },
+        { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
+        // { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
+        { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'text', value: '1rem' },
+        { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'select', value: '500', options: structuredClone(toRaw(BLOCK_STYLE_FONT_WEIGHT_OPTIONS)) },
+        { key: BLOCK_STYLE_FONT_STYLE, label: 'Italic', type: 'checkbox', value: 'normal', trueValue: 'italic', falseValue: 'normal' },
     ],
-    portraitPos: {
-        x: 0,
-        y: 0,
-    },
-    landscapePos: {
-        x: 0,
-        y: 0,
-    },
-    compiledStyle: 'color: #000000; font-family: Arial, sans-serif; font-size: 1rem; font-weight: normal; font-style: normal;',
-    html: (data: BlockData[], compiledStyle: string) => {
-        return `<p style="${compiledStyle}">${data.find(d => d.key === 'text')?.value || ''}</p>`
-    },
+    x: 0,
+    y: 0,
+    previewStyle: 'color: #000000; font-size: 1rem; font-weight: 500; font-style: normal;',
+    withValue: true,
     editableData: true,
 }
 
-export const BLOCK_TEXT_DEFAULT_NEW: Block = {
-    uid: '',
-    id: BLOCK_TEXT_ID,
-    label: 'Text',
-    data: [{ key: 'text', label: 'Text', value: 'Hello World' }],
-    style: [
-        { key: 'textColor', label: 'Text Color', type: 'color', value: '#000000' },
-        { key: 'fontFamily', label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana'] },
-        { key: 'fontSans', label: 'Sans Serif Fallback', type: 'checkbox', value: true },
-        { key: 'fontSize', label: 'Font Size', type: 'number', value: '1' },
-        { key: 'fontBold', label: 'Bold', type: 'checkbox', value: false },
-        { key: 'fontItalic', label: 'Italic', type: 'checkbox', value: false },
-    ],
-    portraitPos: {
-        x: 0,
-        y: 0,
-    },
-    landscapePos: {
-        x: 0,
-        y: 0,
-    },
-    compiledStyle: 'color: #000000; font-family: Arial, sans-serif; font-size: 1rem; font-weight: normal; font-style: normal;',
-    html: (data: BlockData[], compiledStyle: string) => {
-        return `<p style="${compiledStyle}">${data.find(d => d.key === 'text')?.value || ''}</p>`
-    },
-    editableData: true,
-}
-
-export const BLOCK_IMAGE_DEFAULT: Block = {
+export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     uid: '',
     id: BLOCK_IMAGE_ID,
     label: 'Image',
-    data: [{ key: 'src', label: 'Image URL', value: 'https://placehold.co/100' }],
+    value: 'https://placehold.co/100',
+    setting: [],
     style: [
-        { key: 'width', label: 'Width', type: 'number', value: '100' },
-        { key: 'height', label: 'Height', type: 'number', value: '100' },
-        { key: 'heightSameAsWidth', label: 'Height same as width', type: 'checkbox', value: false },
+        { key: BLOCK_STYLE_WIDTH, label: 'Width', type: 'text', value: '100px' },
+        { key: BLOCK_STYLE_HEIGHT, label: 'Height', type: 'text', value: '100px' },
     ],
-    portraitPos: {
-        x: 0,
-        y: 0,
-    },
-    landscapePos: {
-        x: 0,
-        y: 0,
-    },
-    compiledStyle: 'width: 100px; height: 100px;',
-    html: (data: BlockData[], compiledStyle: string) => {
-        return `<img src="${data.find(d => d.key === 'src')?.value || ''}" style="${compiledStyle}" />`
-    },
+    x: 0,
+    y: 0,
+    previewStyle: 'width: 100px; height: 100px;',
+    withValue: true,
     editableData: true,
 }
 
-export const STATIC_BLOCK_QR_CODE: Block = {
+export const CUSTOM_BLOCKS: ElementBlock[] = [
+    BLOCK_TEXT_DEFAULT,
+    BLOCK_IMAGE_DEFAULT,
+]
+
+export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
     uid: '',
-    id: STATIC_BLOCK_QR_CODE_ID,
+    id: STATIC_BLOCK_SCANNER_QR_ID,
     label: 'QR Code',
-    data: [{ key: 'url', label: 'QR URL', value: 'dummy' }],
-    style: [
-        { key: 'size', label: 'Size (rem)', type: 'number', value: '4' },
-    ],
-    portraitPos: {
-        x: 50,
-        y: 50,
-    },
-    landscapePos: {
-        x: 50,
-        y: 50,
-    },
-    compiledStyle: '',
-    html: (data: BlockData[], compiledStyle: string) => {
-        const url = data.find(d => d.key === 'url')?.value || 'dummy'
-        const size = compiledStyle.match(/width:(\d+)rem/)?.[1] || '6'
-        return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(url)}" style="width:${size}rem; height:${size}rem;" />`
-    },
+    value: 'https://placehold.co/100?text=QR+Code',
+    setting: [],
+    style: [],
+    x: 50,
+    y: 50,
+    previewStyle: '',
     editableData: false,
 }
 
-export const STATIC_BLOCK_INPUT_CARD: Block = {
+export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
     uid: '',
     id: STATIC_BLOCK_INPUT_CARD_ID,
     label: 'Input Card',
-    data: [{ key: 'title', label: 'Title', value: 'Title' }, { key: 'placeholder', label: 'Placeholder', value: 'Placeholder' }, { key: 'buttonText', label: 'Button Text', value: 'Submit' }],
-    style: [
-        { key: 'buttonColor', label: 'Button Color', type: 'color', value: '#007bff' },
-        { key: 'titleFontSize', label: 'Title Font Size', type: 'number', value: '2' },
-        { key: 'inputFontSize', label: 'Input Font Size', type: 'number', value: '1' },
+    value: '',
+    setting: [
+        { key: BLOCK_SETTING_TITLE, label: 'Title', value: 'Title' },
+        { key: BLOCK_SETTING_INPUT_PLACEHOLDER, label: 'Input Placeholder', value: 'Placeholder' },
+        { key: BLOCK_SETTING_BUTTON_TEXT, label: 'Button Text', value: 'Submit' },
     ],
-    portraitPos: {
-        x: 50,
-        y: 50,
-    },
-    landscapePos: {
-        x: 50,
-        y: 50,
-    },
-    compiledStyle: '',
-    html: (data: BlockData[], compiledStyle: string) => {
-        const title = data.find(d => d.key === 'title')?.value || 'Title'
-        const placeholder = data.find(d => d.key === 'placeholder')?.value || 'Placeholder'
-        const buttonText = data.find(d => d.key === 'buttonText')?.value || 'Submit'
-        const buttonColor = compiledStyle.match(/button-color:(#[0-9a-fA-F]{6})/)?.[1] || '#007bff'
-        const titleFontSize = compiledStyle.match(/title-font-size:(\d+)rem/)?.[1] || '2'
-        const inputFontSize = compiledStyle.match(/input-font-size:(\d+)rem/)?.[1] || '1'
-        return `
-            <div style="width:200px; padding:16px; border:1px solid #ccc; border-radius:8px; background:#fff; text-align: center">
-                <h3 style="font-size:${titleFontSize}rem; margin:0 0 12px 0;">${title}</h3>
-                <input type="text" placeholder="${placeholder}" style="width:90%; padding:8px; font-size:${inputFontSize}rem; border:1px solid #ccc; border-radius:4px; margin-bottom:12px;" />
-                <button style="width:100%; padding:8px; background:${buttonColor}; color:#fff; border:none; border-radius:4px;">${buttonText}</button>
-            </div>
-        `
-    },
+    style: [],
+    x: 50,
+    y: 50,
+    previewStyle: '',
     editableData: true,
 }
+
+export const STATIC_BLOCKS: ElementBlock[] = [
+    STATIC_BLOCK_SCANNER_QR,
+    STATIC_BLOCK_INPUT_CARD,
+]

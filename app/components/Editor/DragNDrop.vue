@@ -1,12 +1,11 @@
 <script setup lang="ts">
 const props = defineProps<{
     editorMode: EditorMode
-    customBlocks: Block[]
-    staticBlocks: Block[]
+    customBlocks: ElementBlock[]
+    staticBlocks: ElementBlock[]
     htmlPreviewFn: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
     canvasSizeOptions: CanvasSize[]
     defaultOrientation: Orientation
-    defaultCanvasSize?: string
     rotateable?: boolean
     withPreview?: boolean
     previewPath?: string
@@ -15,15 +14,17 @@ const props = defineProps<{
     defaultScale?: number
 }>()
 
-const DRAGGABLE_BLOCK_WIDTH = 208
-const DRAGGABLE_BLOCK_HEIGHT = 44
+const DRAG_X_LIMIT = 10
+const DRAG_Y_LIMIT = 10
 const DRAG_DATATRANSFER_COPY = 'copy'
 const EVENT_MOUSEMOVE = 'mousemove'
 const EVENT_MOUSEUP = 'mouseup'
 
+const router = useRouter()
+
 // CANVAS SETTINGS
-const selectedCanvasSizeLabel = ref(props.defaultCanvasSize || props.canvasSizeOptions[0]!.label)
-const selectedCanvasSize = computed(() => props.canvasSizeOptions.find(size => size.label === selectedCanvasSizeLabel.value) || props.canvasSizeOptions[0]!)
+const selectedCanvasSizeId = ref(props.canvasSizeOptions[0]!.id)
+const selectedCanvasSize = computed(() => props.canvasSizeOptions.find(size => size.id === selectedCanvasSizeId.value) || props.canvasSizeOptions[0]!)
 const canvasOrientation = ref<Orientation>(props.defaultOrientation)
 const shouldFlipCanvas = computed(() => canvasOrientation.value !== selectedCanvasSize.value!.orientation)
 const canvasWidth = computed(() => {
@@ -42,81 +43,137 @@ const canvasOrientationSelections = props.rotateable
             EDITOR_CANVAS_LANDSCAPE,
         ]
     : [props.defaultOrientation]
-watch(selectedCanvasSizeLabel, () => {
+watch(selectedCanvasSizeId, () => {
     canvasOrientation.value = selectedCanvasSize.value!.orientation
 })
+const canvasStyle = computed(() => ({
+    width: canvasWidth.value + 'px',
+    height: canvasHeight.value + 'px',
+    transform: `scale(${canvasScale.value})`,
+    transformOrigin: 'top left',
+}))
+
+// VARIANTS
+const selectVariantPopover = ref<boolean>(false)
+const selectedVariantIds = ref<string[]>([])
+const removeVariantModal = ref<boolean>(false)
+const removeVariantTarget = ref<string | null>(null)
+const activeVariantId = ref<string | null>(null)
+const selectedCanvasVariants = computed(() => props.canvasSizeOptions.filter(c => selectedVariantIds.value.includes(c.id)))
+const unselectedCanvasVariants = computed(() => props.canvasSizeOptions.filter(c => !selectedVariantIds.value.includes(c.id)))
+const removeVariantTargetCanvas = computed(() => props.canvasSizeOptions.find(c => c.id === removeVariantTarget.value)?.label ?? '')
+
+function addVariant(id: string) {
+    if (selectedVariantIds.value.includes(id)) return
+    selectedVariantIds.value.push(id)
+    activeVariantId.value = id
+    selectVariantPopover.value = false
+}
+
+function confirmRemoveVariant(id: string) {
+    removeVariantTarget.value = id
+    removeVariantModal.value = true
+}
+
+function removeVariant() {
+    if (!removeVariantTarget.value) return
+
+    const id = removeVariantTarget.value
+    const index = selectedVariantIds.value.indexOf(id)
+    if (index === -1) return
+
+    const wasActive = activeVariantId.value === id
+
+    const next = selectedVariantIds.value[index + 1]
+    const prev = selectedVariantIds.value[index - 1]
+
+    selectedVariantIds.value.splice(index, 1)
+
+    if (!wasActive) return
+
+    const candidate = next ?? prev ?? null
+
+    if (candidate) {
+        toggleActiveVariant(candidate)
+    }
+    else {
+        activeVariantId.value = null
+    }
+    removeVariantModal.value = false
+}
+
+function toggleActiveVariant(id: string) {
+    if (!selectedVariantIds.value.includes(id)) return
+    activeVariantId.value = activeVariantId.value === id ? null : id
+}
 
 // BACKGROUND IMAGE
 const bgImage = ref<BackgroundImage>({
-    portrait: null,
-    landscape: null,
-    portraitDataURL: '',
-    landscapeDataURL: '',
+    file: null,
+    dataUrl: '',
 })
 
-function bgImageToDataURL(orientation: Orientation) {
-    const file = bgImage.value[orientation]
+function bgImageToDataURL() {
+    const file = bgImage.value.file
     if (!file) {
-        bgImage.value[`${orientation}DataURL`] = ''
+        bgImage.value.dataUrl = ''
         return
     }
 
     const reader = new FileReader()
     reader.onload = () => {
-        bgImage.value[`${orientation}DataURL`] = reader.result as string
+        bgImage.value.dataUrl = reader.result as string
     }
     reader.readAsDataURL(file)
 }
 
-watch(() => bgImage.value.portrait, () => bgImageToDataURL(EDITOR_CANVAS_PORTRAIT))
-watch(() => bgImage.value.landscape, () => bgImageToDataURL(EDITOR_CANVAS_LANDSCAPE))
+watch(() => bgImage.value.file, () => bgImageToDataURL())
 
-function onBgImageUpload(e: Event, orientation: Orientation) {
+function onBgImageUpload(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (!file) return
-    bgImage.value[orientation] = file
+    bgImage.value.file = file
 }
 
-function clearBgImage(orientation: Orientation) {
-    bgImage.value[orientation] = null
+function clearBgImage() {
+    bgImage.value.file = null
 }
 
 // BLOCKS
-const blockContainer = ref<Block[]>([])
+const blockUid = ref<number>(0)
+const blockContainer = ref<ElementBlock[]>([])
 const activeStaticBlocks = ref<string[]>([])
 
-function syncStaticBlock(item: Block) {
+function syncStaticBlock(item: ElementBlock) {
     if (!STATIC_BLOCK_IDS.includes(item.id)) return
 
     const staticBlock = props.staticBlocks.find(b => b.id === item.id)
     if (!staticBlock) return
 
     staticBlock.style = structuredClone(toRaw(item.style))
-    staticBlock.data = structuredClone(toRaw(item.data))
-    staticBlock.compiledStyle = item.compiledStyle
-    staticBlock.portraitPos.x = item.portraitPos.x
-    staticBlock.portraitPos.y = item.portraitPos.y
-    staticBlock.landscapePos.x = item.landscapePos.x
-    staticBlock.landscapePos.y = item.landscapePos.y
+    staticBlock.setting = structuredClone(toRaw(item.setting))
+    staticBlock.previewStyle = compilePreviewStyle(item)
+    staticBlock.x = item.x
+    staticBlock.y = item.y
 }
 
 // DRAG BLOCKS
+const selectedUid = ref<string | null>(null)
 const dragging = ref<string | null>(null)
 const draggingBlock = ref<string | null>(null)
 const offset = ref<Coordinate>({ x: 0, y: 0 })
 const tempPosition = ref<Coordinate>({ x: 0, y: 0 })
 
-function startDrag(e: MouseEvent, item: Block) {
+function startDrag(e: MouseEvent, item: ElementBlock) {
     dragging.value = item.uid
     selectedUid.value = item.uid
 
-    const pos = canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? item.portraitPos : item.landscapePos
     offset.value = {
-        x: e.clientX - percentToPx(pos.x, canvasWidth.value) * canvasScale.value,
-        y: e.clientY - percentToPx(pos.y, canvasHeight.value) * canvasScale.value,
+        x: e.clientX - percentToPx(item.x, canvasWidth.value) * canvasScale.value,
+        y: e.clientY - percentToPx(item.y, canvasHeight.value) * canvasScale.value,
     }
 
-    tempPosition.value = { x: pos.x, y: pos.y }
+    tempPosition.value = { x: item.x, y: item.y }
 }
 
 function onMouseMove(e: MouseEvent) {
@@ -125,8 +182,8 @@ function onMouseMove(e: MouseEvent) {
     const newXPx = (e.clientX - offset.value.x) / canvasScale.value
     const newYPx = (e.clientY - offset.value.y) / canvasScale.value
 
-    const maxXPercent = Math.max(0, ((canvasWidth.value - DRAGGABLE_BLOCK_WIDTH) / canvasWidth.value) * 100)
-    const maxYPercent = Math.max(0, ((canvasHeight.value - DRAGGABLE_BLOCK_HEIGHT) / canvasHeight.value) * 100)
+    const maxXPercent = Math.max(0, ((canvasWidth.value - DRAG_X_LIMIT) / canvasWidth.value) * 100)
+    const maxYPercent = Math.max(0, ((canvasHeight.value - DRAG_Y_LIMIT) / canvasHeight.value) * 100)
 
     const newX = Math.max(0, Math.min(pxToPercent(newXPx, canvasWidth.value), maxXPercent))
     const newY = Math.max(0, Math.min(pxToPercent(newYPx, canvasHeight.value), maxYPercent))
@@ -155,29 +212,17 @@ function onCanvasDrop(e: DragEvent) {
     if (!block) return
 
     const canvasRect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const xPx = Math.max(0, Math.min((e.clientX - canvasRect.left) / canvasScale.value, canvasWidth.value - DRAGGABLE_BLOCK_WIDTH))
-    const yPx = Math.max(0, Math.min((e.clientY - canvasRect.top) / canvasScale.value, canvasHeight.value - DRAGGABLE_BLOCK_HEIGHT))
-    const x = Math.round(pxToPercent(xPx, canvasWidth.value))
-    const y = Math.round(pxToPercent(yPx, canvasHeight.value))
-    const uid = crypto.randomUUID()
+    const xPx = Math.max(0, Math.min((e.clientX - canvasRect.left) / canvasScale.value, canvasWidth.value - DRAG_X_LIMIT))
+    const yPx = Math.max(0, Math.min((e.clientY - canvasRect.top) / canvasScale.value, canvasHeight.value - DRAG_Y_LIMIT))
+    const uid = `${++blockUid.value}`
 
     blockContainer.value.push({
+        ...block,
         uid,
-        id: block.id,
-        label: block.label,
-        data: structuredClone(toRaw(block.data)),
+        setting: structuredClone(toRaw(block.setting)),
         style: structuredClone(toRaw(block.style)),
-        portraitPos: {
-            x: canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? x : 0,
-            y: canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? y : 0,
-        },
-        landscapePos: {
-            x: canvasOrientation.value === EDITOR_CANVAS_LANDSCAPE ? x : 0,
-            y: canvasOrientation.value === EDITOR_CANVAS_LANDSCAPE ? y : 0,
-        },
-        compiledStyle: block.compiledStyle,
-        html: block.html,
-        editableData: block.editableData,
+        x: Math.round(pxToPercent(xPx, canvasWidth.value)),
+        y: Math.round(pxToPercent(yPx, canvasHeight.value)),
     })
 
     selectedUid.value = uid
@@ -190,9 +235,8 @@ function stopDrag() {
     const item = blockContainer.value.find(i => i.uid === dragging.value)
     if (!item) return
 
-    const pos = canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? item.portraitPos : item.landscapePos
-    pos.x = Math.round(tempPosition.value.x)
-    pos.y = Math.round(tempPosition.value.y)
+    item.x = Math.round(tempPosition.value.x)
+    item.y = Math.round(tempPosition.value.y)
 
     if (STATIC_BLOCK_IDS.includes(item.id)) {
         syncStaticBlock(item)
@@ -212,16 +256,14 @@ onBeforeUnmount(() => {
 })
 
 // BLOCK MANIPULATIONS
-const selectedUid = ref<string | null>(null)
 const selectedItem = computed(() =>
     blockContainer.value.find(i => i.uid === selectedUid.value),
 )
-const itemPosition = computed(() => (item: Block) => {
+const itemPosition = computed(() => (item: ElementBlock) => {
     if (dragging.value === item.uid) {
         return tempPosition.value
     }
-    const pos = canvasOrientation.value === EDITOR_CANVAS_PORTRAIT ? item.portraitPos : item.landscapePos
-    return { x: pos.x, y: pos.y }
+    return { x: item.x, y: item.y }
 })
 
 function toggleStaticBlock(id: string) {
@@ -238,19 +280,11 @@ function toggleStaticBlock(id: string) {
         const block = props.staticBlocks.find(b => b.id === id)
         if (!block) return
 
-        const style = structuredClone(toRaw(block.style))
-        const data = structuredClone(toRaw(block.data))
         blockContainer.value.push({
-            uid: id, // Use id as uid for static
-            id: block.id,
-            label: block.label,
-            data,
-            style,
-            portraitPos: structuredClone(toRaw(block.portraitPos)),
-            landscapePos: structuredClone(toRaw(block.landscapePos)),
-            compiledStyle: block.compiledStyle,
-            html: block.html,
-            editableData: block.editableData,
+            ...block,
+            uid: id,
+            setting: structuredClone(toRaw(block.setting)),
+            style: structuredClone(toRaw(block.style)),
         })
         selectedUid.value = id
     }
@@ -260,24 +294,15 @@ function removeBlock(uid: string) {
     blockContainer.value = blockContainer.value.filter(i => i.uid !== uid)
 }
 
-function duplicateBlock(item: Block) {
-    const style = structuredClone(toRaw(item.style))
-    const data = structuredClone(toRaw(item.data))
-    const portraitPos = structuredClone(toRaw(item.portraitPos))
-    portraitPos.x = item.portraitPos.x + 5
-    portraitPos.y = item.portraitPos.y + 5
-    const landscapePos = structuredClone(toRaw(item.landscapePos))
-    landscapePos.x = item.landscapePos.x + 5
-    landscapePos.y = item.landscapePos.y + 5
+function duplicateBlock(item: ElementBlock) {
     const newItem = {
         ...item,
-        data,
-        uid: crypto.randomUUID(),
-        style,
-        portraitPos,
-        landscapePos,
-    } as Block
-    newItem.compiledStyle = compileBlockStyle(newItem)
+        uid: `${++blockUid.value}`,
+        setting: structuredClone(toRaw(item.setting)),
+        style: structuredClone(toRaw(item.style)),
+        x: item.x + 5,
+        y: item.y + 5,
+    } as ElementBlock
     blockContainer.value.push(newItem)
 }
 
@@ -285,40 +310,31 @@ function onBlockDragEnd() {
     draggingBlock.value = null
 }
 
-function setStyleValue(style: BlockStyle[], key: string, value: string | boolean | number) {
-    const item = style.find(s => s.key === key)
-    if (item) {
-        item.value = value
-    }
-
-    if (selectedItem.value) {
-        selectedItem.value.compiledStyle = compileBlockStyle(selectedItem.value)
-    }
-
-    if (selectedItem.value && STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
-        syncStaticBlock(selectedItem.value)
-    }
-}
-
-function updateBlockData(key: string, value: string) {
+function updateBlock(target: 'position' | 'setting' | 'style', key: CoordinateKey | string, value: string | boolean | number) {
     if (!selectedItem.value) return
 
-    const dataItem = selectedItem.value.data.find(d => d.key === key)
-    if (dataItem) {
+    if (target === 'position') {
+        selectedItem.value[key as CoordinateKey] = Number(value)
+    }
+    else {
+        let dataItem: BlockSetting | undefined
+        switch (target) {
+            case 'setting':
+                dataItem = selectedItem.value.setting.find(s => s.key === key)
+                break
+            case 'style':
+                dataItem = selectedItem.value.style.find(s => s.key === key)
+                break
+            default:
+                return
+        }
+
+        if (!dataItem) return
         dataItem.value = value
+
+        if (target === 'style') selectedItem.value.previewStyle = compilePreviewStyle(selectedItem.value)
     }
 
-    if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
-        syncStaticBlock(selectedItem.value)
-    }
-}
-
-function updatePosition(key: CoordinateKey, value: number, orientation?: Orientation) {
-    if (!selectedItem.value) return
-
-    const targetOrientation = orientation || canvasOrientation.value
-    const settings = targetOrientation === EDITOR_CANVAS_PORTRAIT ? selectedItem.value.portraitPos : selectedItem.value.landscapePos
-    settings[key] = value
     if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
         syncStaticBlock(selectedItem.value)
     }
@@ -329,26 +345,25 @@ const generatedHtml = ref('')
 const loadingPreview = ref(false)
 let previewTimeout: ReturnType<typeof setTimeout>
 
-function renderBlock(block: Block) {
+function renderBlock(block: ElementBlock) {
     if (!block) return ''
-    const absoluteStyle = getAbsoluteDivStyle(block, canvasOrientation.value === EDITOR_CANVAS_PORTRAIT)
+    const absoluteStyle = getPositionStyle(block)
     return `
     <div style="${absoluteStyle}">
-        ${block.html(block.data, block.compiledStyle)}
+        ${renderPreviewHtml(block)}
     </div>
     `
 }
 
-function getPreviewHTML(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+function getrenderPreviewHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
     if (!props.htmlPreviewFn) {
-        const image = height >= width ? bgImage.portraitDataURL : bgImage.landscapeDataURL
         return `
         <!DOCTYPE html>
         <html>
         <head>
             <style>
                 .container {
-                    background-image: url(${image});
+                    background-image: url(${bgImage.dataUrl});
                     background-size: contain;
                     background-position: center;
                     background-no-repeat: no-repeat;
@@ -379,7 +394,7 @@ function refreshGeneratedHtml() {
         return renderBlock(block)
     }).join('\n')
 
-    generatedHtml.value = getPreviewHTML(bgImage.value, canvasWidth.value, canvasHeight.value, content, staticContent)
+    generatedHtml.value = getrenderPreviewHtml(bgImage.value, canvasWidth.value, canvasHeight.value, content, staticContent)
     loadingPreview.value = false
 }
 
@@ -403,45 +418,28 @@ watch([
 function saveToLocalStorage() {
     if (!props.previewKey) return
 
-    const customBlock: SavedBlockSettings[] = []
-    const staticBlock: SavedBlockSettings[] = []
+    const customBlock = blockContainer.value
+        .filter(b => !STATIC_BLOCK_IDS.includes(b.id))
+        .map(block => ({
+            ...block,
+            style: block.style.map(s => ({ key: s.key, value: s.value })),
+            setting: block.setting.map(s => ({ key: s.key, value: s.value })),
+        }))
 
-    const customBlockList = blockContainer.value.filter(b => !STATIC_BLOCK_IDS.includes(b.id))
-    for (let i = 0; i < customBlockList.length; i++) {
-        const block = customBlockList[i]
-        if (!block) continue
-
-        customBlock.push({
-            id: block.id,
+    const staticBlock = props.staticBlocks
+        .filter(b => STATIC_BLOCK_IDS.includes(b.id))
+        .map(block => ({
+            ...block,
             style: block.style.map(b => ({ key: b.key, value: b.value })),
-            data: block.data.map(b => ({ key: b.key, value: b.value })),
-            portraitPos: structuredClone(toRaw(block.portraitPos)),
-            landscapePos: structuredClone(toRaw(block.landscapePos)),
-            compiledStyle: compileBlockStyle(block),
-        })
-    }
-
-    const staticBlockList = props.staticBlocks
-    for (let i = 0; i < staticBlockList.length; i++) {
-        const block = staticBlockList[i]
-        if (!block) continue
-
-        staticBlock.push({
-            id: block.id,
-            style: block.style.map(b => ({ key: b.key, value: b.value })),
-            data: block.data.map(b => ({ key: b.key, value: b.value })),
-            portraitPos: structuredClone(toRaw(block.portraitPos)),
-            landscapePos: structuredClone(toRaw(block.landscapePos)),
-            compiledStyle: compileBlockStyle(block),
-        })
-    }
+            setting: block.setting.map(b => ({ key: b.key, value: b.value })),
+        }))
 
     const settings = {
-        bgPortraitDataURL: bgImage.value.portraitDataURL,
-        bgLandscapeDataURL: bgImage.value.landscapeDataURL,
+        bgImage: bgImage.value.dataUrl,
+        slug: BREAKPOINT_MD,
         customBlock,
         staticBlock,
-    } as SavedSetttings
+    } as SavedVariant
 
     localStorage.setItem(props.previewKey, JSON.stringify(settings))
 }
@@ -455,13 +453,28 @@ function preview() {
 </script>
 
 <template>
-    <div class="flex flex-col p-8">
+    <div class="flex flex-col p-4">
         <div class="flex justify-between mb-4">
-            <h2>{{ pageTitle || 'Editor' }}</h2>
+            <div class="flex items-center gap-4">
+                <UButton
+                    class="cursor-pointer"
+                    label="Back"
+                    icon="lucide:chevron-left"
+                    color="neutral"
+                    variant="ghost"
+                    :disabled="loadingPreview"
+                    @click="router.go(-1)"
+                />
+
+                <h2>{{ pageTitle || 'Editor' }}</h2>
+            </div>
+
             <div class="flex gap-4">
                 <UButton
                     class="cursor-pointer"
                     label="Refresh Preview"
+                    color="neutral"
+                    variant="outline"
                     :disabled="loadingPreview"
                     @click="refreshGeneratedHtml"
                 />
@@ -470,6 +483,8 @@ function preview() {
                     v-if="withPreview && previewPath"
                     class="cursor-pointer"
                     label="Preview Page"
+                    color="neutral"
+                    variant="outline"
                     @click="preview"
                 />
 
@@ -482,7 +497,7 @@ function preview() {
         </div>
 
         <div class="grid grid-cols-7 h-[90vh] gap-4">
-            <!-- LEFT: Block list + resizable HTML preview -->
+            <!-- LEFT: ElementBlock list + resizable HTML preview -->
             <div class="flex flex-col gap-4">
                 <!-- CANVAS SETTINGS -->
                 <UCard :ui="{ body: 'p-2 sm:p-3' }">
@@ -516,14 +531,72 @@ function preview() {
                     <div class="mb-4">
                         <UFormField label="Size">
                             <USelect
-                                v-model="selectedCanvasSizeLabel"
+                                v-model="selectedCanvasSizeId"
                                 :items="canvasSizeOptions"
-                                value-key="label"
+                                value-key="id"
                                 class="w-full"
                             />
                         </UFormField>
                     </div>
                 </UCard>
+
+                <!-- VARIANTS -->
+                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                    <template #header>
+                        <h3>Variants</h3>
+                    </template>
+                    <div class="space-y-2">
+                        <div
+                            v-for="canvas in selectedCanvasVariants"
+                            :key="`selcanvar-${canvas.id}`"
+                            class="flex items-center gap-2 py-2 px-4 border rounded-lg w-52"
+                            :class="activeVariantId === canvas.id ? 'border-green-500' : 'border-neutral-950/25 dark:border-neutral-50/25'"
+                        >
+                            <UIcon
+                                :name="activeVariantId === canvas.id ? 'lucide:eye' : 'lucide:eye-off'"
+                                :class="`cursor-pointer ${activeVariantId === canvas.id ? 'text-success' : 'text-dimmed'}`"
+                                @click="toggleActiveVariant(canvas.id)"
+                            />
+                            {{ canvas.label }}
+                            <UIcon
+                                name="lucide:trash"
+                                class="cursor-pointer text-error ml-auto"
+                                @click="confirmRemoveVariant(canvas.id)"
+                            />
+                        </div>
+                        <UPopover v-model:open="selectVariantPopover">
+                            <UButton
+                                icon="lucide:plus"
+                                color="neutral"
+                                variant="outline"
+                                class="w-52"
+                                :disabled="!unselectedCanvasVariants.length"
+                            />
+
+                            <template #content>
+                                <div class="p-2">
+                                    <UFieldGroup orientation="vertical">
+                                        <div
+                                            v-for="canvas in unselectedCanvasVariants"
+                                            :key="`unselcanvar-${canvas.id}`"
+                                            class="cursor-pointer flex items-center gap-2 py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 hover:border-primary first:rounded-t last:rounded-b w-52"
+                                            @click="addVariant(canvas.id)"
+                                        >
+                                            {{ canvas.label }}
+                                        </div>
+                                    </UFieldGroup>
+                                </div>
+                            </template>
+                        </UPopover>
+                    </div>
+                </UCard>
+
+                <ModalConfirmNegativeAction
+                    v-model:open="removeVariantModal"
+                    title="Remove Variant"
+                    :body="`Are you sure want to delete variant ${removeVariantTargetCanvas}? All your changes will be deleted and can not restored.`"
+                    @confirm="() => removeVariant()"
+                />
 
                 <!-- BLOCKS -->
                 <UCard :ui="{ body: 'p-2 sm:p-3' }">
@@ -531,16 +604,16 @@ function preview() {
                         <h3>Blocks</h3>
                     </template>
                     <div class="space-y-2">
-                        <div
+                        <EditorBlock
                             v-for="card in customBlocks"
                             :key="card.id"
-                            class="py-2 px-4 border border-slate-950/25 dark:border-slate-50/25 hover:bg-slate-100 dark:hover:bg-slate-950 rounded cursor-move w-52"
-                            draggable="true"
+                            draggable
+                            hoverable
+                            :label="card.label"
+                            class="cursor-move"
                             @dragstart="onBlockDragStart($event, card.id)"
                             @dragend="onBlockDragEnd"
-                        >
-                            {{ card.label }}
-                        </div>
+                        />
                     </div>
                 </UCard>
 
@@ -553,17 +626,17 @@ function preview() {
                         <h3>Static Blocks</h3>
                     </template>
                     <div class="space-y-2">
-                        <div
+                        <EditorBlock
                             v-for="block in staticBlocks"
                             :key="block.id"
-                            class="flex items-center justify-between py-2 px-4 border border-slate-950/25 dark:border-slate-50/25 rounded w-52"
+                            class="flex items-center justify-between"
                         >
                             <span>{{ block.label }}</span>
                             <UCheckbox
                                 :model-value="activeStaticBlocks.includes(block.id)"
                                 @update:model-value="toggleStaticBlock(block.id)"
                             />
-                        </div>
+                        </EditorBlock>
                     </div>
                 </UCard>
 
@@ -589,23 +662,14 @@ function preview() {
             <div class="col-span-5 overflow-y-auto p-4 scrollbar">
                 <div :class="canvasOrientation === 'portrait' ? 'flex gap-4 justify-evenly items-center min-h-full' : 'flex flex-col gap-4 justify-evenly items-center min-h-full'">
                     <!-- CANVAS -->
-                    <div
-                        :class="`border border-slate-950/25 dark:border-slate-50/25 bg-slate-100 dark:bg-slate-900 rounded relative overflow-hidden`"
-                        :style="{
-                            width: canvasWidth * canvasScale + 'px',
-                            height: canvasHeight * canvasScale + 'px',
-                        }"
+                    <EditorCanvasContainer
+                        class="bg-neutral-100 dark:bg-neutral-900"
+                        :width="`${canvasWidth * canvasScale}px`"
+                        :height="`${canvasHeight * canvasScale}px`"
                         @dragover="onCanvasDragOver"
                         @drop="onCanvasDrop"
                     >
-                        <div
-                            :style="{
-                                width: canvasWidth + 'px',
-                                height: canvasHeight + 'px',
-                                transform: `scale(${canvasScale})`,
-                                transformOrigin: 'top left',
-                            }"
-                        >
+                        <div :style="canvasStyle">
                             <div
                                 v-for="item in blockContainer"
                                 :key="item.uid"
@@ -615,58 +679,47 @@ function preview() {
                                 @click.stop="selectedUid = item.uid"
                             >
                                 <UChip position="top-left">
-                                    <div
+                                    <EditorBlock
+                                        class="flex items-center justify-between"
                                         :class="[
-                                            'py-2 px-4 border border-slate-950/25 dark:border-slate-50/25 hover:bg-slate-100 dark:hover:bg-slate-950 rounded w-52',
-                                            selectedUid === item.uid ? 'border-slate-500 dark:border-slate-400' : '',
+                                            selectedUid === item.uid ? 'border-neutral-500 dark:border-neutral-400' : '',
                                         ]"
                                     >
-                                        <div class="flex justify-between">
-                                            {{ customBlocks.find(c => c.id === item.id)?.label || staticBlocks.find(c => c.id === item.id)?.label }}
+                                        {{ customBlocks.find(c => c.id === item.id)?.label || staticBlocks.find(c => c.id === item.id)?.label }}
 
-                                            <div
-                                                v-if="!['qr-code', 'input-card'].includes(item.id)"
-                                                class="flex gap-2"
-                                            >
-                                                <UButton
-                                                    size="xs"
-                                                    label="Dup"
-                                                    @click.stop="duplicateBlock(item)"
-                                                />
-                                                <UButton
-                                                    size="xs"
-                                                    color="error"
-                                                    label="Del"
-                                                    @click.stop="removeBlock(item.uid)"
-                                                />
-                                            </div>
+                                        <div
+                                            v-if="!STATIC_BLOCK_IDS.includes(item.id)"
+                                            class="flex gap-2"
+                                        >
+                                            <UButton
+                                                size="xs"
+                                                label="Dup"
+                                                @click.stop="duplicateBlock(item)"
+                                            />
+                                            <UButton
+                                                size="xs"
+                                                color="error"
+                                                label="Del"
+                                                @click.stop="removeBlock(item.uid)"
+                                            />
                                         </div>
-                                    </div>
+                                    </EditorBlock>
                                 </UChip>
                             </div>
                         </div>
-                    </div>
+                    </EditorCanvasContainer>
 
                     <!-- PREVIEW -->
                     <MiscLoadingOverlay :loading="loadingPreview">
-                        <div
-                            :class="`border border-slate-950/25 dark:border-slate-50/25 rounded overflow-hidden`"
-                            :style="{
-                                width: canvasWidth * canvasScale + 'px',
-                                height: canvasHeight * canvasScale + 'px',
-                            }"
+                        <EditorCanvasContainer
+                            :width="`${canvasWidth * canvasScale}px`"
+                            :height="`${canvasHeight * canvasScale}px`"
                         >
                             <iframe
-                                :style="{
-                                    width: canvasWidth + 'px',
-                                    height: canvasHeight + 'px',
-                                    transform: `scale(${canvasScale})`,
-                                    transformOrigin: 'top left',
-                                    border: 'none',
-                                }"
+                                :style="{ ...canvasStyle, border: 'none' }"
                                 :srcdoc="generatedHtml"
                             />
-                        </div>
+                        </EditorCanvasContainer>
                     </MiscLoadingOverlay>
                 </div>
             </div>
@@ -681,44 +734,20 @@ function preview() {
                         </div>
                     </template>
 
-                    <div
-                        v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_PORTRAIT)"
-                        class="mb-4"
-                    >
+                    <div class="mb-4">
                         <h4 class="text-sm font-medium mb-2">
-                            Portrait Background Image
+                            Background Image
                         </h4>
                         <UFieldGroup>
                             <UInput
                                 type="file"
                                 accept="image/*"
-                                @change="(e) => onBgImageUpload(e, 'portrait')"
+                                @change="(e: Event) => onBgImageUpload(e)"
                             />
                             <UButton
-                                v-if="bgImage.portrait"
+                                v-if="bgImage.file"
                                 icon="lucide:x"
-                                @click="clearBgImage('portrait')"
-                            />
-                        </UFieldGroup>
-                    </div>
-
-                    <div
-                        v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_LANDSCAPE)"
-                        class="mb-4"
-                    >
-                        <h4 class="text-sm font-medium mb-2">
-                            Landscape Background Image
-                        </h4>
-                        <UFieldGroup>
-                            <UInput
-                                type="file"
-                                accept="image/*"
-                                @change="(e) => onBgImageUpload(e, 'landscape')"
-                            />
-                            <UButton
-                                v-if="bgImage.landscape"
-                                icon="lucide:x"
-                                @click="clearBgImage('landscape')"
+                                @click="clearBgImage()"
                             />
                         </UFieldGroup>
                     </div>
@@ -732,144 +761,59 @@ function preview() {
 
                     <div v-if="selectedItem">
                         <div
+                            v-if="selectedItem.withValue"
+                            class="mb-4"
+                        >
+                            <UFormField label="Value">
+                                <UInput
+                                    v-model="selectedItem.value"
+                                />
+                            </UFormField>
+                        </div>
+                        <div
                             v-if="selectedItem.editableData"
                             class="mb-4"
                         >
-                            <div
-                                v-for="dataItem in selectedItem.data"
-                                :key="dataItem.key"
+                            <EditorDynamicInput
+                                v-for="setting in selectedItem.setting"
+                                :key="setting.key"
                                 class="mb-4"
-                            >
-                                <UFormField :label="dataItem.label">
-                                    <UInput
-                                        :model-value="dataItem.value"
-                                        @update:model-value="(value) => updateBlockData(dataItem.key, value)"
-                                    />
-                                </UFormField>
-                            </div>
+                                :field="setting"
+                                @update="(e) => updateBlock('setting', setting.key, e)"
+                            />
                         </div>
 
-                        <div
-                            v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_PORTRAIT)"
-                            class="mb-4"
-                        >
+                        <div class="mb-4">
                             <h4 class="text-sm font-medium mb-2">
-                                Portrait Position
+                                Position
                             </h4>
                             <div class="grid grid-cols-2 gap-2">
                                 <UFormField label="X (%)">
                                     <UInput
-                                        :model-value="selectedItem.portraitPos.x"
+                                        :model-value="selectedItem.x"
                                         type="number"
                                         :step="0.2"
-                                        @update:model-value="(value) => updatePosition('x', Number(value), 'portrait')"
+                                        @update:model-value="(value: any) => updateBlock('position', 'x', Number(value))"
                                     />
                                 </UFormField>
                                 <UFormField label="Y (%)">
                                     <UInput
-                                        :model-value="selectedItem.portraitPos.y"
+                                        :model-value="selectedItem.y"
                                         type="number"
                                         :step="0.2"
-                                        @update:model-value="(value) => updatePosition('y', Number(value), 'portrait')"
+                                        @update:model-value="(value: any) => updateBlock('position', 'y', Number(value))"
                                     />
                                 </UFormField>
                             </div>
                         </div>
 
-                        <div
-                            v-if="rotateable || canvasOrientationSelections.includes(EDITOR_CANVAS_LANDSCAPE)"
+                        <EditorDynamicInput
+                            v-for="style in selectedItem.style"
+                            :key="style.key"
                             class="mb-4"
-                        >
-                            <h4 class="text-sm font-medium mb-2">
-                                Landscape Position
-                            </h4>
-                            <div class="grid grid-cols-2 gap-2">
-                                <UFormField label="X (%)">
-                                    <UInput
-                                        :model-value="selectedItem.landscapePos.x"
-                                        type="number"
-                                        :step="0.2"
-                                        @update:model-value="(value) => updatePosition('x', Number(value), 'landscape')"
-                                    />
-                                </UFormField>
-                                <UFormField label="Y (%)">
-                                    <UInput
-                                        :model-value="selectedItem.landscapePos.y"
-                                        type="number"
-                                        :step="0.2"
-                                        @update:model-value="(value) => updatePosition('y', Number(value), 'landscape')"
-                                    />
-                                </UFormField>
-                            </div>
-                        </div>
-
-                        <div
-                            v-for="(field, index) in selectedItem.style"
-                            :key="field.key"
-                            class="mb-4"
-                        >
-                            <template v-if="selectedItem.style[index]">
-                                <UCheckbox
-                                    v-if="field.type === 'checkbox'"
-                                    :model-value="Boolean(getBlockStyleValue(selectedItem.style, field.key))"
-                                    :label="field.label"
-                                    @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
-                                />
-
-                                <UFormField
-                                    v-else
-                                    class="mb-2"
-                                    :label="field.label"
-                                >
-                                    <USelect
-                                        v-if="field.type === 'select' && field.options"
-                                        :model-value="String(getBlockStyleValue(selectedItem.style, field.key))"
-                                        :items="field.options"
-                                        class="w-full"
-                                        @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
-                                    />
-
-                                    <UPopover v-else-if="field.type === 'color'">
-                                        <UButton
-                                            label="Choose color"
-                                            color="neutral"
-                                            variant="outline"
-                                        >
-                                            <template #leading>
-                                                <span
-                                                    :style="{ backgroundColor: String(getBlockStyleValue(selectedItem.style, field.key)) }"
-                                                    class="size-3 rounded-full"
-                                                />
-                                            </template>
-                                        </UButton>
-
-                                        <template #content>
-                                            <UColorPicker
-                                                :model-value="String(getBlockStyleValue(selectedItem.style, field.key))"
-                                                @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e || '#000000')"
-                                            />
-                                        </template>
-                                    </UPopover>
-
-                                    <UInput
-                                        v-else-if="field.type === 'number'"
-                                        type="number"
-                                        :model-value="Number(getBlockStyleValue(selectedItem.style, field.key))"
-                                        class="w-full"
-                                        :step="0.1"
-                                        @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
-                                    />
-
-                                    <UInput
-                                        v-else
-                                        :type="field.type"
-                                        :model-value="String(getBlockStyleValue(selectedItem.style, field.key))"
-                                        class="w-full"
-                                        @update:model-value="(e) => selectedItem && setStyleValue(selectedItem.style, field.key, e)"
-                                    />
-                                </UFormField>
-                            </template>
-                        </div>
+                            :field="style"
+                            @update="(e) => selectedItem && updateBlock('style', style.key, e)"
+                        />
                     </div>
 
                     <div v-else>

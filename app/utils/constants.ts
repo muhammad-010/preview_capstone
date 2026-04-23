@@ -8,6 +8,7 @@ export const EMIT_FORM_NEXT_STEP = 'next-step'
 export const EMIT_FORM_PREV_STEP = 'prev-step'
 export const EMIT_INPUT_SEARCH = 'search'
 export const EMIT_INPUT_CLEAR = 'clear'
+export const EMIT_INPUT_UPDATE = 'update'
 export const EMIT_MODAL_CONFIRM = 'confirm'
 export const EMIT_MODAL_CANCEL = 'cancel'
 export const EMIT_MODAL_SELECT = 'select'
@@ -34,6 +35,9 @@ export const STATE_USER_ACTIVE_TENANT_INDEX = 'user:activeTenantIndex'
 export const STATE_CHECK_IN_EVENT_ID = 'checkIn:eventId'
 export const STATE_CHECK_IN_SESSION_ID = 'checkIn:sessionId'
 export const STATE_EVENT_DETAIL_ACTIVE_TAB = 'eventDetail:activeTab'
+
+// LOCALSTORAGE
+export const LOCALSTORAGE_CHECK_IN_PREVIEW = 'check-in-preview'
 
 // PAGINATION LIMIT
 export const PAGINATION_LIMIT = [5, 10, 25, 50]

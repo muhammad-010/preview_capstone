@@ -5,7 +5,8 @@ import { FetchError } from 'ofetch'
 
 const { $api } = useNuxtApp()
 const route = useRoute()
-const id = Number(route.params.event_id)
+const eventId = Number(route.params.event_id)
+const sessionId = Number(route.params.session_id)
 const { tenantId } = useUserState()
 const toast = useToast()
 const isClient = import.meta.client
@@ -68,11 +69,14 @@ function openCheckInFailed(msg: string) {
     }, 5000)
 }
 
-const participantId = ref(0)
 const participantQr = ref('')
-const participant = ref({
+const participant = ref<ParticipantCheckInTarget>({
+    id: 0,
+    sessionId: 0,
+    sessionName: '',
     name: '',
     maxAttendance: 0,
+    customAttributes: [],
 })
 
 let checkinAudio: HTMLAudioElement
@@ -117,26 +121,22 @@ function resetRef() {
     checkInSuccessDialog.value = false
     checkInFailedDialog.value = false
     setTimeout(() => {
-        participantId.value = 0
         participantQr.value = ''
         errorMessage.value = ''
     }, 500)
 }
 
-watch(checkInSuccessDialog, (value, oldValue) => {
-    if (!value && value !== oldValue) {
+watch([checkInSuccessDialog, checkInFailedDialog], ([successDialog, failedDialog], [oldSuccessDialog, oldFailedDialog]) => {
+    const successClosed = oldSuccessDialog && !successDialog
+    const failedClosed = oldFailedDialog && !failedDialog
+
+    if (successClosed || failedClosed) {
         resetRef()
     }
 })
 
-watch(checkInFailedDialog, (value, oldValue) => {
-    if (!value && value !== oldValue) {
-        resetRef()
-    }
-})
-
-async function useDetail(tId: number, id: number) {
-    const { data } = await useApi(`/api/tenant/${tId}/event/${id}/detail`, {
+async function useDetail(tenantId: number, eventId: number) {
+    const { data } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/detail`, {
         transform: res => ({
             ...res.data,
         }),
@@ -148,7 +148,7 @@ async function useDetail(tId: number, id: number) {
     }
 }
 
-async function useScanQr(tId: number, id: number) {
+async function useScanQr(tenantId: number, eventId: number, sessionId: number) {
     const pauseQr = ref(false)
 
     async function qrDetected(qrCodes: DetectedBarcode[]) {
@@ -172,15 +172,17 @@ async function useScanQr(tId: number, id: number) {
         participantQr.value = qrCode.rawValue
 
         try {
-            const { data } = await $api(`/api/tenant/${tId}/event/${id}/participant/check-in`, {
+            const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in`, {
                 method: 'POST',
                 body: {
                     token: participantQr.value,
                 },
             })
             participant.value = {
+                ...participant.value,
                 name: data.participant.name || '',
                 maxAttendance: data.participant.max_attendance || 0,
+                customAttributes: data.participant.custom_attributes || [],
             }
             if (data.confirmation_attendance) {
                 openConfirmAttendanceDialog()
@@ -217,29 +219,33 @@ async function useScanQr(tId: number, id: number) {
     }
 }
 
-async function useManual(tId: number, id: number) {
+async function useManual(tenantId: number, eventId: number, sessionId: number) {
     async function selectParticipant(selectedParticipant: Participant | undefined) {
         if (!selectedParticipant) return
 
-        participantId.value = selectedParticipant.participant_id || 0
         participant.value = {
+            ...participant.value,
+            id: selectedParticipant.participant_id || 0,
             name: selectedParticipant.name,
-            maxAttendance: 0,
         }
         await manualCheckIn()
     }
 
     async function manualCheckIn() {
-        if (!participantId.value) return
+        if (!participant.value.id) return
 
         try {
-            const { data } = await $api(`/api/tenant/${tId}/event/${id}/participant/check-in/manual`, {
+            const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in/manual`, {
                 method: 'POST',
                 body: {
-                    participant_id: participantId.value,
+                    participant_id: participant.value.id,
                 },
             })
-            participant.value.maxAttendance = data.participant.max_attendance
+            participant.value = {
+                ...participant.value,
+                maxAttendance: data.participant.max_attendance || 0,
+                customAttributes: data.participant.custom_attributes || [],
+            }
             if (data.confirmation_attendance) {
                 openConfirmAttendanceDialog()
             }
@@ -268,7 +274,7 @@ async function useManual(tId: number, id: number) {
     }
 }
 
-async function useConfirmAttendance(tId: number, id: number) {
+async function useConfirmAttendance(tenantId: number, eventId: number, sessionId: number) {
     const state = reactive({ count: 0 })
     type Schema = typeof state
 
@@ -281,7 +287,7 @@ async function useConfirmAttendance(tId: number, id: number) {
 
     async function confirmAttendanceQr(event: FormSubmitEvent<Schema>) {
         try {
-            await $api(`/api/tenant/${tId}/event/${id}/participant/check-in/confirm`, {
+            await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in/confirm`, {
                 method: 'POST',
                 body: {
                     token: participantQr.value,
@@ -307,10 +313,10 @@ async function useConfirmAttendance(tId: number, id: number) {
 
     async function confirmAttendanceManual(event: FormSubmitEvent<Schema>) {
         try {
-            await $api(`/api/tenant/${tId}/event/${id}/participant/check-in/confirm/manual`, {
+            await $api(`/api/tenant/${tenantId}/event/${eventId}/session/${sessionId}/check-in/confirm/manual`, {
                 method: 'POST',
                 body: {
-                    participant_id: participantId.value,
+                    participant_id: participant.value.id,
                     count_attendance: Number(event.data.count),
                 },
             })
@@ -365,16 +371,16 @@ const [
         selectParticipant,
     },
 ] = await Promise.all([
-    useDetail(tenantId.value, id),
-    useScanQr(tenantId.value, id),
-    useManual(tenantId.value, id),
+    useDetail(tenantId.value, eventId),
+    useScanQr(tenantId.value, eventId, sessionId),
+    useManual(tenantId.value, eventId, sessionId),
 ])
 
 const {
     state,
     validateConfirmAttendance,
     confirmAttendance,
-} = await useConfirmAttendance(tenantId.value, id)
+} = await useConfirmAttendance(tenantId.value, eventId, sessionId)
 
 useHead({
     title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),
@@ -401,15 +407,16 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             />
         </div>
 
-        <CheckInScan
+        <PageCheckInScan
             v-if="activeCheckInMethod === CHECK_IN_METHOD_SCAN"
             v-model:pause-qr="pauseQr"
             @qr-detect="qrDetected"
         />
 
-        <CheckInManual
+        <PageCheckInManual
             v-else-if="activeCheckInMethod === CHECK_IN_METHOD_MANUAL"
-            :event-id="id"
+            :event-id="eventId"
+            :tenant-id="tenantId"
             title="Manual Check In"
             button-label="Check In"
             @select="selectParticipant"
@@ -528,6 +535,14 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             <template #subtitle>
                 <h2>Name: {{ participant.name }}</h2>
                 <h2>Max Pax: {{ participant.maxAttendance }}</h2>
+                <template v-if="participant.customAttributes.length">
+                    <h2
+                        v-for="(attr, id) in participant.customAttributes"
+                        :key="id"
+                    >
+                        {{ attr.name }}: {{ attr.value }}
+                    </h2>
+                </template>
             </template>
         </ModalCheckInSuccess>
 

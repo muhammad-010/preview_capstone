@@ -1,63 +1,32 @@
 <!-- eslint-disable vue/no-v-html -->
 <script setup lang="ts">
 const props = defineProps<{
-    blockSettings: SavedBlockSettings[]
+    blockSettings: ElementBlock[]
 }>()
 
-const availabelBlocks = ref<Block[]>([BLOCK_TEXT_DEFAULT])
+const availableBlocks = ref<ElementBlock[]>([BLOCK_TEXT_DEFAULT])
 const renderableBlocks = computed(() => {
     return props.blockSettings
         .map((saved) => {
-            const base = availabelBlocks.value.find(ab => ab.id === saved.id)
+            const base = availableBlocks.value.find(ab => ab.id === saved.id)
             if (!base) return undefined
-
-            return {
-                ...base,
-
-                data: saved.data,
-                style: saved.style,
-                compiledStyle: saved.compiledStyle,
-                portraitPos: saved.portraitPos,
-                landscapePos: saved.landscapePos,
-            } as Block
+            return saved
         })
-        .filter((b): b is Block => Boolean(b))
+        .filter((b): b is ElementBlock => Boolean(b))
 })
-const isMobile = ref(false)
-
-onMounted(() => {
-    const media = window.matchMedia('(max-width: 1024px)')
-
-    const update = () => (isMobile.value = media.matches)
-    update()
-
-    media.addEventListener('change', update)
-})
-
-function getBlockStyle(block: Block) {
-    if (!import.meta.client) return ''
-    if (!block) return ''
-
-    const pos = isMobile.value
-        ? block.portraitPos
-        : block.landscapePos
-
-    return `
-        position: absolute;
-        left: ${pos.x}%;
-        top: ${pos.y}%;
-        transform: translate(-50%, -50%);
-    `
-}
+const responsivePosition = computed(() =>
+    renderableBlocks.value.map(b => getResponsivePositionStyle(b)),
+)
 </script>
 
 <template>
     <div>
         <div
-            v-for="block in renderableBlocks"
+            v-for="(block, id) in renderableBlocks"
             :key="block.uid"
-            :style="getBlockStyle(block)"
-            v-html="block.html(block.data, block.compiledStyle)"
+            :class="responsivePosition[id]!.tailwindClass"
+            :style="responsivePosition[id]!.style"
+            v-html="renderHtmlBlock(block)"
         />
     </div>
 </template>

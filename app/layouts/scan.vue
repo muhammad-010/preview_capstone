@@ -1,11 +1,117 @@
-<template>
-    <UContainer class="flex justify-center items-center flex-col h-screen">
-        <div class="mb-auto mt-12">
-            <UColorModeButton />
-        </div>
+<script setup lang="ts">
+const colorMode = useColorMode()
+colorMode.value = 'light'
 
-        <div class="mb-12">
+const props = useAttrs()
+
+const isBackgroundActive = computed(() => {
+    return BREAKPOINTS.some((bp) => {
+        return Boolean(props[`${bp}${STYLING_BACKGROUND_SUFFIX}`])
+    })
+})
+
+const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
+    const res: ResponsiveElementSetting = {
+        tailwindClass: [],
+        style: {},
+    }
+
+    for (const bp of BREAKPOINTS) {
+        const {
+            key,
+            cssVariable,
+            tailwindClass,
+            getValue,
+        } = responsiveStyleClass(bp, STYLING_BACKGROUND_SUFFIX)
+        const prop = props[key]
+        if (prop) {
+            res.style[cssVariable] = getValue(prop)
+            res.tailwindClass.push(tailwindClass)
+        }
+    }
+
+    return res
+})
+</script>
+
+<template>
+    <UContainer
+        class="relative flex flex-col justify-center items-center h-screen max-w-full overflow-hidden"
+    >
+        <div
+            v-if="isBackgroundActive"
+            class="absolute inset-0 bg-cover bg-center blur-2xl brightness-75 scale-110"
+            :style="backgroundStyleClass.style"
+            :class="backgroundStyleClass.tailwindClass"
+        />
+
+        <div
+            v-else
+            class="absolute inset-0 bg-linear-to-br from-blue-200 via-gray-50 to-indigo-200"
+        />
+
+        <div
+            v-if="isBackgroundActive"
+            class="absolute inset-0 bg-contain bg-center bg-no-repeat"
+            :style="backgroundStyleClass.style"
+            :class="backgroundStyleClass.tailwindClass"
+        />
+
+        <div class="z-1">
             <slot />
         </div>
+
+        <!--
+            FOR TRIGGERING TAILWIND SO IT GENERATE CLASSES FROM responsiveStyleClass
+
+        <div
+            class="hidden!
+                    sm:bg-(image:--sm-background)
+                    md:bg-(image:--md-background)
+                    lg:bg-(image:--lg-background)
+                    xl:bg-(image:--xl-background)
+
+                    sm:left-(--sm-pos-x)
+                    md:left-(--md-pos-x)
+                    lg:left-(--lg-pos-x)
+                    xl:left-(--xl-pos-x)
+
+                    sm:top-(--sm-pos-y)
+                    md:top-(--md-pos-y)
+                    lg:top-(--lg-pos-y)
+                    xl:top-(--xl-pos-y)
+
+                    sm:text-(--sm-color)
+                    md:text-(--md-color)
+                    lg:text-(--lg-color)
+                    xl:text-(--xl-color)
+
+                    sm:text-(length:--sm-font-size)
+                    md:text-(length:--md-font-size)
+                    lg:text-(length:--lg-font-size)
+                    xl:text-(length:--xl-font-size)
+
+                    sm:font-(--sm-font-weight)
+                    md:font-(--md-font-weight)
+                    lg:font-(--lg-font-weight)
+                    xl:font-(--xl-font-weight)
+
+                    sm:[font-style:--sm-font-style]
+                    md:[font-style:--md-font-style]
+                    lg:[font-style:--lg-font-style]
+                    xl:[font-style:--xl-font-style]
+
+                    sm:w-(--sm-weight)
+                    md:w-(--md-weight)
+                    lg:w-(--lg-weight)
+                    xl:w-(--xl-weight)
+
+                    sm:h-(--sm-height)
+                    md:h-(--md-height)
+                    lg:h-(--lg-height)
+                    xl:h-(--xl-height)
+                "
+        />
+        -->
     </UContainer>
 </template>

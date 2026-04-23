@@ -169,14 +169,8 @@ export type TenantEventSettingKeys = 'confirmation_attendance' | 'public_ticket_
 export type TenantEventSetting = Record<TenantEventSettingKeys, Setting>
 
 // TEMPLATE
-export interface Template {
-    template_id: number
-    type: string
-    variants: TemplateVariant[]
-}
-
 export interface TemplateElement {
-    element_id: number
+    element_id?: number
     type: string
     value: string
     position_x: number
@@ -186,10 +180,17 @@ export interface TemplateElement {
 }
 
 export interface TemplateVariant {
-    variant_id: number
+    variant_id?: number
     slug: string
+    background_image_url: string | null
     setting: Record<string, any>
-    element: TemplateElement[]
+    elements: TemplateElement[]
+}
+
+export interface Template {
+    template_id?: number
+    type: string
+    variants: TemplateVariant[]
 }
 
 // PARTICIPANT
