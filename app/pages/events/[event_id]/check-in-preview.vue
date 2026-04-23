@@ -8,7 +8,7 @@ const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`,
         ...res.data,
     }),
 })
-const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
+const event = computed<TenantEvent | null>(() => data.value ?? null)
 
 const settings = ref<SavedVariant>({
     bgImage: '',

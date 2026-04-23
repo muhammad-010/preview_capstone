@@ -5,7 +5,7 @@ defineProps<{
 }>()
 const emit = defineEmits([EMIT_INPUT_UPDATE])
 
-function setValue(e: any) {
+function setValue(e: string | number | boolean | undefined) {
     emit(EMIT_INPUT_UPDATE, e)
 }
 </script>
