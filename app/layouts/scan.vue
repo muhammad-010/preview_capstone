@@ -38,17 +38,6 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
     <UContainer
         class="relative flex flex-col justify-center items-center h-screen max-w-full overflow-hidden"
     >
-        <!--
-            FOR TRIGGERING TAILWIND SO IT GENERATE CLASSES FROM responsiveStyleClass
-        <div
-            class="hidden
-                    sm:bg-(image:--sm-background) md:bg-(image:--md-background) lg:bg-(image:--lg-background) xl:bg-(image:--xl-background)
-                    sm:left-(--sm-pos-x) md:left-(--md-pos-x) lg:left-(--lg-pos-x) xl:left-(--xl-pos-x)
-                    sm:top-(--sm-pos-y) md:top-(--md-pos-y) lg:top-(--lg-pos-y) xl:top-(--xl-pos-y)
-                "
-        />
-        -->
-
         <div
             v-if="isBackgroundActive"
             class="absolute inset-0 bg-cover bg-center blur-2xl brightness-75 scale-110"
@@ -71,5 +60,58 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
         <div class="z-1">
             <slot />
         </div>
+
+        <!--
+            FOR TRIGGERING TAILWIND SO IT GENERATE CLASSES FROM responsiveStyleClass
+
+        <div
+            class="hidden!
+                    sm:bg-(image:--sm-background)
+                    md:bg-(image:--md-background)
+                    lg:bg-(image:--lg-background)
+                    xl:bg-(image:--xl-background)
+
+                    sm:left-(--sm-pos-x)
+                    md:left-(--md-pos-x)
+                    lg:left-(--lg-pos-x)
+                    xl:left-(--xl-pos-x)
+
+                    sm:top-(--sm-pos-y)
+                    md:top-(--md-pos-y)
+                    lg:top-(--lg-pos-y)
+                    xl:top-(--xl-pos-y)
+
+                    sm:text-(--sm-color)
+                    md:text-(--md-color)
+                    lg:text-(--lg-color)
+                    xl:text-(--xl-color)
+
+                    sm:text-(length:--sm-font-size)
+                    md:text-(length:--md-font-size)
+                    lg:text-(length:--lg-font-size)
+                    xl:text-(length:--xl-font-size)
+
+                    sm:font-(--sm-font-weight)
+                    md:font-(--md-font-weight)
+                    lg:font-(--lg-font-weight)
+                    xl:font-(--xl-font-weight)
+
+                    sm:[font-style:--sm-font-style]
+                    md:[font-style:--md-font-style]
+                    lg:[font-style:--lg-font-style]
+                    xl:[font-style:--xl-font-style]
+
+                    sm:w-(--sm-weight)
+                    md:w-(--md-weight)
+                    lg:w-(--lg-weight)
+                    xl:w-(--xl-weight)
+
+                    sm:h-(--sm-height)
+                    md:h-(--md-height)
+                    lg:h-(--lg-height)
+                    xl:h-(--xl-height)
+                "
+        />
+        -->
     </UContainer>
 </template>

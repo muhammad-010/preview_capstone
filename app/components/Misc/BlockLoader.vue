@@ -10,7 +10,6 @@ const renderableBlocks = computed(() => {
         .map((saved) => {
             const base = availableBlocks.value.find(ab => ab.id === saved.id)
             if (!base) return undefined
-            saved.html = base.html
             return saved
         })
         .filter((b): b is ElementBlock => Boolean(b))
@@ -27,7 +26,7 @@ const responsivePosition = computed(() =>
             :key="block.uid"
             :class="responsivePosition[id]!.tailwindClass"
             :style="responsivePosition[id]!.style"
-            v-html="block.html(block.setting, block.compiledStyle, block.value)"
+            v-html="renderHtmlBlock(block)"
         />
     </div>
 </template>

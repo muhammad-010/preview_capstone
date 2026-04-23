@@ -101,14 +101,13 @@ export interface Block {
     style: BlockSetting[]
     x: number
     y: number
-    compiledStyle: string
     withValue?: boolean
 }
 
 export interface ElementBlock extends Block {
     uid: string
     label: string
-    html: (setting: BlockSetting[], compiledStyle: string, value: string) => string
+    previewStyle: string
     editableData: boolean
     perBreakpoint?: Partial<Record<
         Breakpoint,

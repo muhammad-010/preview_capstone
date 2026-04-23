@@ -152,7 +152,7 @@ function syncStaticBlock(item: ElementBlock) {
 
     staticBlock.style = structuredClone(toRaw(item.style))
     staticBlock.setting = structuredClone(toRaw(item.setting))
-    staticBlock.compiledStyle = item.compiledStyle
+    staticBlock.previewStyle = compilePreviewStyle(item)
     staticBlock.x = item.x
     staticBlock.y = item.y
 }
@@ -329,10 +329,10 @@ function updateBlock(target: 'position' | 'setting' | 'style', key: CoordinateKe
                 return
         }
 
-        if (dataItem) {
-            dataItem.value = value
-            if (target === 'style') selectedItem.value.compiledStyle = compileBlockStyle(selectedItem.value)
-        }
+        if (!dataItem) return
+        dataItem.value = value
+
+        if (target === 'style') selectedItem.value.previewStyle = compilePreviewStyle(selectedItem.value)
     }
 
     if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
@@ -350,12 +350,12 @@ function renderBlock(block: ElementBlock) {
     const absoluteStyle = getPositionStyle(block)
     return `
     <div style="${absoluteStyle}">
-        ${block.html(block.setting, block.compiledStyle, block.value)}
+        ${renderPreviewHtml(block)}
     </div>
     `
 }
 
-function getPreviewHTML(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+function getrenderPreviewHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
     if (!props.htmlPreviewFn) {
         return `
         <!DOCTYPE html>
@@ -394,7 +394,7 @@ function refreshGeneratedHtml() {
         return renderBlock(block)
     }).join('\n')
 
-    generatedHtml.value = getPreviewHTML(bgImage.value, canvasWidth.value, canvasHeight.value, content, staticContent)
+    generatedHtml.value = getrenderPreviewHtml(bgImage.value, canvasWidth.value, canvasHeight.value, content, staticContent)
     loadingPreview.value = false
 }
 
@@ -421,23 +421,17 @@ function saveToLocalStorage() {
     const customBlock = blockContainer.value
         .filter(b => !STATIC_BLOCK_IDS.includes(b.id))
         .map(block => ({
-            id: block.id,
+            ...block,
             style: block.style.map(s => ({ key: s.key, value: s.value })),
             setting: block.setting.map(s => ({ key: s.key, value: s.value })),
-            x: block.x,
-            y: block.y,
-            compiledStyle: compileBlockStyle(block),
         }))
 
     const staticBlock = props.staticBlocks
         .filter(b => STATIC_BLOCK_IDS.includes(b.id))
         .map(block => ({
-            id: block.id,
+            ...block,
             style: block.style.map(b => ({ key: b.key, value: b.value })),
             setting: block.setting.map(b => ({ key: b.key, value: b.value })),
-            x: block.x,
-            y: block.y,
-            compiledStyle: compileBlockStyle(block),
         }))
 
     const settings = {

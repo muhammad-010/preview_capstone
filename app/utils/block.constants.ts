@@ -83,13 +83,7 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     ],
     x: 0,
     y: 0,
-    compiledStyle: 'color: #000000; font-size: 1rem; font-weight: 500; font-style: normal;',
-    html: (settings: BlockSetting[], compiledStyle: string, value: string) => {
-        return `
-            <p style="${compiledStyle}">
-                ${value || ''}
-            </p>`
-    },
+    previewStyle: 'color: #000000; font-size: 1rem; font-weight: 500; font-style: normal;',
     withValue: true,
     editableData: true,
 }
@@ -106,15 +100,7 @@ export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     ],
     x: 0,
     y: 0,
-    compiledStyle: 'width: 100px; height: 100px;',
-    html: (settings: BlockSetting[], compiledStyle: string, value: string) => {
-        return `
-            <img
-                src="${value || ''}"
-                style="${compiledStyle}"
-            />
-        `
-    },
+    previewStyle: 'width: 100px; height: 100px;',
     withValue: true,
     editableData: true,
 }
@@ -133,15 +119,7 @@ export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
     style: [],
     x: 50,
     y: 50,
-    compiledStyle: '',
-    html: (settings: BlockSetting[], compiledStyle: string, value: string) => {
-        return `
-            <img
-                src="${value || ''}"
-                style="${compiledStyle}"
-            />
-        `
-    },
+    previewStyle: '',
     editableData: false,
 }
 
@@ -158,24 +136,7 @@ export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
     style: [],
     x: 50,
     y: 50,
-    compiledStyle: '',
-    html: (settings: BlockSetting[], compiledStyle: string, _value: string) => {
-        const _ = compiledStyle
-        const title = settings.find(d => d.key === BLOCK_SETTING_TITLE)?.value || 'Title'
-        const placeholder = settings.find(d => d.key === BLOCK_SETTING_INPUT_PLACEHOLDER)?.value || 'Placeholder'
-        const buttonText = settings.find(d => d.key === BLOCK_SETTING_BUTTON_TEXT)?.value || 'Submit'
-        return `
-            <div style="width:200px; padding:16px; border:1px solid #ccc; border-radius:8px; background:#fff; text-align: center">
-                <h3 style="font-size:2rem; margin:0 0 12px 0;">
-                    ${title}
-                </h3>
-                <input type="text" placeholder="${placeholder}" style="width:90%; padding:8px; font-size:1rem; border:1px solid #ccc; border-radius:4px; margin-bottom:12px;" />
-                <button style="width:100%; padding:8px; background:#007bff; color:#fff; border:none; border-radius:4px;">
-                    ${buttonText}
-                </button>
-            </div>
-        `
-    },
+    previewStyle: '',
     editableData: true,
 }
 

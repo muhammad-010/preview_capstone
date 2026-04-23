@@ -11,7 +11,7 @@ export function getBlockStyleValue(style: BlockSetting[], key: string): string |
     return style.find(s => s.key === key)?.value
 }
 
-export function compileBlockStyle(block: Block) {
+export function compilePreviewStyle(block: Block) {
     if (block.id === BLOCK_TEXT_ID) {
         return `
             ${BLOCK_STYLE_COLOR}:${getBlockStyleValue(block.style, BLOCK_STYLE_COLOR)};
@@ -28,19 +28,76 @@ export function compileBlockStyle(block: Block) {
         `
     }
 
-    // if (block.id === STATIC_BLOCK_SCANNER_QR_ID) {
-    //     const size = String(getBlockStyleValue(block.style, 'size'))
-    //     return `width:${size}rem; height:${size}rem;`
-    // }
-
-    // if (block.id === STATIC_BLOCK_INPUT_CARD_ID) {
-    //     const buttonColor = String(getBlockStyleValue(block.style, 'buttonColor'))
-    //     const titleFontSize = String(getBlockStyleValue(block.style, 'titleFontSize'))
-    //     const inputFontSize = String(getBlockStyleValue(block.style, 'inputFontSize'))
-    //     return `button-color:${buttonColor}; title-font-size:${titleFontSize}rem; input-font-size:${inputFontSize}rem;`
-    // }
-
     return ''
+}
+
+export function renderHtmlBlock(block: ElementBlock) {
+    const styleClass = getResponsiveStyle(block)
+    const cssClass: string = styleClass.tailwindClass.join(' ')
+    const cssStyle: string = Object.entries(styleClass.style)
+        .filter(([, value]) => value !== undefined && value !== '')
+        .map(([key, value]) => `${key}: ${value};`)
+        .join(' ')
+
+    switch (block.id) {
+        case BLOCK_TEXT_ID:
+            return `
+                <p class="${cssClass}" style="${cssStyle}">
+                    ${block.value || ''}
+                </p>
+            `
+        case BLOCK_IMAGE_ID:
+            return `
+                <img
+                    src="${block.value || ''}"
+                    class="${cssClass}"
+                    style="${cssStyle}"
+                />
+            `
+        default:
+            return ''
+    }
+}
+
+export function renderPreviewHtml(block: ElementBlock) {
+    if (block.id === BLOCK_TEXT_ID) {
+        return `
+            <p style="${block.previewStyle}">
+                ${block.value || ''}
+            </p>
+        `
+    }
+    else if (
+        block.id === BLOCK_IMAGE_ID
+        || (block.id === STATIC_BLOCK_SCANNER_QR_ID)
+    ) {
+        return `
+            <img
+                src="${block.value || ''}"
+                style="${block.previewStyle}"
+            />
+        `
+    }
+    else if (block.id === STATIC_BLOCK_INPUT_CARD_ID) {
+        return `
+            <div style="width:200px; padding:16px; border:1px solid #ccc; border-radius:8px; background:#fff; text-align: center">
+                <h3 style="font-size:2rem; margin:0 0 12px 0;">
+                    ${block.setting.find(d => d.key === BLOCK_SETTING_TITLE)?.value || 'Title'}
+                </h3>
+                <input
+                    type="text"
+                    placeholder="${block.setting.find(d => d.key === BLOCK_SETTING_INPUT_PLACEHOLDER)?.value || 'Placeholder'}"
+                    style="width:90%; padding:8px; font-size:1rem; border:1px solid #ccc; border-radius:4px; margin-bottom:12px;"
+                />
+                <button style="width:100%; padding:8px; background:#007bff; color:#fff; border:none; border-radius:4px;">
+                    ${block.setting.find(d => d.key === BLOCK_SETTING_BUTTON_TEXT)?.value || 'Submit'}
+                </button>
+            </div>
+        `
+    }
+    else {
+        return ''
+    }
 }
 
 export function getPositionStyle(block: Block) {
@@ -278,7 +335,7 @@ export function templateVariantToSavedVariant(variant: TemplateVariant): SavedVa
             value: el.value,
             style: filterBlockData('style', el.style, blockDef),
             setting: filterBlockData('setting', el.setting, blockDef),
-            compiledStyle: blockDef.compiledStyle,
+            previewStyle: blockDef.previewStyle,
         }
 
         if (isCustom) {
@@ -361,9 +418,7 @@ export function mapTemplateToBlocks(template: Template): {
                 value: el.value,
                 style: Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : structuredClone(toRaw(block.style)),
                 setting: Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : structuredClone(toRaw(block.setting)),
-                compiledStyle: '',
             }
-            block.perBreakpoint![bp]!.compiledStyle = compileBlockStyle(block)
         }
     }
 
