@@ -7,9 +7,8 @@ export function compileBlockStyle(block: Block) {
     if (block.id === BLOCK_TEXT_ID) {
         return `
             ${BLOCK_STYLE_COLOR}:${getBlockStyleValue(block.style, BLOCK_STYLE_COLOR)};
-            ${BLOCK_STYLE_FONT_FAMILY}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_FAMILY)};
             ${BLOCK_STYLE_FONT_SIZE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_SIZE)}rem;
-            ${BLOCK_STYLE_FONT_WEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_WEIGHT) ? 'bold' : 'normal'};
+            ${BLOCK_STYLE_FONT_WEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_WEIGHT)};
             ${BLOCK_STYLE_FONT_STYLE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_STYLE) ? 'italic' : 'normal'};
         `
     }
@@ -123,7 +122,7 @@ export function invitationEmailHtml(bgImage: BackgroundImage, width: number, hei
             }
         </style>
     </head>
-    <body>
+    <body style="font-family: Arial;">
         <div class="viewport">
             <div class="scaler">
                 <div class="page background">
@@ -171,7 +170,7 @@ export function checkInPageHtml(bgImage: BackgroundImage, width: number, height:
                 }
             </style>
         </head>
-        <body style="margin:0;padding:0;">
+        <body style="font-family: Arial;margin:0;padding:0;">
             <div class="container">
                 <div
                     class="bg-blur"

@@ -31,7 +31,7 @@ export const STATIC_BLOCK_IDS: string[] = [
 ]
 
 export const BLOCK_STYLE_COLOR = STYLE_COLOR
-export const BLOCK_STYLE_FONT_FAMILY = STYLE_FONT_FAMILY
+// export const BLOCK_STYLE_FONT_FAMILY = STYLE_FONT_FAMILY
 export const BLOCK_STYLE_FONT_SIZE = STYLE_FONT_SIZE
 export const BLOCK_STYLE_FONT_WEIGHT = STYLE_FONT_WEIGHT
 export const BLOCK_STYLE_FONT_STYLE = STYLE_FONT_STYLE
@@ -39,12 +39,24 @@ export const BLOCK_STYLE_WIDTH = STYLE_WIDTH
 export const BLOCK_STYLE_HEIGHT = STYLE_HEIGHT
 export const BLOCK_STYLE_LIST: string[] = [
     BLOCK_STYLE_COLOR,
-    BLOCK_STYLE_FONT_FAMILY,
+    // BLOCK_STYLE_FONT_FAMILY,
     BLOCK_STYLE_FONT_SIZE,
     BLOCK_STYLE_FONT_WEIGHT,
     BLOCK_STYLE_FONT_STYLE,
     BLOCK_STYLE_WIDTH,
     BLOCK_STYLE_HEIGHT,
+]
+
+export const BLOCK_STYLE_FONT_WEIGHT_OPTIONS = [
+    '100',
+    '200',
+    '300',
+    '400',
+    '500',
+    '600',
+    '700',
+    '800',
+    '900',
 ]
 
 export const BLOCK_SETTING_TITLE = 'title'
@@ -64,14 +76,14 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     setting: [],
     style: [
         { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
-        { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
+        // { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
         { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'number', value: '1' },
-        { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'checkbox', value: false },
+        { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'select', value: '500', options: structuredClone(toRaw(BLOCK_STYLE_FONT_WEIGHT_OPTIONS)) },
         { key: BLOCK_STYLE_FONT_STYLE, label: 'Italic', type: 'checkbox', value: false },
     ],
     x: 0,
     y: 0,
-    compiledStyle: 'color: #000000; font-family: Arial, sans-serif; font-size: 1rem; font-weight: normal; font-style: normal;',
+    compiledStyle: 'color: #000000; font-size: 1rem; font-weight: 500; font-style: normal;',
     html: (settings: BlockSetting[], compiledStyle: string, value: string) => {
         return `
             <p style="${compiledStyle}">
