@@ -25,10 +25,16 @@ export const BLOCK_IDS: string[] = [
 ]
 export const STATIC_BLOCK_SCANNER_QR_ID = 'scanner-qr'
 export const STATIC_BLOCK_INPUT_CARD_ID = 'input-card'
+export const STATIC_BLOCK_SCANNER_QR_NUMBER_ID = 1111111111111
+export const STATIC_BLOCK_INPUT_CARD_NUMBER_ID = 1111111111110
 export const STATIC_BLOCK_IDS: string[] = [
     STATIC_BLOCK_SCANNER_QR_ID,
     STATIC_BLOCK_INPUT_CARD_ID,
 ]
+export const STATIC_BLOCK_NUMBER_IDS: Record<string, number> = {
+    [STATIC_BLOCK_SCANNER_QR_ID]: STATIC_BLOCK_SCANNER_QR_NUMBER_ID,
+    [STATIC_BLOCK_INPUT_CARD_ID]: STATIC_BLOCK_INPUT_CARD_NUMBER_ID,
+}
 
 export const BLOCK_STYLE_COLOR = STYLE_COLOR
 // export const BLOCK_STYLE_FONT_FAMILY = STYLE_FONT_FAMILY
@@ -83,7 +89,6 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     ],
     x: 0,
     y: 0,
-    previewStyle: 'color: #000000; font-size: 1rem; font-weight: 500; font-style: normal;',
     withValue: true,
     editableData: true,
 }
@@ -100,7 +105,6 @@ export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     ],
     x: 0,
     y: 0,
-    previewStyle: 'width: 100px; height: 100px;',
     withValue: true,
     editableData: true,
 }
@@ -111,7 +115,7 @@ export const CUSTOM_BLOCKS: ElementBlock[] = [
 ]
 
 export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
-    uid: '',
+    uid: `${STATIC_BLOCK_SCANNER_QR_NUMBER_ID}`,
     id: STATIC_BLOCK_SCANNER_QR_ID,
     label: 'QR Code',
     value: 'https://placehold.co/100?text=QR+Code',
@@ -119,12 +123,11 @@ export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
     style: [],
     x: 50,
     y: 50,
-    previewStyle: '',
     editableData: false,
 }
 
 export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
-    uid: '',
+    uid: `${STATIC_BLOCK_INPUT_CARD_NUMBER_ID}`,
     id: STATIC_BLOCK_INPUT_CARD_ID,
     label: 'Input Card',
     value: '',
@@ -136,7 +139,6 @@ export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
     style: [],
     x: 50,
     y: 50,
-    previewStyle: '',
     editableData: true,
 }
 

@@ -171,6 +171,7 @@ export type TenantEventSetting = Record<TenantEventSettingKeys, Setting>
 // TEMPLATE
 export interface TemplateElement {
     element_id?: number
+    group: number
     type: string
     value: string
     position_x: number
