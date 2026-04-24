@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-function isStylingSuffix(value: string): value is StylingSuffix {
+export function isStylingSuffix(value: string): value is StylingSuffix {
     return STYLING_SUFFIXES.includes(value as StylingSuffix)
 }
 
-function isBreakpoint(value: string): value is Breakpoint {
+export function isBreakpoint(value: string): value is Breakpoint {
     return BREAKPOINTS.includes(value as Breakpoint)
 }
 

@@ -76,7 +76,7 @@ export interface ElementBackgroundImage extends BackgroundImage {
 }
 
 export interface CanvasSize {
-    id: string
+    id: Breakpoint
     width: number
     height: number
     label: string

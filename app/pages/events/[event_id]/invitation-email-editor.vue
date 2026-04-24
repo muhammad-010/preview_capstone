@@ -9,7 +9,7 @@ definePageMeta({
 </script>
 
 <template>
-    <EditorDragNDrop
+    <EditorMain
         :editor-mode="EDITOR_MODE_INVITATION_EMAIL"
         :custom-blocks="customBlocks"
         :static-blocks="[]"

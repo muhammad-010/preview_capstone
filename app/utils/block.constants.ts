@@ -7,14 +7,14 @@ export const EDITOR_CANVAS_PORTRAIT = 'portrait'
 export const EDITOR_CANVAS_LANDSCAPE = 'landscape'
 
 export const CANVAS_SIZE_PRESETS_INVITATION_EMAIL: CanvasSize[] = [
-    { id: '1', width: 432, height: 768, label: 'Medium', breakpoint: 'md', orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: BREAKPOINT_MD, width: 432, height: 768, label: 'Medium', breakpoint: BREAKPOINT_MD, orientation: EDITOR_CANVAS_PORTRAIT },
 ]
 
 export const CANVAS_SIZE_PRESETS_CHECK_IN_PAGE: CanvasSize[] = [
-    { id: '1', width: 360, height: 640, label: 'Mobile', breakpoint: 'sm', orientation: EDITOR_CANVAS_PORTRAIT },
-    { id: '2', width: 432, height: 768, label: 'Tablet', breakpoint: 'md', orientation: EDITOR_CANVAS_PORTRAIT },
-    { id: '3', width: 1024, height: 768, label: 'Laptop', breakpoint: 'lg', orientation: EDITOR_CANVAS_LANDSCAPE },
-    { id: '4', width: 1280, height: 720, label: 'Desktop', breakpoint: 'xl', orientation: EDITOR_CANVAS_LANDSCAPE },
+    { id: BREAKPOINT_SM, width: 360, height: 640, label: 'Mobile', breakpoint: BREAKPOINT_SM, orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: BREAKPOINT_MD, width: 432, height: 768, label: 'Tablet', breakpoint: BREAKPOINT_MD, orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: BREAKPOINT_LG, width: 1024, height: 768, label: 'Laptop', breakpoint: BREAKPOINT_LG, orientation: EDITOR_CANVAS_LANDSCAPE },
+    { id: BREAKPOINT_XL, width: 1280, height: 720, label: 'Desktop', breakpoint: BREAKPOINT_XL, orientation: EDITOR_CANVAS_LANDSCAPE },
 ]
 
 export const BLOCK_TEXT_ID = 'text'
