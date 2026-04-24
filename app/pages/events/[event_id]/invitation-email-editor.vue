@@ -16,6 +16,7 @@ definePageMeta({
         :html-preview-fn="invitationEmailHtml"
         :default-orientation="EDITOR_CANVAS_PORTRAIT"
         :canvas-size-options="CANVAS_SIZE_PRESETS_INVITATION_EMAIL"
+        :default-breakpoint="BREAKPOINT_MD"
         page-title="Invitation Email Key Visual Editor"
     />
 </template>

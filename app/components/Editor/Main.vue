@@ -5,6 +5,7 @@ const props = defineProps<{
     staticBlocks: ElementBlock[]
     htmlPreviewFn: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
     canvasSizeOptions: CanvasSize[]
+    defaultBreakpoint: Breakpoint
     defaultOrientation: Orientation
     rotateable?: boolean
     withPreview?: boolean
@@ -22,29 +23,83 @@ const EVENT_MOUSEUP = 'mouseup'
 
 const router = useRouter()
 
-// CANVAS SETTINGS
-const selectedCanvasSizeId = ref(props.canvasSizeOptions[0]!.id)
-const selectedCanvasSize = computed(() => props.canvasSizeOptions.find(size => size.id === selectedCanvasSizeId.value) || props.canvasSizeOptions[0]!)
+// CANVAS SIZE
+const selectCanvasSizePopover = ref<boolean>(false)
+const selectedCanvasSizeIds = ref<Breakpoint[]>([props.defaultBreakpoint])
+const removeCanvasSizeModal = ref<boolean>(false)
+const removeCanvasSizeTarget = ref<Breakpoint | null>(null)
+const activeCanvasSizeId = ref<Breakpoint>(props.defaultBreakpoint)
+const activeCanvasSize = computed(() => props.canvasSizeOptions.find(c => c.id === activeCanvasSizeId.value)!)
+const selectedCanvasSizes = computed(() => selectedCanvasSizeIds.value.reduce<typeof props.canvasSizeOptions>((acc, id) => {
+    const found = props.canvasSizeOptions.find(c => c.id === id)
+    if (found) acc.push(found)
+    return acc
+}, []))
+const unselectedCanvasSizes = computed(() => props.canvasSizeOptions.filter(c => !selectedCanvasSizeIds.value.includes(c.id)))
+const removeCanvasSizesTarget = computed(() => props.canvasSizeOptions.find(c => c.id === removeCanvasSizeTarget.value)?.label ?? '')
+
+function addCanvasSize(id: Breakpoint) {
+    if (selectedCanvasSizeIds.value.includes(id)) return
+    selectedCanvasSizeIds.value.push(id)
+    activeCanvasSizeId.value = id
+    selectCanvasSizePopover.value = false
+}
+
+function confirmRemoveCanvasSize(id: Breakpoint) {
+    if (selectedCanvasSizeIds.value.length === 1) return
+    removeCanvasSizeTarget.value = id
+    removeCanvasSizeModal.value = true
+}
+
+function toggleActiveCanvasSize(id: Breakpoint) {
+    if (!selectedCanvasSizeIds.value.includes(id)) return
+    activeCanvasSizeId.value = id
+}
+
+function removeCanvasSize() {
+    if (!removeCanvasSizeTarget.value || selectedCanvasSizeIds.value.length === 1) return
+
+    const id = removeCanvasSizeTarget.value
+    const index = selectedCanvasSizeIds.value.indexOf(id)
+    if (index === -1) return
+
+    const wasActive = activeCanvasSizeId.value === id
+
+    const candidate = index + 1 === selectedCanvasSizeIds.value.length
+        ? selectedCanvasSizeIds.value[index - 1]
+        : selectedCanvasSizeIds.value[index + 1]
+    if (!candidate) return
+
+    selectedCanvasSizeIds.value.splice(index, 1)
+    removeCanvasSizeModal.value = false
+
+    if (!wasActive) return
+    toggleActiveCanvasSize(candidate)
+}
+
+// CANVAS SCALE
+const canvasScalePercentage = ref(Math.round((props.defaultScale || EDITOR_CANVAS_SCALE) * 100))
+const canvasScale = computed(() => canvasScalePercentage.value / 100)
+
+// CANVAS ORIENTATION
 const canvasOrientation = ref<Orientation>(props.defaultOrientation)
-const shouldFlipCanvas = computed(() => canvasOrientation.value !== selectedCanvasSize.value!.orientation)
+const shouldFlipCanvas = computed(() => canvasOrientation.value !== activeCanvasSize.value.orientation)
 const canvasWidth = computed(() => {
-    const size = selectedCanvasSize.value!
+    const size = activeCanvasSize.value!
     return shouldFlipCanvas.value ? size.height : size.width
 })
 const canvasHeight = computed(() => {
-    const size = selectedCanvasSize.value!
+    const size = activeCanvasSize.value
     return shouldFlipCanvas.value ? size.width : size.height
 })
-const canvasScalePercentage = ref(Math.round((props.defaultScale || EDITOR_CANVAS_SCALE) * 100))
-const canvasScale = computed(() => canvasScalePercentage.value / 100)
 const canvasOrientationSelections = props.rotateable
     ? [
             EDITOR_CANVAS_PORTRAIT,
             EDITOR_CANVAS_LANDSCAPE,
         ]
     : [props.defaultOrientation]
-watch(selectedCanvasSizeId, () => {
-    canvasOrientation.value = selectedCanvasSize.value!.orientation
+watch(activeCanvasSizeId, () => {
+    canvasOrientation.value = activeCanvasSize.value.orientation
 })
 const canvasStyle = computed(() => ({
     width: canvasWidth.value + 'px',
@@ -52,60 +107,6 @@ const canvasStyle = computed(() => ({
     transform: `scale(${canvasScale.value})`,
     transformOrigin: 'top left',
 }))
-
-// VARIANTS
-const selectVariantPopover = ref<boolean>(false)
-const selectedVariantIds = ref<string[]>([])
-const removeVariantModal = ref<boolean>(false)
-const removeVariantTarget = ref<string | null>(null)
-const activeVariantId = ref<string | null>(null)
-const selectedCanvasVariants = computed(() => props.canvasSizeOptions.filter(c => selectedVariantIds.value.includes(c.id)))
-const unselectedCanvasVariants = computed(() => props.canvasSizeOptions.filter(c => !selectedVariantIds.value.includes(c.id)))
-const removeVariantTargetCanvas = computed(() => props.canvasSizeOptions.find(c => c.id === removeVariantTarget.value)?.label ?? '')
-
-function addVariant(id: string) {
-    if (selectedVariantIds.value.includes(id)) return
-    selectedVariantIds.value.push(id)
-    activeVariantId.value = id
-    selectVariantPopover.value = false
-}
-
-function confirmRemoveVariant(id: string) {
-    removeVariantTarget.value = id
-    removeVariantModal.value = true
-}
-
-function removeVariant() {
-    if (!removeVariantTarget.value) return
-
-    const id = removeVariantTarget.value
-    const index = selectedVariantIds.value.indexOf(id)
-    if (index === -1) return
-
-    const wasActive = activeVariantId.value === id
-
-    const next = selectedVariantIds.value[index + 1]
-    const prev = selectedVariantIds.value[index - 1]
-
-    selectedVariantIds.value.splice(index, 1)
-
-    if (!wasActive) return
-
-    const candidate = next ?? prev ?? null
-
-    if (candidate) {
-        toggleActiveVariant(candidate)
-    }
-    else {
-        activeVariantId.value = null
-    }
-    removeVariantModal.value = false
-}
-
-function toggleActiveVariant(id: string) {
-    if (!selectedVariantIds.value.includes(id)) return
-    activeVariantId.value = activeVariantId.value === id ? null : id
-}
 
 // BACKGROUND IMAGE
 const bgImage = ref<BackgroundImage>({
@@ -527,60 +528,49 @@ function preview() {
                             />
                         </UFormField>
                     </div>
-
-                    <div class="mb-4">
-                        <UFormField label="Size">
-                            <USelect
-                                v-model="selectedCanvasSizeId"
-                                :items="canvasSizeOptions"
-                                value-key="id"
-                                class="w-full"
-                            />
-                        </UFormField>
-                    </div>
                 </UCard>
 
                 <!-- VARIANTS -->
                 <UCard :ui="{ body: 'p-2 sm:p-3' }">
                     <template #header>
-                        <h3>Variants</h3>
+                        <h3>Page Sizes</h3>
                     </template>
                     <div class="space-y-2">
                         <div
-                            v-for="canvas in selectedCanvasVariants"
+                            v-for="canvas in selectedCanvasSizes"
                             :key="`selcanvar-${canvas.id}`"
-                            class="flex items-center gap-2 py-2 px-4 border rounded-lg w-52"
-                            :class="activeVariantId === canvas.id ? 'border-green-500' : 'border-neutral-950/25 dark:border-neutral-50/25'"
+                            class="flex items-center gap-2 py-2 px-4 border-2 rounded-lg w-52"
+                            :class="activeCanvasSizeId === canvas.id ? 'border-primary-500 dark:border-primary-400' : 'border-neutral-950/25 dark:border-neutral-50/25'"
                         >
                             <UIcon
-                                :name="activeVariantId === canvas.id ? 'lucide:eye' : 'lucide:eye-off'"
-                                :class="`cursor-pointer ${activeVariantId === canvas.id ? 'text-success' : 'text-dimmed'}`"
-                                @click="toggleActiveVariant(canvas.id)"
+                                :name="activeCanvasSizeId === canvas.id ? 'lucide:eye' : 'lucide:eye-off'"
+                                :class="`cursor-pointer ${activeCanvasSizeId === canvas.id && selectedCanvasSizes.length > 1 ? 'text-primary' : 'text-dimmed'}`"
+                                @click="toggleActiveCanvasSize(canvas.id)"
                             />
                             {{ canvas.label }}
                             <UIcon
                                 name="lucide:trash"
-                                class="cursor-pointer text-error ml-auto"
-                                @click="confirmRemoveVariant(canvas.id)"
+                                :class="`cursor-pointer ${selectedCanvasSizes.length > 1 ? 'text-error' : 'text-dimmed'} ml-auto`"
+                                @click="confirmRemoveCanvasSize(canvas.id)"
                             />
                         </div>
-                        <UPopover v-model:open="selectVariantPopover">
+                        <UPopover v-model:open="selectCanvasSizePopover">
                             <UButton
                                 icon="lucide:plus"
                                 color="neutral"
                                 variant="outline"
                                 class="w-52"
-                                :disabled="!unselectedCanvasVariants.length"
+                                :disabled="!unselectedCanvasSizes.length"
                             />
 
                             <template #content>
                                 <div class="p-2">
                                     <UFieldGroup orientation="vertical">
                                         <div
-                                            v-for="canvas in unselectedCanvasVariants"
+                                            v-for="canvas in unselectedCanvasSizes"
                                             :key="`unselcanvar-${canvas.id}`"
                                             class="cursor-pointer flex items-center gap-2 py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 hover:border-primary first:rounded-t last:rounded-b w-52"
-                                            @click="addVariant(canvas.id)"
+                                            @click="addCanvasSize(canvas.id)"
                                         >
                                             {{ canvas.label }}
                                         </div>
@@ -592,10 +582,10 @@ function preview() {
                 </UCard>
 
                 <ModalConfirmNegativeAction
-                    v-model:open="removeVariantModal"
+                    v-model:open="removeCanvasSizeModal"
                     title="Remove Variant"
-                    :body="`Are you sure want to delete variant ${removeVariantTargetCanvas}? All your changes will be deleted and can not restored.`"
-                    @confirm="() => removeVariant()"
+                    :body="`Are you sure want to delete variant ${removeCanvasSizesTarget}? All your changes will be deleted and can not restored.`"
+                    @confirm="() => removeCanvasSize()"
                 />
 
                 <!-- BLOCKS -->
