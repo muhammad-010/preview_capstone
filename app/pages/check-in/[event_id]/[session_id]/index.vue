@@ -28,10 +28,10 @@ const { data: templateData } = useApi(`/api/tenant/${tenantId.value}/event/${eve
         ...res.data,
     }),
 })
-const template = computed<Template>(() => templateData.value ?? {} as Template)
+const template = computed<Template | null>(() => templateData.value ?? null)
 const background = computed<Record<Breakpoint, string | undefined>>(() => {
     const res = {} as Record<Breakpoint, string | undefined>
-    if (!template.value.variants) return res
+    if (!template.value || !template.value.variants) return res
 
     for (const bp of BREAKPOINTS) {
         const variant = template.value.variants.find(v => v.slug === bp)
@@ -43,7 +43,7 @@ const background = computed<Record<Breakpoint, string | undefined>>(() => {
 const blocks = computed<{
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
-}>(() => mapTemplateVariantToBlocks(template.value.variants))
+}>(() => template.value ? mapTemplateVariantToBlocks(template.value.variants) : { customBlocks: [], staticBlocks: [] })
 
 useHead({
     title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),

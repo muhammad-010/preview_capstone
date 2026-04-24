@@ -299,7 +299,6 @@ function filterBlockData(
     const defList = type === 'style' ? blockDef.style : blockDef.setting
 
     return Object.entries(data).reduce<BlockSetting[]>((acc, [key, value]) => {
-        console.log(allowedList, key)
         if (!allowedList.includes(key)) return acc
 
         const def = defList.find(s => s.key === key)
@@ -364,7 +363,7 @@ export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant
         const el: TemplateElement = {
             value: block.value,
             type: block.id,
-            group: STATIC_BLOCK_IDS.includes(block.id) ? 0 : formatNumberStringToNumber(block.uid),
+            group: STATIC_BLOCK_IDS.includes(block.id) ? STATIC_BLOCK_NUMBER_IDS[block.id]! : formatNumberStringToNumber(block.uid),
             position_x: block.x,
             position_y: block.y,
             style: Object.fromEntries(block.style.map(s => [s.key, s.value])),

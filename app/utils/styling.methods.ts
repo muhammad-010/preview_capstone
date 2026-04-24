@@ -81,7 +81,6 @@ export function responsiveStyleClass(bp: Breakpoint, suffix: StylingSuffix): Res
         case STYLING_HEIGHT_SUFFIX:
             return heightResponsiveStyleClass(key, cssVariable, tailwindBreakpoint)
         default:
-            console.warn(`Unknown styling suffix: ${suffix}`)
             return {
                 key,
                 cssVariable,
