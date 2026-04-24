@@ -202,6 +202,7 @@ async function qrDetected(qrCodes: DetectedBarcode[]) {
         })
         participant.value = {
             ...participant.value,
+            sessionId: props.sessionId,
             name: data.participant.name || '',
             maxAttendance: data.participant.max_attendance || 0,
             customAttributes: data.participant.custom_attributes || [],
@@ -371,10 +372,12 @@ async function confirmAttendance(event: FormSubmitEvent<ConfirmAttendanceSchema>
 }
 
 const checkInResponsivePos = computed(() => {
-    return getResponsivePositionStyle(props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_SCANNER_QR_ID))
+    const block = props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_SCANNER_QR_ID)
+    return block ? getResponsivePositionStyle(block) : { style: {}, tailwindClass: [] }
 })
 const inputCardResponsivePos = computed(() => {
-    return getResponsivePositionStyle(props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_INPUT_CARD_ID))
+    const block = props.staticBlockSettings?.find(b => b.id === STATIC_BLOCK_INPUT_CARD_ID)
+    return block ? getResponsivePositionStyle(block) : { style: {}, tailwindClass: [] }
 })
 </script>
 

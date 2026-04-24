@@ -180,6 +180,7 @@ async function useScanQr(tenantId: number, eventId: number, sessionId: number) {
             })
             participant.value = {
                 ...participant.value,
+                sessionId: sessionId,
                 name: data.participant.name || '',
                 maxAttendance: data.participant.max_attendance || 0,
                 customAttributes: data.participant.custom_attributes || [],
