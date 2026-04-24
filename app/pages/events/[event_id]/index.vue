@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
-const id = Number(route.params.event_id)
+const eventId = Number(route.params.event_id)
 const { tenantId } = useUserState()
 const tabs = [
     {
@@ -21,8 +21,8 @@ const tabs = [
     },
 ]
 const activeTab = useState(STATE_EVENT_DETAIL_ACTIVE_TAB, () => '0')
-const { customAttributes, refreshCustomAttributes } = await useFindCustomAttribute(tenantId.value, id)
-const { event } = await useEventInfo(tenantId.value, id)
+const { customAttributes, refreshCustomAttributes } = await useFindCustomAttribute(tenantId.value, eventId)
+const { event } = await useEventInfo(tenantId.value, eventId)
 
 const settings = [
     {
@@ -32,6 +32,10 @@ const settings = [
     {
         label: 'Additional Features',
         slot: 'additional-features',
+    },
+    {
+        label: 'Key Visuals',
+        slot: 'key-visuals',
     },
 ]
 
@@ -74,14 +78,14 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                 <PageEventOverview
                     ref="overviewRef"
                     :tenant-id="tenantId"
-                    :event-id="id"
+                    :event-id="eventId"
                 />
             </template>
 
             <template #sessions>
                 <PageSessionList
                     :tenant-id="tenantId"
-                    :event-id="id"
+                    :event-id="eventId"
                     @refresh="refreshParticipant"
                 />
             </template>
@@ -90,7 +94,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                 <PageParticipantList
                     ref="participantRef"
                     :tenant-id="tenantId"
-                    :event-id="id"
+                    :event-id="eventId"
                     :custom-attributes="customAttributes"
                     @refresh="refreshDetail"
                 />
@@ -113,7 +117,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     <template #custom-attributes>
                         <PageCustomAttributeList
                             :tenant-id="tenantId"
-                            :event-id="id"
+                            :event-id="eventId"
                             :custom-attributes="customAttributes"
                             @refresh="onRefreshCustomAttributeList"
                         />
@@ -122,9 +126,44 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     <template #additional-features>
                         <PageEventSetting
                             :tenant-id="tenantId"
-                            :event-id="id"
+                            :event-id="eventId"
                             @refresh="refreshDetail"
                         />
+                    </template>
+
+                    <template #key-visuals>
+                        <div class="flex gap-4 w-full">
+                            <UCard class="w-full">
+                                <template #header>
+                                    <h4>Invitation QR Code</h4>
+                                </template>
+
+                                Customize the digital ticket that attendees receive. You can add their name, ticket type, and the scannable QR code.
+                            </UCard>
+
+                            <UCard class="w-full">
+                                <template #header>
+                                    <h4>Scan QR Page</h4>
+                                </template>
+
+                                Customize the screen shown to POCs or attendees during the check-in process.
+
+                                <template #footer>
+                                    <div class="w-full">
+                                        <UButton
+                                            color="neutral"
+                                            variant="outline"
+                                            label="Edit Design"
+                                            size="xl"
+                                            icon="lucide:pencil"
+                                            class="w-full"
+                                            :ui="{ base: 'p-3' }"
+                                            :to="`/events/${eventId}/check-in-page-editor`"
+                                        />
+                                    </div>
+                                </template>
+                            </UCard>
+                        </div>
                     </template>
                 </UAccordion>
             </template>
