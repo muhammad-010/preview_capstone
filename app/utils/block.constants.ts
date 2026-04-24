@@ -7,14 +7,14 @@ export const EDITOR_CANVAS_PORTRAIT = 'portrait'
 export const EDITOR_CANVAS_LANDSCAPE = 'landscape'
 
 export const CANVAS_SIZE_PRESETS_INVITATION_EMAIL: CanvasSize[] = [
-    { id: '1', width: 432, height: 768, label: 'Medium', breakpoint: 'md', orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: BREAKPOINT_MD, width: 432, height: 768, label: 'Medium', breakpoint: BREAKPOINT_MD, orientation: EDITOR_CANVAS_PORTRAIT },
 ]
 
 export const CANVAS_SIZE_PRESETS_CHECK_IN_PAGE: CanvasSize[] = [
-    { id: '1', width: 360, height: 640, label: 'Mobile', breakpoint: 'sm', orientation: EDITOR_CANVAS_PORTRAIT },
-    { id: '2', width: 432, height: 768, label: 'Tablet', breakpoint: 'md', orientation: EDITOR_CANVAS_PORTRAIT },
-    { id: '3', width: 1024, height: 768, label: 'Laptop', breakpoint: 'lg', orientation: EDITOR_CANVAS_LANDSCAPE },
-    { id: '4', width: 1280, height: 720, label: 'Desktop', breakpoint: 'xl', orientation: EDITOR_CANVAS_LANDSCAPE },
+    { id: BREAKPOINT_SM, width: 360, height: 640, label: 'Mobile', breakpoint: BREAKPOINT_SM, orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: BREAKPOINT_MD, width: 432, height: 768, label: 'Tablet', breakpoint: BREAKPOINT_MD, orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: BREAKPOINT_LG, width: 1024, height: 768, label: 'Laptop', breakpoint: BREAKPOINT_LG, orientation: EDITOR_CANVAS_LANDSCAPE },
+    { id: BREAKPOINT_XL, width: 1280, height: 720, label: 'Desktop', breakpoint: BREAKPOINT_XL, orientation: EDITOR_CANVAS_LANDSCAPE },
 ]
 
 export const BLOCK_TEXT_ID = 'text'
@@ -25,10 +25,16 @@ export const BLOCK_IDS: string[] = [
 ]
 export const STATIC_BLOCK_SCANNER_QR_ID = 'scanner-qr'
 export const STATIC_BLOCK_INPUT_CARD_ID = 'input-card'
+export const STATIC_BLOCK_SCANNER_QR_NUMBER_ID = 1111111111111
+export const STATIC_BLOCK_INPUT_CARD_NUMBER_ID = 1111111111110
 export const STATIC_BLOCK_IDS: string[] = [
     STATIC_BLOCK_SCANNER_QR_ID,
     STATIC_BLOCK_INPUT_CARD_ID,
 ]
+export const STATIC_BLOCK_NUMBER_IDS: Record<string, number> = {
+    [STATIC_BLOCK_SCANNER_QR_ID]: STATIC_BLOCK_SCANNER_QR_NUMBER_ID,
+    [STATIC_BLOCK_INPUT_CARD_ID]: STATIC_BLOCK_INPUT_CARD_NUMBER_ID,
+}
 
 export const BLOCK_STYLE_COLOR = STYLE_COLOR
 // export const BLOCK_STYLE_FONT_FAMILY = STYLE_FONT_FAMILY
@@ -83,7 +89,6 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     ],
     x: 0,
     y: 0,
-    previewStyle: 'color: #000000; font-size: 1rem; font-weight: 500; font-style: normal;',
     withValue: true,
     editableData: true,
 }
@@ -100,7 +105,6 @@ export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     ],
     x: 0,
     y: 0,
-    previewStyle: 'width: 100px; height: 100px;',
     withValue: true,
     editableData: true,
 }
@@ -111,7 +115,7 @@ export const CUSTOM_BLOCKS: ElementBlock[] = [
 ]
 
 export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
-    uid: '',
+    uid: `${STATIC_BLOCK_SCANNER_QR_NUMBER_ID}`,
     id: STATIC_BLOCK_SCANNER_QR_ID,
     label: 'QR Code',
     value: 'https://placehold.co/100?text=QR+Code',
@@ -119,12 +123,11 @@ export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
     style: [],
     x: 50,
     y: 50,
-    previewStyle: '',
     editableData: false,
 }
 
 export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
-    uid: '',
+    uid: `${STATIC_BLOCK_INPUT_CARD_NUMBER_ID}`,
     id: STATIC_BLOCK_INPUT_CARD_ID,
     label: 'Input Card',
     value: '',
@@ -136,7 +139,6 @@ export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
     style: [],
     x: 50,
     y: 50,
-    previewStyle: '',
     editableData: true,
 }
 

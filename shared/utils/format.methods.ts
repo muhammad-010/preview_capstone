@@ -144,3 +144,10 @@ export function formatCapitalizeAll(s: string, sep: string) {
 export function formatCleanCustomAttribute(raw: CustomAttribute[]): CustomAttribute[] {
     return raw.filter(attr => attr.value)
 }
+
+export function formatNumberStringToNumber(value: string, fallback?: number): number {
+    if (/^\d+$/.test(value)) {
+        return Number(value)
+    }
+    return fallback ? fallback : 0
+}

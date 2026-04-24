@@ -8,14 +8,9 @@ const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`,
         ...res.data,
     }),
 })
-const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
+const event = computed<TenantEvent | null>(() => data.value ?? null)
 
-const settings = ref<SavedVariant>({
-    bgImage: '',
-    slug: BREAKPOINT_MD,
-    customBlock: [],
-    staticBlock: [],
-})
+const settings = ref<SavedVariant[]>([])
 
 function getLocalStorage<T>(key: string): T | null {
     if (!import.meta.client) return null
@@ -30,11 +25,24 @@ function getLocalStorage<T>(key: string): T | null {
 }
 
 onMounted(() => {
-    const rawSettings = getLocalStorage<SavedVariant>(LOCALSTORAGE_CHECK_IN_PREVIEW)
-    if (rawSettings) {
-        settings.value = rawSettings
-    }
+    settings.value = getLocalStorage<SavedVariant[]>(LOCALSTORAGE_CHECK_IN_PREVIEW) || []
 })
+
+const background = computed<Record<Breakpoint, string | undefined>>(() => {
+    const res = {} as Record<Breakpoint, string | undefined>
+    if (!settings.value.length) return res
+
+    for (const bp of BREAKPOINTS) {
+        const variant = settings.value.find(v => v.slug === bp)
+        res[bp] = variant?.bgImage || undefined
+    }
+
+    return res
+})
+const blocks = computed<{
+    customBlocks: ElementBlock[]
+    staticBlocks: ElementBlock[]
+}>(() => mapSavedVariantToBlocks(settings.value))
 
 useHead({
     title: computed(() => `[PREVIEW] Check In - ${event.value ? event.value.name : 'Event'}`),
@@ -48,13 +56,16 @@ definePageMeta({
     <div>
         <NuxtLayout
             name="scan"
-            :md-background="settings.bgImage"
+            :sm-background="background[BREAKPOINT_SM]"
+            :md-background="background[BREAKPOINT_MD]"
+            :lg-background="background[BREAKPOINT_LG]"
+            :xl-background="background[BREAKPOINT_XL]"
         >
             <PageCheckInMain
                 :tenant-id="tenantId"
                 :event-id="eventId"
-                :custom-block-settings="settings.customBlock"
-                :static-block-settings="settings.staticBlock"
+                :custom-block-settings="blocks.customBlocks"
+                :static-block-settings="blocks.staticBlocks"
                 is-preview
             />
         </NuxtLayout>

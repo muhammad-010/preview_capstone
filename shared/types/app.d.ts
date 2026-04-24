@@ -64,7 +64,7 @@ export interface Coordinate {
 export type CoordinateKey = keyof Coordinate
 
 export interface BackgroundImage {
-    file: File | null
+    file?: File
     dataUrl: string
 }
 
@@ -76,7 +76,7 @@ export interface ElementBackgroundImage extends BackgroundImage {
 }
 
 export interface CanvasSize {
-    id: string
+    id: Breakpoint
     width: number
     height: number
     label: string
@@ -95,6 +95,7 @@ export interface BlockSetting {
 }
 
 export interface Block {
+    uid: string
     id: string
     value: string
     setting: BlockSetting[]
@@ -105,9 +106,7 @@ export interface Block {
 }
 
 export interface ElementBlock extends Block {
-    uid: string
     label: string
-    previewStyle: string
     editableData: boolean
     perBreakpoint?: Partial<Record<
         Breakpoint,

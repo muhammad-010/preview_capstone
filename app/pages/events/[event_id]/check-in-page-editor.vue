@@ -15,13 +15,14 @@ definePageMeta({
 </script>
 
 <template>
-    <EditorDragNDrop
+    <EditorMain
         :editor-mode="EDITOR_MODE_CHECK_IN_PAGE"
         :custom-blocks="customBlocks"
         :static-blocks="staticBlocks"
         :html-preview-fn="checkInPageHtml"
         :default-orientation="EDITOR_CANVAS_PORTRAIT"
         :canvas-size-options="CANVAS_SIZE_PRESETS_CHECK_IN_PAGE"
+        :default-breakpoint="BREAKPOINT_MD"
         rotateable
         with-preview
         :preview-path="`/events/${eventId}/check-in-preview`"
