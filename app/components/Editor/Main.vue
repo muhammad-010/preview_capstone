@@ -20,8 +20,10 @@ const DRAG_Y_LIMIT = 10
 const DRAG_DATATRANSFER_COPY = 'copy'
 const EVENT_MOUSEMOVE = 'mousemove'
 const EVENT_MOUSEUP = 'mouseup'
+const MAX_FILE_SIZE = 1024 * 1024 // 1MB
 
 const router = useRouter()
+const toast = useToast()
 
 // CANVAS SIZE
 const selectCanvasSizePopover = ref<boolean>(false)
@@ -110,6 +112,16 @@ watch(
     () => bgImage.value.perBreakpoint?.[activeCanvasSizeId.value]?.file,
     (file) => {
         if (!file || !bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
+        if (file.size > MAX_FILE_SIZE) {
+            toast.add({
+                title: 'Background Exceed Limit',
+                description: 'Max file limit are 1MB',
+                color: 'error',
+            })
+            bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.file = undefined
+            return
+        }
+
         const reader = new FileReader()
         reader.onload = () => {
             const img = new Image()
@@ -853,14 +865,14 @@ function preview() {
 
                     <div class="mb-4">
                         <h4 class="text-sm font-medium mb-2">
-                            Background Image
+                            Background Image (Max 1MB)
                         </h4>
 
                         <template v-if="bgImage.perBreakpoint && bgImage.perBreakpoint[activeCanvasSizeId]">
                             <UFileUpload
                                 v-slot="{ open, removeFile }"
                                 v-model="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
-                                accept=".jpg, .jpeg, image/jpeg"
+                                accept="image/*"
                             >
                                 <UFieldGroup>
                                     <UInput
