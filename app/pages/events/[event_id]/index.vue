@@ -150,7 +150,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                                             icon="lucide:pencil"
                                             class="w-full"
                                             :ui="{ base: 'p-3' }"
-                                            :to="`/events/${eventId}/invitation-email-editor`"
+                                            :to="`/events/${eventId}/invitation-editor`"
                                         />
                                     </div>
                                 </template>
