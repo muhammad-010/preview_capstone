@@ -860,7 +860,7 @@ function preview() {
                             <UFileUpload
                                 v-slot="{ open, removeFile }"
                                 v-model="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
-                                accept="image/jpg"
+                                accept=".jpg, .jpeg, image/jpeg"
                             >
                                 <UFieldGroup>
                                     <UInput
