@@ -139,6 +139,21 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                                 </template>
 
                                 Customize the digital ticket that attendees receive. You can add their name, ticket type, and the scannable QR code.
+
+                                <template #footer>
+                                    <div class="w-full">
+                                        <UButton
+                                            color="neutral"
+                                            variant="outline"
+                                            label="Edit Design"
+                                            size="xl"
+                                            icon="lucide:pencil"
+                                            class="w-full"
+                                            :ui="{ base: 'p-3' }"
+                                            :to="`/events/${eventId}/invitation-editor`"
+                                        />
+                                    </div>
+                                </template>
                             </UCard>
 
                             <UCard class="w-full">

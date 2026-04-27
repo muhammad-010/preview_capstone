@@ -66,6 +66,9 @@ export type CoordinateKey = keyof Coordinate
 export interface BackgroundImage {
     file?: File
     dataUrl: string
+    width: number
+    height: number
+    name?: string
 }
 
 export interface ElementBackgroundImage extends BackgroundImage {
@@ -92,6 +95,8 @@ export interface BlockSetting {
     options?: string[]
     trueValue?: string
     falseValue?: string
+    min?: number
+    max?: number
 }
 
 export interface Block {

@@ -16,15 +16,13 @@ definePageMeta({
 
 <template>
     <EditorMain
-        :editor-mode="EDITOR_MODE_CHECK_IN_PAGE"
         :custom-blocks="customBlocks"
         :static-blocks="staticBlocks"
-        :html-preview-fn="checkInPageHtml"
-        :default-orientation="EDITOR_CANVAS_PORTRAIT"
         :canvas-size-options="CANVAS_SIZE_PRESETS_CHECK_IN_PAGE"
         :default-breakpoint="BREAKPOINT_MD"
-        rotateable
+        :default-orientation="EDITOR_CANVAS_PORTRAIT"
         with-preview
+        :html-preview-fn="checkInPageHtml"
         :preview-path="`/events/${eventId}/check-in-preview`"
         :preview-key="LOCALSTORAGE_CHECK_IN_PREVIEW"
         page-title="Check In Page Key Visual Editor"
