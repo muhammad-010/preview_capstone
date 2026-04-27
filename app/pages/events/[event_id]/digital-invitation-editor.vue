@@ -17,6 +17,6 @@ definePageMeta({
         :default-orientation="EDITOR_CANVAS_PORTRAIT"
         canvas-image-based
         :default-scale="0.4"
-        page-title="Invitation Email Key Visual Editor"
+        page-title="Digital Invitation Key Visual Editor"
     />
 </template>
