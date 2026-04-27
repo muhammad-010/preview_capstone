@@ -84,7 +84,7 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
         { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
         // { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
         { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'text', value: '1rem' },
-        { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'select', value: '500', options: structuredClone(toRaw(BLOCK_STYLE_FONT_WEIGHT_OPTIONS)) },
+        { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'select', value: '500', options: cloneObject(BLOCK_STYLE_FONT_WEIGHT_OPTIONS) },
         { key: BLOCK_STYLE_FONT_STYLE, label: 'Italic', type: 'checkbox', value: 'normal', trueValue: 'italic', falseValue: 'normal' },
     ],
     x: 0,

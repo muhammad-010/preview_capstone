@@ -12,7 +12,7 @@ const { data, refresh } = useApi(`/api/tenant/${props.tenantId}/event/${props.ev
     transform: res => res.data,
 })
 const settings = computed(() => {
-    const res = structuredClone(TENANT_EVENT_SETTINGS)
+    const res = cloneObject(TENANT_EVENT_SETTINGS)
     if (!data.value) return res
 
     const dataval = data.value
@@ -80,7 +80,7 @@ async function changeSetting(key: string, value: boolean) {
                     size="xl"
                     :loading="loading"
                     :ui="{ base: 'cursor-pointer' }"
-                    @update:model-value="(value) => changeSetting(key, value)"
+                    @update:model-value="(value) => changeSetting(`${key}`, value)"
                 />
             </div>
         </div>

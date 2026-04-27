@@ -9,6 +9,10 @@ const isBackgroundActive = computed(() => {
         return Boolean(props[`${bp}${STYLING_BACKGROUND_SUFFIX}`])
     })
 })
+const validBreakpoints = computed(() => BREAKPOINTS.filter(bp => Boolean(props[`${bp}${STYLING_BACKGROUND_SUFFIX}`])) || [])
+const smallestBackgroundBp = computed(() => {
+    return findSmallestBreakpoint(validBreakpoints.value)
+})
 
 const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
     const res: ResponsiveElementSetting = {
@@ -16,13 +20,14 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
         style: {},
     }
 
-    for (const bp of BREAKPOINTS) {
+    const noBreakpoint = validBreakpoints.value.length === 1
+    for (const bp of validBreakpoints.value) {
         const {
             key,
             cssVariable,
             tailwindClass,
             getValue,
-        } = responsiveStyleClass(bp, STYLING_BACKGROUND_SUFFIX)
+        } = responsiveStyleClass(bp, STYLING_BACKGROUND_SUFFIX, bp === smallestBackgroundBp.value, noBreakpoint)
         const prop = props[key]
         if (prop) {
             res.style[cssVariable] = getValue(prop)
@@ -66,50 +71,101 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
 
         <div
             class="hidden!
+                    bg-(image:--sm-background)
+                    bg-(image:--md-background)
+                    bg-(image:--lg-background)
+                    bg-(image:--xl-background)
+
                     sm:bg-(image:--sm-background)
                     md:bg-(image:--md-background)
                     lg:bg-(image:--lg-background)
                     xl:bg-(image:--xl-background)
+
+                    max-sm:bg-(image:--sm-background)
+                    max-md:bg-(image:--md-background)
+                    max-lg:bg-(image:--lg-background)
+                    max-xl:bg-(image:--xl-background)
+
+                    left-(--sm-pos-x)
+                    left-(--md-pos-x)
+                    left-(--lg-pos-x)
+                    left-(--xl-pos-x)
 
                     sm:left-(--sm-pos-x)
                     md:left-(--md-pos-x)
                     lg:left-(--lg-pos-x)
                     xl:left-(--xl-pos-x)
 
+                    top-(--sm-pos-y)
+                    top-(--md-pos-y)
+                    top-(--lg-pos-y)
+                    top-(--xl-pos-y)
+
                     sm:top-(--sm-pos-y)
                     md:top-(--md-pos-y)
                     lg:top-(--lg-pos-y)
                     xl:top-(--xl-pos-y)
+
+                    text-(--sm-color)
+                    text-(--md-color)
+                    text-(--lg-color)
+                    text-(--xl-color)
 
                     sm:text-(--sm-color)
                     md:text-(--md-color)
                     lg:text-(--lg-color)
                     xl:text-(--xl-color)
 
+                    text-(length:--sm-font-size)
+                    text-(length:--md-font-size)
+                    text-(length:--lg-font-size)
+                    text-(length:--xl-font-size)
+
                     sm:text-(length:--sm-font-size)
                     md:text-(length:--md-font-size)
                     lg:text-(length:--lg-font-size)
                     xl:text-(length:--xl-font-size)
+
+                    font-(--sm-font-weight)
+                    font-(--md-font-weight)
+                    font-(--lg-font-weight)
+                    font-(--xl-font-weight)
 
                     sm:font-(--sm-font-weight)
                     md:font-(--md-font-weight)
                     lg:font-(--lg-font-weight)
                     xl:font-(--xl-font-weight)
 
+                    [font-style:--sm-font-style]
+                    [font-style:--md-font-style]
+                    [font-style:--lg-font-style]
+                    [font-style:--xl-font-style]
+
                     sm:[font-style:--sm-font-style]
                     md:[font-style:--md-font-style]
                     lg:[font-style:--lg-font-style]
                     xl:[font-style:--xl-font-style]
+
+                    w-(--sm-weight)
+                    w-(--md-weight)
+                    w-(--lg-weight)
+                    w-(--xl-weight)
 
                     sm:w-(--sm-weight)
                     md:w-(--md-weight)
                     lg:w-(--lg-weight)
                     xl:w-(--xl-weight)
 
+                    h-(--sm-height)
+                    h-(--md-height)
+                    h-(--lg-height)
+                    h-(--xl-height)
+
                     sm:h-(--sm-height)
                     md:h-(--md-height)
                     lg:h-(--lg-height)
                     xl:h-(--xl-height)
+
                 "
         />
         -->

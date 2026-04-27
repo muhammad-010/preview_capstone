@@ -39,14 +39,14 @@ type Schema = z.output<typeof schema>
 
 const fields = props.fields
 if (fields && (!fields.custom_attribute || !fields.custom_attribute.length)) {
-    fields.custom_attribute = structuredClone(toRaw(unref(customAttributes.value)))
+    fields.custom_attribute = cloneObject(unref(customAttributes.value))
 }
 const state = reactive<Partial<ParticipantForm>>(fields ?? {
     name: '',
     email: '',
     phone_number: '',
     max_attendance: 0,
-    custom_attribute: structuredClone(toRaw(unref(customAttributes.value))),
+    custom_attribute: cloneObject(unref(customAttributes.value)),
 })
 
 async function addData(payload: FormSubmitEvent<Schema>) {

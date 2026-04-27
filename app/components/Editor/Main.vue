@@ -63,8 +63,6 @@ function removeCanvasSize() {
     const index = selectedCanvasSizeIds.value.indexOf(id)
     if (index === -1) return
 
-    const wasActive = activeCanvasSizeId.value === id
-
     const candidate = index + 1 === selectedCanvasSizeIds.value.length
         ? selectedCanvasSizeIds.value[index - 1]
         : selectedCanvasSizeIds.value[index + 1]
@@ -73,7 +71,7 @@ function removeCanvasSize() {
     selectedCanvasSizeIds.value.splice(index, 1)
     removeCanvasSizeModal.value = false
 
-    if (!wasActive) return
+    if (!(activeCanvasSizeId.value === id)) return
     toggleActiveCanvasSize(candidate)
 }
 
@@ -91,12 +89,8 @@ const bgImage = ref<ElementBackgroundImage>({
         return acc
     }, {} as Partial<Record<Breakpoint, BackgroundImage>>),
 })
-const activeBgImage = computed<BackgroundImage>(() => {
-    if (!bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return {
-        dataUrl: '',
-        width: 0,
-        height: 0,
-    }
+const activeBgImage = computed<BackgroundImage | undefined>(() => {
+    if (!bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
 
     return bgImage.value.perBreakpoint![activeCanvasSizeId.value]!
 })
@@ -147,24 +141,18 @@ function shouldFlipCanvas(canvasOrientation: Orientation, activeOrientation: Ori
 }
 const canvasOrientation = ref<Orientation>(props.defaultOrientation)
 const canvasWidth = computed(() => {
-    const bgImg = activeBgImage.value
-    if (props.canvasImageBased && bgImg.width) {
-        return bgImg.width
+    if (props.canvasImageBased && activeBgImage.value && activeBgImage.value.width) {
+        return activeBgImage.value.width
     }
-    else {
-        const canvasSize = activeCanvasSize.value!
-        return shouldFlipCanvas(canvasOrientation.value, activeCanvasSize.value.orientation) ? canvasSize.height : canvasSize.width
-    }
+    const canvasSize = activeCanvasSize.value!
+    return shouldFlipCanvas(canvasOrientation.value, activeCanvasSize.value.orientation) ? canvasSize.height : canvasSize.width
 })
 const canvasHeight = computed(() => {
-    const bgImg = activeBgImage.value
-    if (props.canvasImageBased && bgImg.height) {
-        return bgImg.height
+    if (props.canvasImageBased && activeBgImage.value && activeBgImage.value.height) {
+        return activeBgImage.value.height
     }
-    else {
-        const canvasSize = activeCanvasSize.value
-        return shouldFlipCanvas(canvasOrientation.value, activeCanvasSize.value.orientation) ? canvasSize.width : canvasSize.height
-    }
+    const canvasSize = activeCanvasSize.value
+    return shouldFlipCanvas(canvasOrientation.value, activeCanvasSize.value.orientation) ? canvasSize.width : canvasSize.height
 })
 const canvasOrientationSelections = props.canvasImageBased
     ? [props.defaultOrientation]
@@ -184,28 +172,44 @@ const canvasStyle = computed(() => ({
 const blockContainer = ref<ElementBlock[]>([])
 const activeStaticBlocks = ref<string[]>([])
 
-function syncStaticBlock(block: ElementBlock) {
-    if (!STATIC_BLOCK_IDS.includes(block.id)) return
+function findCustomBlock(id: string) {
+    return props.customBlocks.find(b => b.id === id)
+}
 
-    const staticBlock = props.staticBlocks.find(b => b.id === block.id)
+function findStaticBlock(id: string) {
+    return props.staticBlocks.find(b => b.id === id)
+}
+
+function checkStaticBlock(id: string) {
+    return props.staticBlocks.some(b => b.id === id)
+}
+
+function checkCustomBlock(id: string) {
+    return props.customBlocks.some(b => b.id === id)
+}
+
+function syncStaticBlock(block: ElementBlock) {
+    if (!checkStaticBlock(block.id)) return
+
+    const staticBlock = findStaticBlock(block.id)
     if (!staticBlock) return
 
-    staticBlock.style = structuredClone(toRaw(block.style))
-    staticBlock.setting = structuredClone(toRaw(block.setting))
+    staticBlock.style = cloneObject(block.style)
+    staticBlock.setting = cloneObject(block.setting)
     staticBlock.x = block.x
     staticBlock.y = block.y
-    staticBlock.perBreakpoint = structuredClone(toRaw(block.perBreakpoint))
+    staticBlock.perBreakpoint = cloneObject(block.perBreakpoint)
 }
 
 // DRAG BLOCKS
 const selectedUid = ref<string | null>(null)
-const dragging = ref<string | null>(null)
+const draggingCanvasBlock = ref<string | null>(null)
 const draggingBlock = ref<string | null>(null)
 const offset = ref<Coordinate>({ x: 0, y: 0 })
 const tempPosition = ref<Coordinate>({ x: 0, y: 0 })
 
-function startDrag(e: MouseEvent, uid: string, item: Block) {
-    dragging.value = uid
+function dragCanvasBlock(e: MouseEvent, uid: string, item: Block) {
+    draggingCanvasBlock.value = uid
     selectedUid.value = uid
 
     offset.value = {
@@ -216,39 +220,24 @@ function startDrag(e: MouseEvent, uid: string, item: Block) {
     tempPosition.value = { x: item.x, y: item.y }
 }
 
-function onMouseMove(e: MouseEvent) {
-    if (!dragging.value) return
-
-    const newXPx = (e.clientX - offset.value.x) / canvasScale.value
-    const newYPx = (e.clientY - offset.value.y) / canvasScale.value
-
-    const maxXPercent = Math.max(0, ((canvasWidth.value - DRAG_X_LIMIT) / canvasWidth.value) * 100)
-    const maxYPercent = Math.max(0, ((canvasHeight.value - DRAG_Y_LIMIT) / canvasHeight.value) * 100)
-
-    const newX = Math.max(0, Math.min(pxToPercent(newXPx, canvasWidth.value), maxXPercent))
-    const newY = Math.max(0, Math.min(pxToPercent(newYPx, canvasHeight.value), maxYPercent))
-
-    tempPosition.value = { x: newX, y: newY }
-}
-
-function onBlockDragStart(e: DragEvent, blockId: string) {
+function startDragCustomBlock(e: DragEvent, blockId: string) {
     draggingBlock.value = blockId
     if (!e.dataTransfer) return
     e.dataTransfer.effectAllowed = DRAG_DATATRANSFER_COPY
 }
 
-function onCanvasDragOver(e: DragEvent) {
+function dragToCanvas(e: DragEvent) {
     if (!draggingBlock.value) return
     e.preventDefault()
     if (!e.dataTransfer) return
     e.dataTransfer.dropEffect = DRAG_DATATRANSFER_COPY
 }
 
-function onCanvasDrop(e: DragEvent) {
+function dropCanvas(e: DragEvent) {
     if (!draggingBlock.value) return
     e.preventDefault()
 
-    const block = props.customBlocks.find(b => b.id === draggingBlock.value)
+    const block = findCustomBlock(draggingBlock.value)
     if (!block) return
 
     const canvasRect = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -261,8 +250,8 @@ function onCanvasDrop(e: DragEvent) {
     const newBlock: ElementBlock = {
         ...block,
         uid,
-        setting: structuredClone(toRaw(block.setting)),
-        style: structuredClone(toRaw(block.style)),
+        setting: cloneObject(block.setting),
+        style: cloneObject(block.style),
         x: w,
         y: h,
         perBreakpoint: {},
@@ -272,8 +261,8 @@ function onCanvasDrop(e: DragEvent) {
             uid: uid,
             id: block.id,
             value: block.value,
-            setting: structuredClone(toRaw(block.setting)),
-            style: structuredClone(toRaw(block.style)),
+            setting: cloneObject(block.setting),
+            style: cloneObject(block.style),
             x: w,
             y: h,
         }
@@ -288,54 +277,67 @@ function onCanvasDrop(e: DragEvent) {
     draggingBlock.value = null
 }
 
-function stopDrag() {
-    if (!dragging.value) return
+function startMoveCanvasBlock(e: MouseEvent) {
+    if (!draggingCanvasBlock.value) return
 
-    const item = blockContainer.value.find(i => i.uid === dragging.value)
-    if (!item || !item.perBreakpoint || !item.perBreakpoint[activeCanvasSizeId.value]) return
+    const newXPx = (e.clientX - offset.value.x) / canvasScale.value
+    const newYPx = (e.clientY - offset.value.y) / canvasScale.value
 
-    item.perBreakpoint[activeCanvasSizeId.value]!.x = Math.round(tempPosition.value.x)
-    item.perBreakpoint[activeCanvasSizeId.value]!.y = Math.round(tempPosition.value.y)
+    const maxXPercent = Math.max(0, ((canvasWidth.value - DRAG_X_LIMIT) / canvasWidth.value) * 100)
+    const maxYPercent = Math.max(0, ((canvasHeight.value - DRAG_Y_LIMIT) / canvasHeight.value) * 100)
 
-    if (STATIC_BLOCK_IDS.includes(item.id)) {
-        syncStaticBlock(item)
+    const newX = Math.max(0, Math.min(pxToPercent(newXPx, canvasWidth.value), maxXPercent))
+    const newY = Math.max(0, Math.min(pxToPercent(newYPx, canvasHeight.value), maxYPercent))
+
+    tempPosition.value = { x: newX, y: newY }
+}
+
+function stopMoveCanvasBlock() {
+    if (!draggingCanvasBlock.value) return
+
+    const block = blockContainer.value.find(i => i.uid === draggingCanvasBlock.value)
+    if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) return
+
+    block.perBreakpoint[activeCanvasSizeId.value]!.x = Math.round(tempPosition.value.x)
+    block.perBreakpoint[activeCanvasSizeId.value]!.y = Math.round(tempPosition.value.y)
+
+    if (checkStaticBlock(block.id)) {
+        syncStaticBlock(block)
     }
 
-    dragging.value = null
+    draggingCanvasBlock.value = null
 }
 
 onMounted(() => {
-    window.addEventListener(EVENT_MOUSEMOVE, onMouseMove)
-    window.addEventListener(EVENT_MOUSEUP, stopDrag)
+    window.addEventListener(EVENT_MOUSEMOVE, startMoveCanvasBlock)
+    window.addEventListener(EVENT_MOUSEUP, stopMoveCanvasBlock)
 })
 
 onBeforeUnmount(() => {
-    window.removeEventListener(EVENT_MOUSEMOVE, onMouseMove)
-    window.removeEventListener(EVENT_MOUSEUP, stopDrag)
+    window.removeEventListener(EVENT_MOUSEMOVE, startMoveCanvasBlock)
+    window.removeEventListener(EVENT_MOUSEUP, stopMoveCanvasBlock)
 })
 
 // BLOCK MANIPULATIONS
 const selectedItem = computed(() =>
     blockContainer.value.find(i => i.uid === selectedUid.value),
 )
-const itemPosition = computed(() => (uid: string, item: Block) => {
-    if (dragging.value === uid) {
-        return tempPosition.value
-    }
-    return { x: item.x, y: item.y }
+const itemPosition = computed(() => (uid: string, block: Block) => {
+    if (draggingCanvasBlock.value === uid) return tempPosition.value
+    return { x: block.x, y: block.y }
 })
 
 onMounted(() => {
     props.staticBlocks.forEach((b) => {
-        const block = structuredClone(toRaw(b))
+        const block = cloneObject(b)
         block.perBreakpoint = {}
         props.canvasSizeOptions.forEach((c) => {
             block.perBreakpoint![c.id] = {
                 uid: b.uid,
                 id: b.id,
                 value: b.value,
-                setting: structuredClone(toRaw(b.setting)),
-                style: structuredClone(toRaw(b.style)),
+                setting: cloneObject(b.setting),
+                style: cloneObject(b.style),
                 x: b.x,
                 y: b.y,
             }
@@ -355,14 +357,14 @@ function toggleStaticBlock(id: string) {
     else {
         // Add
         activeStaticBlocks.value.push(id)
-        const block = props.staticBlocks.find(b => b.id === id)
+        const block = findStaticBlock(id)
         if (!block) return
 
         blockContainer.value.push({
             ...block,
-            setting: structuredClone(toRaw(block.setting)),
-            style: structuredClone(toRaw(block.style)),
-            perBreakpoint: structuredClone(toRaw(block.perBreakpoint)),
+            setting: cloneObject(block.setting),
+            style: cloneObject(block.style),
+            perBreakpoint: cloneObject(block.perBreakpoint),
         })
         selectedUid.value = id
     }
@@ -372,11 +374,11 @@ function duplicateBlock(block: ElementBlock) {
     const newBlock: ElementBlock = {
         ...block,
         uid: `${Date.now()}`,
-        setting: structuredClone(toRaw(block.setting)),
-        style: structuredClone(toRaw(block.style)),
+        setting: cloneObject(block.setting),
+        style: cloneObject(block.style),
         x: block.x + 5,
         y: block.y + 5,
-        perBreakpoint: structuredClone(toRaw(block.perBreakpoint)),
+        perBreakpoint: cloneObject(block.perBreakpoint),
     }
     if (newBlock.perBreakpoint) {
         Object.entries(newBlock.perBreakpoint).forEach(([bp, _]) => {
@@ -394,7 +396,7 @@ function removeBlock(uid: string) {
     blockContainer.value = blockContainer.value.filter(i => i.uid !== uid)
 }
 
-function onBlockDragEnd() {
+function endDragCustomBlock() {
     draggingBlock.value = null
 }
 
@@ -430,7 +432,7 @@ function updateBlock(
         dataItem.value = value
     }
 
-    if (STATIC_BLOCK_IDS.includes(selectedItem.value.id)) {
+    if (checkStaticBlock(selectedItem.value.id)) {
         syncStaticBlock(selectedItem.value)
     }
 }
@@ -484,7 +486,7 @@ function refreshGeneratedHtml() {
         return renderBlock(block.perBreakpoint[activeCanvasSizeId.value]!, block.value)
     }).join('\n')
     const staticContent = activeStaticBlocks.value.map((id) => {
-        const block = props.staticBlocks.find(b => b.id === id)
+        const block = findStaticBlock(id)
         if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) return ''
         return renderBlock(block.perBreakpoint[activeCanvasSizeId.value]!, block.value)
     }).join('\n')
@@ -513,20 +515,22 @@ watch([
 }, { deep: true })
 
 // PREVIEW
-function reduceElementBlockPerBreakpoint(acc: ElementBlock[], cur: ElementBlock, bp: Breakpoint): ElementBlock[] {
-    if (!cur.perBreakpoint || !cur.perBreakpoint[bp]) return acc
+function reduceElementBlockPerBreakpoint(bp: Breakpoint): (blocks: ElementBlock[], block: ElementBlock) => ElementBlock[] {
+    return (blocks: ElementBlock[], block: ElementBlock): ElementBlock[] => {
+        if (!block.perBreakpoint || !block.perBreakpoint[bp]) return blocks
 
-    const bpBlock: Block = cur.perBreakpoint[bp]!
-    acc.push({
-        ...cur,
-        style: structuredClone(toRaw(bpBlock.style)),
-        setting: structuredClone(toRaw(bpBlock.setting)),
-        x: bpBlock.x,
-        y: bpBlock.y,
-        perBreakpoint: undefined,
-    })
+        const bpBlock: Block = block.perBreakpoint[bp]!
+        blocks.push({
+            ...block,
+            style: cloneObject(bpBlock.style),
+            setting: cloneObject(bpBlock.setting),
+            x: bpBlock.x,
+            y: bpBlock.y,
+            perBreakpoint: undefined,
+        })
 
-    return acc
+        return blocks
+    }
 }
 
 function saveToLocalStorage() {
@@ -534,18 +538,15 @@ function saveToLocalStorage() {
 
     const settings: SavedVariant[] = selectedCanvasSizes.value.map((size) => {
         const slug = size.id
+        const reducer = reduceElementBlockPerBreakpoint(slug)
 
         const customBlock = blockContainer.value
-            .filter(b => !STATIC_BLOCK_IDS.includes(b.id))
-            .reduce<ElementBlock[]>((acc, cur) => {
-                return reduceElementBlockPerBreakpoint(acc, cur, slug)
-            }, [])
+            .filter(b => checkCustomBlock(b.id))
+            .reduce<ElementBlock[]>(reducer, [])
 
         const staticBlock = props.staticBlocks
-            .filter(b => STATIC_BLOCK_IDS.includes(b.id))
-            .reduce<ElementBlock[]>((acc, block) => {
-                return reduceElementBlockPerBreakpoint(acc, block, slug)
-            }, [])
+            .filter(b => checkStaticBlock(b.id))
+            .reduce<ElementBlock[]>(reducer, [])
 
         return {
             bgImage: bgImage.value.perBreakpoint?.[slug]?.dataUrl || '',
@@ -718,8 +719,8 @@ function preview() {
                             hoverable
                             :label="card.label"
                             class="cursor-move"
-                            @dragstart="onBlockDragStart($event, card.id)"
-                            @dragend="onBlockDragEnd"
+                            @dragstart="startDragCustomBlock($event, card.id)"
+                            @dragend="endDragCustomBlock"
                         />
                     </div>
                 </UCard>
@@ -774,8 +775,8 @@ function preview() {
                             class="bg-neutral-100 dark:bg-neutral-900"
                             :width="`${canvasWidth * canvasScale}px`"
                             :height="`${canvasHeight * canvasScale}px`"
-                            @dragover="onCanvasDragOver"
-                            @drop="onCanvasDrop"
+                            @dragover="dragToCanvas"
+                            @drop="dropCanvas"
                         >
                             <div :style="canvasStyle">
                                 <template
@@ -789,7 +790,7 @@ function preview() {
                                             left: itemPosition(block.uid, block.perBreakpoint[activeCanvasSizeId]!).x + '%',
                                             top: itemPosition(block.uid, block.perBreakpoint[activeCanvasSizeId]!).y + '%',
                                         }"
-                                        @mousedown.prevent="startDrag($event, block.uid, block.perBreakpoint[activeCanvasSizeId]!)"
+                                        @mousedown.prevent="dragCanvasBlock($event, block.uid, block.perBreakpoint[activeCanvasSizeId]!)"
                                         @click.stop="selectedUid = block.uid"
                                     >
                                         <UChip position="top-left">
@@ -799,10 +800,10 @@ function preview() {
                                                     selectedUid === block.uid ? 'border-neutral-500 dark:border-neutral-400' : '',
                                                 ]"
                                             >
-                                                {{ customBlocks.find(c => c.id === block.id)?.label || staticBlocks.find(c => c.id === block.id)?.label }}
+                                                {{ findCustomBlock(block.id)?.label || findStaticBlock(block.id)?.label }}
 
                                                 <div
-                                                    v-if="!STATIC_BLOCK_IDS.includes(block.id)"
+                                                    v-if="checkCustomBlock(block.id)"
                                                     class="flex gap-2"
                                                 >
                                                     <UButton
@@ -859,7 +860,7 @@ function preview() {
                             <UFileUpload
                                 v-slot="{ open, removeFile }"
                                 v-model="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
-                                accept="image/*"
+                                accept="image/jpg"
                             >
                                 <UFieldGroup>
                                     <UInput
