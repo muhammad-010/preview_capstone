@@ -174,12 +174,12 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
             accumulator.tailwindClass.push(tailwindClass)
 
             return accumulator
-        }, structuredClone(toRaw(empty)))
+        }, cloneObject(empty))
 
         acc.style = { ...acc.style, ...res.style }
         acc.tailwindClass = [...acc.tailwindClass, ...res.tailwindClass]
         return acc
-    }, structuredClone(toRaw(empty)))
+    }, cloneObject(empty))
 }
 
 export function invitationEmailHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
@@ -480,8 +480,8 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[]): {
                 x: el.position_x,
                 y: el.position_y,
                 value: el.value,
-                style: Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : structuredClone(toRaw(block.style)),
-                setting: Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : structuredClone(toRaw(block.setting)),
+                style: Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : cloneObject(block.style),
+                setting: Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : cloneObject(block.setting),
             }
         }
     }

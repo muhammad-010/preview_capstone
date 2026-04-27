@@ -30,13 +30,13 @@ function triggerRefresh(skipResetPage?: boolean) {
 }
 
 // FILTER CUSTOM ATTRIBUTE
-const filterCustomAttributeField = ref(structuredClone(toRaw(unref(filterCustomAttribute))))
+const filterCustomAttributeField = ref(cloneObject(unref(filterCustomAttribute)))
 const cleanedFilterCustomAttribute = computed(() => formatCleanCustomAttribute(filterCustomAttribute.value))
 const filterCustomAttributeButtonLabel = computed(() => cleanedFilterCustomAttribute.value.map(attr => `${attr.name}: ${attr.value}`).join(', '))
 const filterCustomAttributeDialog = ref(false)
 
 function refreshFilterCustomAttributeDialog() {
-    filterCustomAttribute.value = structuredClone(toRaw(unref(filterCustomAttributeField.value)))
+    filterCustomAttribute.value = cloneObject(unref(filterCustomAttributeField.value))
     triggerRefresh()
 }
 

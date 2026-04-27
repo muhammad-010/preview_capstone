@@ -13,7 +13,7 @@ const query = ref('')
 const page = ref(1)
 const limit = ref(5)
 const selectedIds = ref<number[]>([])
-const filterCustomAttribute = ref<CustomAttribute[]>(structuredClone(toRaw(unref(props.customAttributes))))
+const filterCustomAttribute = ref<CustomAttribute[]>(cloneObject(unref(props.customAttributes)))
 // const filterCheckedIn = ref<boolean | null>(null)
 const filterSessionStatus = ref<ParticipantSessionStatus | null>(null)
 

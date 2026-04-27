@@ -88,7 +88,7 @@ async function submitPhoneNumber(event: FormSubmitEvent<Schema>) {
             openFailedDialog('No Participant Found')
             return
         }
-        participants.value = structuredClone(res.data.participant)
+        participants.value = cloneObject(res.data.participant)
         participantDialog.value = true
         latestPhoneNumber.value = event.data.phoneNumber
     }
