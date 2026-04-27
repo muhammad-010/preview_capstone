@@ -129,9 +129,10 @@ export function getResponsivePositionStyle(elBlock: ElementBlock | undefined): R
     const validBp = Object.keys(elBlock.perBreakpoint).filter(isBreakpoint)
     const smallestBp = findSmallestBreakpoint(validBp)
 
-    return Object.entries(elBlock.perBreakpoint).reduce<ResponsiveElementSetting>((acc, [bp, block]) => {
-        if (!isBreakpoint(bp)) return acc
+    return validBp.reduce<ResponsiveElementSetting>((acc, bp) => {
+        if (!elBlock.perBreakpoint || !isBreakpoint(bp)) return acc
 
+        const block = elBlock.perBreakpoint[bp]!
         const {
             cssVariable: xCssVariable,
             tailwindClass: xTailwindClass,
@@ -162,9 +163,10 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
     const validBp = Object.keys(elBlock.perBreakpoint).filter(isBreakpoint)
     const smallestBp = findSmallestBreakpoint(validBp)
 
-    return Object.entries(elBlock.perBreakpoint).reduce<ResponsiveElementSetting>((acc, [bp, block]) => {
-        if (!isBreakpoint(bp)) return acc
+    return validBp.reduce<ResponsiveElementSetting>((acc, bp) => {
+        if (!elBlock.perBreakpoint || !isBreakpoint(bp)) return acc
 
+        const block = elBlock.perBreakpoint[bp]!
         const res = block.style.reduce<ResponsiveElementSetting>((accumulator, current) => {
             if (!BLOCK_STYLE_LIST.includes(current.key)) return accumulator
 
