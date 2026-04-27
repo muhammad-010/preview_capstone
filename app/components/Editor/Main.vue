@@ -1,18 +1,18 @@
 <script setup lang="ts">
 const props = defineProps<{
-    editorMode: EditorMode
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
-    htmlPreviewFn: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
     canvasSizeOptions: CanvasSize[]
     defaultBreakpoint: Breakpoint
     defaultOrientation: Orientation
-    rotateable?: boolean
+
     withPreview?: boolean
+    htmlPreviewFn?: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
     previewPath?: string
     previewKey?: string
-    pageTitle?: string
+    canvasImageBased?: boolean
     defaultScale?: number
+    pageTitle?: string
 }>()
 
 const DRAG_X_LIMIT = 10
@@ -80,13 +80,37 @@ function removeCanvasSize() {
 // BACKGROUND IMAGE
 const bgImage = ref<ElementBackgroundImage>({
     dataUrl: '',
+    width: 0,
+    height: 0,
     perBreakpoint: props.canvasSizeOptions.reduce((acc, cur) => {
         acc[cur.id] = {
             dataUrl: '',
+            width: 0,
+            height: 0,
         }
         return acc
     }, {} as Partial<Record<Breakpoint, BackgroundImage>>),
 })
+const activeBgImage = computed<BackgroundImage>(() => {
+    if (!bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return {
+        dataUrl: '',
+        width: 0,
+        height: 0,
+    }
+
+    return bgImage.value.perBreakpoint![activeCanvasSizeId.value]!
+})
+
+function clearImage(remove: (index?: number | undefined) => void, index?: number | undefined) {
+    remove(index)
+    if (!bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
+
+    bgImage.value.perBreakpoint![activeCanvasSizeId.value] = {
+        dataUrl: '',
+        width: 0,
+        height: 0,
+    }
+}
 
 watch(
     () => bgImage.value.perBreakpoint?.[activeCanvasSizeId.value]?.file,
@@ -94,8 +118,20 @@ watch(
         if (!file || !bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
         const reader = new FileReader()
         reader.onload = () => {
-            bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.dataUrl = reader.result as string
+            const img = new Image()
+            img.onload = () => {
+                bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.width = img.width
+                bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.height = img.height
+
+                if (props.canvasSizeOptions) {
+                    canvasOrientation.value = img.width > img.height ? EDITOR_CANVAS_LANDSCAPE : EDITOR_CANVAS_PORTRAIT
+                }
+            }
+            const src = reader.result as string
+            img.src = src
+            bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.dataUrl = src
         }
+        bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.name = file.name
         reader.readAsDataURL(file)
     },
     { deep: true },
@@ -111,22 +147,32 @@ function shouldFlipCanvas(canvasOrientation: Orientation, activeOrientation: Ori
 }
 const canvasOrientation = ref<Orientation>(props.defaultOrientation)
 const canvasWidth = computed(() => {
-    const size = activeCanvasSize.value!
-    return shouldFlipCanvas(canvasOrientation.value, activeCanvasSize.value.orientation) ? size.height : size.width
+    const bgImg = activeBgImage.value
+    if (props.canvasImageBased && bgImg.width) {
+        return bgImg.width
+    }
+    else {
+        const canvasSize = activeCanvasSize.value!
+        return shouldFlipCanvas(canvasOrientation.value, activeCanvasSize.value.orientation) ? canvasSize.height : canvasSize.width
+    }
 })
 const canvasHeight = computed(() => {
-    const size = activeCanvasSize.value
-    return shouldFlipCanvas(canvasOrientation.value, activeCanvasSize.value.orientation) ? size.width : size.height
+    const bgImg = activeBgImage.value
+    if (props.canvasImageBased && bgImg.height) {
+        return bgImg.height
+    }
+    else {
+        const canvasSize = activeCanvasSize.value
+        return shouldFlipCanvas(canvasOrientation.value, activeCanvasSize.value.orientation) ? canvasSize.width : canvasSize.height
+    }
 })
-const canvasOrientationSelections = props.rotateable
-    ? [
-            EDITOR_CANVAS_PORTRAIT,
-            EDITOR_CANVAS_LANDSCAPE,
-        ]
-    : [props.defaultOrientation]
+const canvasOrientationSelections = props.canvasImageBased
+    ? [props.defaultOrientation]
+    : [EDITOR_CANVAS_PORTRAIT, EDITOR_CANVAS_LANDSCAPE]
 watch(activeCanvasSizeId, () => {
     canvasOrientation.value = activeCanvasSize.value.orientation
 })
+
 const canvasStyle = computed(() => ({
     width: canvasWidth.value + 'px',
     height: canvasHeight.value + 'px',
@@ -575,22 +621,23 @@ function preview() {
 
                     <div class="mb-4">
                         <UFormField label="Scale (%)">
-                            <UInput
-                                v-model.number="canvasScalePercentage"
-                                type="number"
-                                min="10"
-                                max="100"
+                            <UInputNumber
+                                v-model="canvasScalePercentage"
+                                :min="10"
+                                :max="100"
                                 class="w-full"
                             />
                         </UFormField>
                     </div>
 
-                    <div class="mb-4">
+                    <div
+                        v-if="!canvasImageBased"
+                        class="mb-4"
+                    >
                         <UFormField label="Orientation">
                             <USelect
                                 v-model="canvasOrientation"
                                 :items="canvasOrientationSelections"
-                                :disabled="!rotateable"
                                 class="w-full"
                             />
                         </UFormField>
@@ -598,7 +645,10 @@ function preview() {
                 </UCard>
 
                 <!-- VARIANTS -->
-                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                <UCard
+                    v-if="canvasSizeOptions.length > 1"
+                    :ui="{ body: 'p-2 sm:p-3' }"
+                >
                     <template #header>
                         <h3>Page Sizes</h3>
                     </template>
@@ -716,62 +766,64 @@ function preview() {
             </div>
 
             <!-- CENTER: Canvas and iframe -->
-            <div class="col-span-5 overflow-y-auto p-4 scrollbar">
-                <div :class="canvasOrientation === 'portrait' ? 'flex gap-4 justify-evenly items-center min-h-full' : 'flex flex-col gap-4 justify-evenly items-center min-h-full'">
+            <div class="col-span-5 overflow-auto p-4 scrollbar">
+                <div :class="canvasOrientation === 'portrait' ? 'flex gap-4 justify-evenly items-center min-h-full min-w-full' : 'flex flex-col gap-4 justify-evenly items-center min-h-full min-w-full'">
                     <!-- CANVAS -->
-                    <EditorCanvasContainer
-                        class="bg-neutral-100 dark:bg-neutral-900"
-                        :width="`${canvasWidth * canvasScale}px`"
-                        :height="`${canvasHeight * canvasScale}px`"
-                        @dragover="onCanvasDragOver"
-                        @drop="onCanvasDrop"
-                    >
-                        <div :style="canvasStyle">
-                            <template
-                                v-for="block in blockContainer"
-                                :key="block.uid"
-                            >
-                                <div
-                                    v-if="block.perBreakpoint && block.perBreakpoint[activeCanvasSizeId]"
-                                    class="absolute cursor-move"
-                                    :style="{
-                                        left: itemPosition(block.uid, block.perBreakpoint[activeCanvasSizeId]!).x + '%',
-                                        top: itemPosition(block.uid, block.perBreakpoint[activeCanvasSizeId]!).y + '%',
-                                    }"
-                                    @mousedown.prevent="startDrag($event, block.uid, block.perBreakpoint[activeCanvasSizeId]!)"
-                                    @click.stop="selectedUid = block.uid"
+                    <div class="relative">
+                        <EditorCanvasContainer
+                            class="bg-neutral-100 dark:bg-neutral-900"
+                            :width="`${canvasWidth * canvasScale}px`"
+                            :height="`${canvasHeight * canvasScale}px`"
+                            @dragover="onCanvasDragOver"
+                            @drop="onCanvasDrop"
+                        >
+                            <div :style="canvasStyle">
+                                <template
+                                    v-for="block in blockContainer"
+                                    :key="block.uid"
                                 >
-                                    <UChip position="top-left">
-                                        <EditorBlock
-                                            class="flex items-center justify-between"
-                                            :class="[
-                                                selectedUid === block.uid ? 'border-neutral-500 dark:border-neutral-400' : '',
-                                            ]"
-                                        >
-                                            {{ customBlocks.find(c => c.id === block.id)?.label || staticBlocks.find(c => c.id === block.id)?.label }}
-
-                                            <div
-                                                v-if="!STATIC_BLOCK_IDS.includes(block.id)"
-                                                class="flex gap-2"
+                                    <div
+                                        v-if="block.perBreakpoint && block.perBreakpoint[activeCanvasSizeId]"
+                                        class="absolute cursor-move"
+                                        :style="{
+                                            left: itemPosition(block.uid, block.perBreakpoint[activeCanvasSizeId]!).x + '%',
+                                            top: itemPosition(block.uid, block.perBreakpoint[activeCanvasSizeId]!).y + '%',
+                                        }"
+                                        @mousedown.prevent="startDrag($event, block.uid, block.perBreakpoint[activeCanvasSizeId]!)"
+                                        @click.stop="selectedUid = block.uid"
+                                    >
+                                        <UChip position="top-left">
+                                            <EditorBlock
+                                                class="flex items-center justify-between"
+                                                :class="[
+                                                    selectedUid === block.uid ? 'border-neutral-500 dark:border-neutral-400' : '',
+                                                ]"
                                             >
-                                                <UButton
-                                                    size="xs"
-                                                    label="Dup"
-                                                    @click.stop="duplicateBlock(block)"
-                                                />
-                                                <UButton
-                                                    size="xs"
-                                                    color="error"
-                                                    label="Del"
-                                                    @click.stop="removeBlock(block.uid)"
-                                                />
-                                            </div>
-                                        </EditorBlock>
-                                    </UChip>
-                                </div>
-                            </template>
-                        </div>
-                    </EditorCanvasContainer>
+                                                {{ customBlocks.find(c => c.id === block.id)?.label || staticBlocks.find(c => c.id === block.id)?.label }}
+
+                                                <div
+                                                    v-if="!STATIC_BLOCK_IDS.includes(block.id)"
+                                                    class="flex gap-2"
+                                                >
+                                                    <UButton
+                                                        size="xs"
+                                                        label="Dup"
+                                                        @click.stop="duplicateBlock(block)"
+                                                    />
+                                                    <UButton
+                                                        size="xs"
+                                                        color="error"
+                                                        label="Del"
+                                                        @click.stop="removeBlock(block.uid)"
+                                                    />
+                                                </div>
+                                            </EditorBlock>
+                                        </UChip>
+                                    </div>
+                                </template>
+                            </div>
+                        </EditorCanvasContainer>
+                    </div>
 
                     <!-- PREVIEW -->
                     <MiscLoadingOverlay :loading="loadingPreview">
@@ -804,36 +856,34 @@ function preview() {
                         </h4>
 
                         <template v-if="bgImage.perBreakpoint && bgImage.perBreakpoint[activeCanvasSizeId]">
-                            <UFieldGroup>
-                                <UFileUpload
-                                    v-slot="{ open, removeFile }"
-                                    v-model="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
-                                    accept="image/*"
-                                >
-                                    <UButton
-                                        :label="bgImage.perBreakpoint![activeCanvasSizeId]!.file ? 'Change Image' : 'Upload Image'"
-                                        color="neutral"
-                                        variant="outline"
+                            <UFileUpload
+                                v-slot="{ open, removeFile }"
+                                v-model="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
+                                accept="image/*"
+                            >
+                                <UFieldGroup>
+                                    <UInput
+                                        readonly
+                                        :model-value="bgImage.perBreakpoint![activeCanvasSizeId]!.file ? bgImage.perBreakpoint![activeCanvasSizeId]!.name : 'Choose Image'"
+                                        :ui="{ base: 'cursor-pointer' }"
                                         @click="open()"
                                     />
+                                    <UButton
+                                        :disabled="!Boolean(bgImage.perBreakpoint![activeCanvasSizeId]!.file)"
+                                        icon="lucide:x"
+                                        :color="!Boolean(bgImage.perBreakpoint![activeCanvasSizeId]!.file) ? 'neutral' : 'error'"
+                                        @click="clearImage(removeFile)"
+                                    />
+                                </UFieldGroup>
 
-                                    <p
-                                        v-if="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
-                                        class="text-xs text-muted mt-1.5"
-                                    >
-                                        {{ bgImage.perBreakpoint![activeCanvasSizeId]!.file?.name }}
-
-                                        <UButton
-                                            label="Remove"
-                                            color="error"
-                                            variant="link"
-                                            size="xs"
-                                            class="p-0"
-                                            @click="removeFile()"
-                                        />
-                                    </p>
-                                </UFileUpload>
-                            </UFieldGroup>
+                                <p
+                                    v-if="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
+                                    class="text-sm text-muted mt-2"
+                                >
+                                    width: {{ bgImage.perBreakpoint![activeCanvasSizeId]!.width }}
+                                    height: {{ bgImage.perBreakpoint![activeCanvasSizeId]!.height }}
+                                </p>
+                            </UFileUpload>
                         </template>
                     </div>
                 </UCard>
@@ -884,18 +934,20 @@ function preview() {
                                 </h4>
                                 <div class="grid grid-cols-2 gap-2">
                                     <UFormField label="X (%)">
-                                        <UInput
+                                        <UInputNumber
                                             :model-value="selectedItem.perBreakpoint[activeCanvasSizeId]!.x"
-                                            type="number"
                                             :step="0.2"
+                                            :min="0"
+                                            :max="100"
                                             @update:model-value="(value: any) => updateBlock('position', 'x', Number(value))"
                                         />
                                     </UFormField>
                                     <UFormField label="Y (%)">
-                                        <UInput
+                                        <UInputNumber
                                             :model-value="selectedItem.perBreakpoint[activeCanvasSizeId]!.y"
-                                            type="number"
                                             :step="0.2"
+                                            :min="0"
+                                            :max="100"
                                             @update:model-value="(value: any) => updateBlock('position', 'y', Number(value))"
                                         />
                                     </UFormField>

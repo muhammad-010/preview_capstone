@@ -7,7 +7,7 @@ export const EDITOR_CANVAS_PORTRAIT = 'portrait'
 export const EDITOR_CANVAS_LANDSCAPE = 'landscape'
 
 export const CANVAS_SIZE_PRESETS_INVITATION_EMAIL: CanvasSize[] = [
-    { id: BREAKPOINT_MD, width: 432, height: 768, label: 'Medium', breakpoint: BREAKPOINT_MD, orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: BREAKPOINT_MD, width: 1360, height: 1360, label: 'Square', breakpoint: BREAKPOINT_MD, orientation: EDITOR_CANVAS_PORTRAIT },
 ]
 
 export const CANVAS_SIZE_PRESETS_CHECK_IN_PAGE: CanvasSize[] = [

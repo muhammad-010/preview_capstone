@@ -5,7 +5,7 @@ defineProps<{
 }>()
 const emit = defineEmits([EMIT_INPUT_UPDATE])
 
-function setValue(e: string | number | boolean | undefined) {
+function setValue(e: any) {
     emit(EMIT_INPUT_UPDATE, e)
 }
 </script>
@@ -17,8 +17,8 @@ function setValue(e: string | number | boolean | undefined) {
             v-if="field.type === 'checkbox'"
             :model-value="field.value === field.trueValue"
             :label="field.label"
-            :true-value="field.trueValue !== undefined ? field.trueValue : true"
-            :false-value="field.falseValue !== undefined ? field.falseValue : false"
+            :true-value="field.trueValue ?? true"
+            :false-value="field.falseValue ?? false"
             @update:model-value="(e) => setValue(e ? field.trueValue : field.falseValue)"
         />
 
@@ -60,12 +60,13 @@ function setValue(e: string | number | boolean | undefined) {
             </UPopover>
 
             <!-- Number -->
-            <UInput
+            <UInputNumber
                 v-else-if="field.type === 'number'"
-                type="number"
                 :model-value="Number(field.value)"
                 class="w-full"
                 :step="0.1"
+                :min="field.min"
+                :max="field.max"
                 @update:model-value="setValue"
             />
 
