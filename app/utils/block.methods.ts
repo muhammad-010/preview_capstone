@@ -126,6 +126,8 @@ export function getResponsivePositionStyle(elBlock: ElementBlock | undefined): R
         return empty
     }
 
+    const smallestBp = findSmallestBreakpoint(Object.keys(elBlock.perBreakpoint).filter(isBreakpoint))
+
     return Object.entries(elBlock.perBreakpoint).reduce<ResponsiveElementSetting>((acc, [bp, block]) => {
         if (!isBreakpoint(bp)) return acc
 
@@ -133,7 +135,7 @@ export function getResponsivePositionStyle(elBlock: ElementBlock | undefined): R
             cssVariable: xCssVariable,
             tailwindClass: xTailwindClass,
             getValue: xGetValue,
-        } = responsiveStyleClass(bp, STYLING_POS_X_SUFFIX)
+        } = responsiveStyleClass(bp, STYLING_POS_X_SUFFIX, bp === smallestBp)
         acc.style[xCssVariable] = xGetValue(block.x)
         acc.tailwindClass.push(xTailwindClass)
 
@@ -141,7 +143,7 @@ export function getResponsivePositionStyle(elBlock: ElementBlock | undefined): R
             cssVariable: yCssVariable,
             tailwindClass: yTailwindClass,
             getValue: yGetValue,
-        } = responsiveStyleClass(bp, STYLING_POS_Y_SUFFIX)
+        } = responsiveStyleClass(bp, STYLING_POS_Y_SUFFIX, bp === smallestBp)
         acc.style[yCssVariable] = yGetValue(block.y)
         acc.tailwindClass.push(yTailwindClass)
 
@@ -156,6 +158,8 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
     }
     if (!elBlock || !elBlock.perBreakpoint) return empty
 
+    const smallestBp = findSmallestBreakpoint(Object.keys(elBlock.perBreakpoint).filter(isBreakpoint))
+
     return Object.entries(elBlock.perBreakpoint).reduce<ResponsiveElementSetting>((acc, [bp, block]) => {
         if (!isBreakpoint(bp)) return acc
 
@@ -169,7 +173,7 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
                 cssVariable,
                 tailwindClass,
                 getValue,
-            } = responsiveStyleClass(bp, suffix)
+            } = responsiveStyleClass(bp, suffix, bp === smallestBp)
             accumulator.style[cssVariable] = getValue(current.value)
             accumulator.tailwindClass.push(tailwindClass)
 

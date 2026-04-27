@@ -56,10 +56,20 @@ const heightResponsiveStyleClass = createResponsiveStyleClass({
     buildClass: (twPfx, cssVar) => `${twPfx}h-(${cssVar})`,
 })
 
-export function responsiveStyleClass(bp: Breakpoint, suffix: StylingSuffix): ResponsiveStyleClass {
+export function findSmallestBreakpoint(bps: Breakpoint[]): Breakpoint {
+    if (bps.length === 1) return bps[0] || BREAKPOINT_SM
+    return bps.reduce((smallest, cur) => {
+        if (!smallest) return cur
+        return BREAKPOINTS.indexOf(cur) < BREAKPOINTS.indexOf(smallest)
+            ? cur
+            : smallest
+    }, bps[0] || BREAKPOINT_SM)
+}
+
+export function responsiveStyleClass(bp: Breakpoint, suffix: StylingSuffix, isSmallest: boolean, noBreakpoint?: boolean): ResponsiveStyleClass {
     const key = `${bp}${suffix}`
     const cssVariable: ResponsiveCssVar = `--${bp}${suffix}`
-    const tailwindBreakpoint: TailwindBreakpointPrefix = `${bp}:`
+    const tailwindBreakpoint: TailwindBreakpointPrefix = noBreakpoint || isSmallest ? '' : `${bp}:`
 
     switch (suffix) {
         case STYLING_BACKGROUND_SUFFIX:
