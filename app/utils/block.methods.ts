@@ -126,7 +126,8 @@ export function getResponsivePositionStyle(elBlock: ElementBlock | undefined): R
         return empty
     }
 
-    const smallestBp = findSmallestBreakpoint(Object.keys(elBlock.perBreakpoint).filter(isBreakpoint))
+    const validBp = Object.keys(elBlock.perBreakpoint).filter(isBreakpoint)
+    const smallestBp = findSmallestBreakpoint(validBp)
 
     return Object.entries(elBlock.perBreakpoint).reduce<ResponsiveElementSetting>((acc, [bp, block]) => {
         if (!isBreakpoint(bp)) return acc
@@ -135,7 +136,7 @@ export function getResponsivePositionStyle(elBlock: ElementBlock | undefined): R
             cssVariable: xCssVariable,
             tailwindClass: xTailwindClass,
             getValue: xGetValue,
-        } = responsiveStyleClass(bp, STYLING_POS_X_SUFFIX, bp === smallestBp)
+        } = responsiveStyleClass(bp, STYLING_POS_X_SUFFIX, bp === smallestBp, validBp.length === 1)
         acc.style[xCssVariable] = xGetValue(block.x)
         acc.tailwindClass.push(xTailwindClass)
 
@@ -143,7 +144,7 @@ export function getResponsivePositionStyle(elBlock: ElementBlock | undefined): R
             cssVariable: yCssVariable,
             tailwindClass: yTailwindClass,
             getValue: yGetValue,
-        } = responsiveStyleClass(bp, STYLING_POS_Y_SUFFIX, bp === smallestBp)
+        } = responsiveStyleClass(bp, STYLING_POS_Y_SUFFIX, bp === smallestBp, validBp.length === 1)
         acc.style[yCssVariable] = yGetValue(block.y)
         acc.tailwindClass.push(yTailwindClass)
 
@@ -158,7 +159,8 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
     }
     if (!elBlock || !elBlock.perBreakpoint) return empty
 
-    const smallestBp = findSmallestBreakpoint(Object.keys(elBlock.perBreakpoint).filter(isBreakpoint))
+    const validBp = Object.keys(elBlock.perBreakpoint).filter(isBreakpoint)
+    const smallestBp = findSmallestBreakpoint(validBp)
 
     return Object.entries(elBlock.perBreakpoint).reduce<ResponsiveElementSetting>((acc, [bp, block]) => {
         if (!isBreakpoint(bp)) return acc
@@ -173,7 +175,7 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
                 cssVariable,
                 tailwindClass,
                 getValue,
-            } = responsiveStyleClass(bp, suffix, bp === smallestBp)
+            } = responsiveStyleClass(bp, suffix, bp === smallestBp, validBp.length === 1)
             accumulator.style[cssVariable] = getValue(current.value)
             accumulator.tailwindClass.push(tailwindClass)
 
