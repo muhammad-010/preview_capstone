@@ -143,4 +143,8 @@ naming pattern and rules same as [app/utils](#apputils) and [server/utils](#serv
 - [ ] middleware/checkIn
 - [x] pages/check-in/[event_id]/index
 - [x] pages/check-in/[event_id]/new
-- [ ] pages/check-in/[event_id]/[session_id]/index (rename new into index)
+- [ ] pages/check-in/[event_id]/[session_id]/old
+
+## PUBLIC
+- [ ] BTN-Event-Landscape.jpg
+- [ ] BTN-Event-Portrait.jpg
