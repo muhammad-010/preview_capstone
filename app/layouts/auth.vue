@@ -1,5 +1,5 @@
 <template>
-    <UContainer class="flex justify-center items-center flex-col h-screen">
+    <div class="flex flex-col justify-center items-center min-h-screen w-full px-4 py-8">
         <NuxtImg
             src="/logo.png"
             :width="325"
@@ -11,5 +11,5 @@
         <div class="mt-12">
             <UColorModeButton />
         </div>
-    </UContainer>
+    </div>
 </template>
