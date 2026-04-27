@@ -132,8 +132,14 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     </template>
 
                     <template #key-visuals>
-                        <div class="flex gap-4 w-full">
-                            <UCard class="w-full">
+                        <div class="grid grid-cols-2 gap-4 w-full">
+                            <UCard
+                                class="w-full"
+                                :ui="{
+                                    root: 'flex flex-col',
+                                    body: 'flex-1',
+                                }"
+                            >
                                 <template #header>
                                     <h4>Invitation QR Code</h4>
                                 </template>
@@ -156,7 +162,13 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                                 </template>
                             </UCard>
 
-                            <UCard class="w-full">
+                            <UCard
+                                class="w-full"
+                                :ui="{
+                                    root: 'flex flex-col',
+                                    body: 'flex-1',
+                                }"
+                            >
                                 <template #header>
                                     <h4>Scan QR Page</h4>
                                 </template>
