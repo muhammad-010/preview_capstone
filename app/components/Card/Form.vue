@@ -65,6 +65,7 @@ const disableStepPrev = computed(() => {
                 >
                     <div class="flex gap-2">
                         <UButton
+                            v-if="activeStepIndex !== undefined && activeStepIndex > 0"
                             color="neutral"
                             variant="solid"
                             icon="lucide:chevron-left"

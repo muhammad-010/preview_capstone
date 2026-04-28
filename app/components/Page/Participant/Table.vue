@@ -372,39 +372,51 @@ function useColumns() {
         {
             accessorKey: 'name',
             header: 'Name',
+            meta: {
+                class: {
+                    td: `max-w-50`,
+                },
+            },
             cell: ({ row }) => {
+                const maxAtt = []
+                if (row.original.max_attendance)
+                    maxAtt.push(h('span', { class: 'text-sm' }, `${row.original.max_attendance} Attendance${row.original.max_attendance > 1 ? 's' : ''}`))
+
                 return h('div', {}, [
-                    h('span', { class: 'font-semibold' }, row.original.name),
-                    ...(row.original.max_attendance
-                        ? [
-                                h('br'),
-                                h('span', { class: 'text-sm' }, `${row.original.max_attendance} Attendance${row.original.max_attendance > 1 ? 's' : ''}`),
-                            ]
-                        : []
-                    ),
+                    h('div', { class: 'truncate font-semibold' }, row.original.name),
+                    ...maxAtt,
                 ])
             },
         },
         {
             accessorKey: 'email',
             header: 'Contact',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('span', {}, row.original.email || ''),
-                    h('br'),
-                    h('span', {}, row.original.phone_number || ''),
+                    h('div', { class: 'truncate' }, row.original.email || ''),
+                    h('div', { class: 'truncate' }, row.original.phone_number || ''),
                 ])
             },
         },
         {
             accessorKey: 'custom_attribute',
             header: 'Metadata',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
             cell: ({ row }) => {
                 return h('div',
                     {},
                     row.original.custom_attribute && row.original.custom_attribute.length
                         ? row.original.custom_attribute
-                                .map(attr => h('div', {}, [
+                                .map(attr => h('div', { class: 'truncate' }, [
                                     h('span', { class: 'font-semibold' }, attr.name ? `${attr.name}: ` : ''),
                                     h('span', {}, attr.value),
                                 ]))

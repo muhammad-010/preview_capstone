@@ -22,20 +22,27 @@ function useColumns(uId: number) {
         {
             accessorKey: 'name',
             header: 'Member',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
             cell: ({ row }) => {
-                return h('div', {}, [
-                    h('span', { class: 'font-semibold' }, row.original.name),
-                    h('br'),
-                    h('span', { class: 'text-sm' }, row.original.email || ''),
-                ])
+                return h('div', { class: 'truncate font-semibold' }, row.original.name)
             },
         },
         {
-            accessorKey: 'phone.number',
-            header: 'Phone',
+            accessorKey: 'email',
+            header: 'Contact',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('span', { class: 'text-sm' }, row.original.phone?.number || ''),
+                    h('div', { class: 'truncate' }, row.original.email || ''),
+                    h('div', { class: 'truncate' }, row.original.phone?.number || ''),
                 ])
             },
         },
@@ -53,8 +60,13 @@ function useColumns(uId: number) {
         {
             accessorKey: 'user_id',
             header: 'Action',
+            meta: {
+                class: {
+                    td: 'w-[1%]',
+                },
+            },
             cell: ({ row }) => {
-                return h('div', { class: 'flex gap-2' }, [
+                return h('div', { class: 'inline-flex gap-2' }, [
                     h(UTooltip, { text: 'Edit', delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'neutral',

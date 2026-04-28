@@ -21,13 +21,16 @@ function useColumns() {
         {
             accessorKey: 'name',
             header: 'Event Name',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
             cell: ({ row }) => {
                 return h('div', {
-                    class: 'cursor-pointer',
+                    class: 'truncate cursor-pointer font-semibold',
                     onClick: () => navigateTo(`/events/${row.original.event_id}`),
-                }, [
-                    h('span', { class: 'font-semibold' }, row.original.name),
-                ])
+                }, row.original.name)
             },
         },
         {
@@ -42,6 +45,14 @@ function useColumns() {
         {
             accessorKey: 'location',
             header: 'Venue',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', { class: 'truncate' }, row.original.location)
+            },
         },
         {
             accessorKey: 'capacity',
@@ -70,8 +81,13 @@ function useColumns() {
         {
             accessorKey: 'event_id',
             header: 'Action',
+            meta: {
+                class: {
+                    td: 'w-[1%]',
+                },
+            },
             cell: ({ row }) => {
-                return h('div', { class: 'flex gap-2' }, [
+                return h('div', { class: 'inline-flex gap-2' }, [
                     h(UTooltip, { text: 'Edit', delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'neutral',

@@ -50,20 +50,27 @@ function useColumns() {
         {
             accessorKey: 'name',
             header: 'Name',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
             cell: ({ row }) => {
-                return h('div', {}, [
-                    h('span', { class: 'font-semibold' }, row.original.name),
-                ])
+                return h('div', { class: 'truncate font-semibold' }, row.original.name)
             },
         },
         {
             accessorKey: 'email',
             header: 'Contact',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('span', {}, row.original.email || ''),
-                    h('br', {}),
-                    h('span', {}, row.original.phone_number || ''),
+                    h('div', { class: 'truncate' }, row.original.email || ''),
+                    h('div', { class: 'truncate' }, row.original.phone_number || ''),
                 ])
             },
         },

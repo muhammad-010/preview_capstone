@@ -20,25 +20,33 @@ function useColumns() {
         {
             accessorKey: 'name',
             header: 'Tenant Name',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
             cell: ({ row }) => {
                 return h('div', {
                     class: 'cursor-pointer',
                     onClick: () => navigateTo(`/tenants/${row.original.tenant_id}`),
                 }, [
-                    h('span', { class: 'font-semibold' }, row.original.name),
-                    h('br'),
-                    h('span', { class: 'text-sm' }, row.original.owner?.name || ''),
+                    h('div', { class: 'truncate font-semibold' }, row.original.name),
+                    h('div', { class: 'truncate text-sm' }, row.original.owner?.name || ''),
                 ])
             },
         },
         {
             accessorKey: 'owner.email',
             header: 'Admin Email',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('span', {}, row.original.owner?.email || ''),
-                    h('br'),
-                    h('span', { class: 'text-sm' }, row.original.owner?.phone?.number || ''),
+                    h('div', { class: 'truncate' }, row.original.owner?.email || ''),
+                    h('div', { class: 'truncate text-sm' }, row.original.owner?.phone?.number || ''),
                 ])
             },
         },
@@ -71,8 +79,13 @@ function useColumns() {
         {
             accessorKey: 'tenant_id',
             header: 'Action',
+            meta: {
+                class: {
+                    td: 'w-[1%]',
+                },
+            },
             cell: ({ row }) => {
-                return h('div', { class: 'flex gap-2' }, [
+                return h('div', { class: 'inline-flex gap-2' }, [
                     h(UTooltip, { text: 'Edit', delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'neutral',

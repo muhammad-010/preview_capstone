@@ -81,6 +81,14 @@ function useColumns() {
         {
             accessorKey: 'name',
             header: 'Name',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', { class: 'truncate font-semibold' }, row.original.name)
+            },
         },
         {
             accessorKey: 'is_visible',
