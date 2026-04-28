@@ -39,8 +39,10 @@ export const STATE_EVENT_DETAIL_ACTIVE_TAB = 'eventDetail:activeTab'
 // LOCALSTORAGE
 export const LOCALSTORAGE_CHECK_IN_PREVIEW = 'check-in-preview'
 
-// PAGINATION LIMIT
-export const PAGINATION_LIMIT = [5, 10, 25, 50]
+// TABLE
+export const TABLE_ACTION_COLUMN = '1%'
+export const TABLE_TRUNCATED_COLUMN = '200px'
+export const TABLE_PAGINATION_LIMIT = [5, 10, 25, 50]
 
 // FILENAME
 export const FILE_IMPORT_PARTICIPANT = 'template/bulk_participant_template.xlsx'

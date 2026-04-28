@@ -81,10 +81,18 @@ function useColumns() {
         {
             accessorKey: 'name',
             header: 'Name',
+            meta: {
+                class: {
+                    td: `max-w-[${TABLE_TRUNCATED_COLUMN}]`,
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', { class: 'truncate' }, row.original.name)
+            },
         },
         {
             accessorKey: 'start_time',
-            header: 'Date',
+            header: 'Start Date',
             cell: ({ row }) => {
                 return h('div', {}, [
                     h('span', {}, row.original.start_time ? formatLongDate(row.original.start_time) : ''),
@@ -93,7 +101,7 @@ function useColumns() {
         },
         {
             accessorKey: 'end_time',
-            header: 'Date',
+            header: 'End Date',
             cell: ({ row }) => {
                 return h('div', {}, [
                     h('span', {}, row.original.end_time ? formatLongDate(row.original.end_time) : ''),
@@ -103,13 +111,21 @@ function useColumns() {
         {
             accessorKey: 'location',
             header: 'Venue',
+            meta: {
+                class: {
+                    td: `max-w-[${TABLE_TRUNCATED_COLUMN}]`,
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', { class: 'truncate' }, row.original.location)
+            },
         },
         {
             accessorKey: 'event_session_id',
             header: 'Action',
             meta: {
                 class: {
-                    td: 'w-[1%]',
+                    td: `w-[${TABLE_ACTION_COLUMN}]`,
                 },
             },
             cell: ({ row }) => {

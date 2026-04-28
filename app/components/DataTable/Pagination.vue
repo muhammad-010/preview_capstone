@@ -17,7 +17,7 @@ const end = computed(() => Math.min(page.value * limit.value, props.total))
         <div class="flex items-center">
             <USelect
                 v-model="limit"
-                :items="PAGINATION_LIMIT"
+                :items="TABLE_PAGINATION_LIMIT"
             />
             <UPagination
                 :page="page"
