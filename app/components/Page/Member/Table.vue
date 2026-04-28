@@ -24,7 +24,7 @@ function useColumns(uId: number) {
             header: 'Member',
             meta: {
                 class: {
-                    td: `max-w-[${TABLE_TRUNCATED_COLUMN}]`,
+                    td: 'max-w-50',
                 },
             },
             cell: ({ row }) => {
@@ -36,7 +36,7 @@ function useColumns(uId: number) {
             header: 'Contact',
             meta: {
                 class: {
-                    td: `max-w-[${TABLE_TRUNCATED_COLUMN}]`,
+                    td: 'max-w-50',
                 },
             },
             cell: ({ row }) => {
@@ -62,7 +62,7 @@ function useColumns(uId: number) {
             header: 'Action',
             meta: {
                 class: {
-                    td: `w-[${TABLE_ACTION_COLUMN}]`,
+                    td: 'w-[1%]',
                 },
             },
             cell: ({ row }) => {

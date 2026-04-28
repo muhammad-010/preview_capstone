@@ -38,7 +38,7 @@ function useColumns() {
             header: 'Event Name',
             meta: {
                 class: {
-                    td: `max-w-[${TABLE_TRUNCATED_COLUMN}]`,
+                    td: 'max-w-50',
                 },
             },
             cell: ({ row }) => {
@@ -62,7 +62,7 @@ function useColumns() {
             header: 'Venue',
             meta: {
                 class: {
-                    td: `max-w-[${TABLE_TRUNCATED_COLUMN}]`,
+                    td: 'max-w-50',
                 },
             },
             cell: ({ row }) => {
@@ -98,7 +98,7 @@ function useColumns() {
             header: 'Action',
             meta: {
                 class: {
-                    td: `w-[${TABLE_ACTION_COLUMN}]`,
+                    td: 'w-[1%]',
                 },
             },
             cell: ({ row }) => {

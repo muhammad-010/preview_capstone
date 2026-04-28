@@ -83,7 +83,7 @@ function useColumns() {
             header: 'Name',
             meta: {
                 class: {
-                    td: `max-w-[${TABLE_TRUNCATED_COLUMN}]`,
+                    td: 'max-w-50',
                 },
             },
             cell: ({ row }) => {
