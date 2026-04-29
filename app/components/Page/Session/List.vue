@@ -57,6 +57,8 @@ function openAddForm() {
 }
 
 function openEditForm(fields: TenantEventSessionForm, id: number) {
+    fields.start_time = formatISOWithoutOffset(fields.start_time)
+    fields.end_time = formatISOWithoutOffset(fields.end_time)
     targetId.value = id
     target.value = fields
     formDialog.value = true
