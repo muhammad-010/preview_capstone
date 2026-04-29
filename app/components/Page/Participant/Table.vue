@@ -209,8 +209,11 @@ async function deleteData(id: number) {
         })
         if (data.success) {
             successToast({ description: 'A participant has been deleted' })
+            closeDeleteConfirmation()
         }
-        closeDeleteConfirmation()
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to delete participant' })

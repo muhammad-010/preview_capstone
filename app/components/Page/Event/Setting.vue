@@ -40,9 +40,12 @@ async function changeSetting(key: string, value: boolean) {
         })
         if (data.success) {
             successToast({ description: 'Event setting has been updated' })
+            refresh()
+            emit(EMIT_DETAIL_REFRESH)
         }
-        refresh()
-        emit(EMIT_DETAIL_REFRESH)
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to update event setting' })

@@ -51,6 +51,9 @@ async function uploadTemplate() {
             closeImportDialog()
             emit(EMIT_DETAIL_REFRESH)
         }
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to upload participants' })

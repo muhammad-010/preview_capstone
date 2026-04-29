@@ -112,16 +112,21 @@ function validateGuestConfirmation(state: Partial<GuestConfirmationSchema>): For
 
 async function submitGuestConfirmation(event: FormSubmitEvent<GuestConfirmationSchema>) {
     try {
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/check-in/confirm/manual`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/check-in/confirm/manual`, {
             method: 'POST',
             body: {
                 participant_id: target.value.id,
                 count_attendance: Number(event.data.count),
             },
         })
-        successToast({ description: 'Manual submit participant guest success' })
-        closeGuestConfirmationDialog()
-        emit(EMIT_TABLE_REFRESH)
+        if (data.success) {
+            successToast({ description: 'Manual submit participant guest success' })
+            closeGuestConfirmationDialog()
+            emit(EMIT_TABLE_REFRESH)
+        }
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to manually submit participant guest' })

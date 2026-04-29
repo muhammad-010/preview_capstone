@@ -42,6 +42,9 @@ async function addData(payload: FormSubmitEvent<Schema>) {
             successToast({ description: 'New custom attribute has been created' })
             success.value = true
         }
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to create new custom attribute' })
@@ -57,6 +60,9 @@ async function editData(payload: FormSubmitEvent<Schema>, attributeId: number) {
         if (data.success) {
             successToast({ description: 'A custom attribute has been updated' })
             success.value = true
+        }
+        else {
+            successToast({ description: data.message })
         }
     }
     catch (error) {

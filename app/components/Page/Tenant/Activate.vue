@@ -24,6 +24,9 @@ async function activateData() {
             activateConfirmation.value = false
             successToast({ description: 'A tenant has been activated' })
         }
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to activate new tenant' })

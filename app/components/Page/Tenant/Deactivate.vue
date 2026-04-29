@@ -24,6 +24,9 @@ async function deactivateData() {
             deactivateConfirmation.value = false
             successToast({ description: 'A tenant has been deactivated' })
         }
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to deactivate new tenant' })

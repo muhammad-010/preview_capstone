@@ -80,6 +80,9 @@ async function addData(payload: FormSubmitEvent<Schema>) {
             successToast({ description: 'A member has been created' })
             success.value = true
         }
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to create new member' })
@@ -95,6 +98,9 @@ async function editData(payload: FormSubmitEvent<Schema>, userId: number) {
         if (data.success) {
             successToast({ description: 'A member has been updated' })
             success.value = true
+        }
+        else {
+            successToast({ description: data.message })
         }
     }
     catch (error) {

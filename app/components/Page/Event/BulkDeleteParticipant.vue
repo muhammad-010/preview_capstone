@@ -24,6 +24,9 @@ async function bulkDelete() {
         if (data.success) {
             successToast({ description: 'Bulk delete success' })
         }
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to bulk delete' })

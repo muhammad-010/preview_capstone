@@ -25,6 +25,9 @@ async function deleteData() {
             emit(EMIT_DETAIL_REFRESH)
             if (props.reroute) router.go(-1)
         }
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to delete event' })

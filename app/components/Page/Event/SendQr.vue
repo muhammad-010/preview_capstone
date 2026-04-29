@@ -28,6 +28,9 @@ async function sendQr() {
         if (data.success) {
             successToast({ description: 'QR successfully sent' })
         }
+        else {
+            successToast({ description: data.message })
+        }
     }
     catch (error) {
         errorToast({ error, description: 'Failed to send QR' })
