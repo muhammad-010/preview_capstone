@@ -133,7 +133,7 @@ function useColumns() {
                             icon: 'lucide:pencil',
                             onClick: () => emit(
                                 EMIT_TABLE_OPEN_EDIT,
-                                row.original as TenantEventSessionForm,
+                                tenantEventSessionToTenantEventSessionForm(row.original),
                                 row.original.event_session_id),
                         }),
                     ]),

@@ -110,7 +110,7 @@ function useColumns() {
                             icon: 'lucide:pencil',
                             onClick: () => emit(
                                 EMIT_TABLE_OPEN_EDIT,
-                                row.original as CustomAttributeForm,
+                                customAttributeToCustomAttributeForm(row.original),
                                 row.original.custom_attribute_id),
                         }),
                     ]),
