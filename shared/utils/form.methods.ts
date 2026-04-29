@@ -9,6 +9,8 @@ import type {
     UserForm,
     TenantEventSession,
     TenantEventSessionForm,
+    CustomAttribute,
+    CustomAttributeForm,
 } from '../types/data'
 
 export function tenantFormToTenant(data: TenantForm): Tenant {
@@ -129,4 +131,18 @@ export function userToUserForm(data: User): UserForm {
         status: data.status,
         tenant_role_id: data.tenant_role_id,
     } as UserForm
+}
+
+export function customAttributeToCustomAttributeForm(data: CustomAttribute): CustomAttributeForm {
+    return {
+        name: data.name,
+        is_visible: data.is_visible,
+    } as CustomAttributeForm
+}
+
+export function customAttributeFormToCustomAttribute(data: CustomAttributeForm): CustomAttribute {
+    return {
+        name: data.name,
+        is_visible: data.is_visible,
+    } as CustomAttribute
 }
