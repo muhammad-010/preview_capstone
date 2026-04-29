@@ -29,7 +29,7 @@ async function sendQr() {
             successToast({ description: 'QR successfully sent' })
         }
         else {
-            successToast({ description: data.message })
+            errorToast({ description: data.message })
         }
     }
     catch (error) {

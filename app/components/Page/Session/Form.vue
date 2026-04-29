@@ -51,7 +51,7 @@ async function addData(payload: FormSubmitEvent<Schema>) {
             success.value = true
         }
         else {
-            successToast({ description: data.message })
+            errorToast({ description: data.message })
         }
     }
     catch (error) {
@@ -70,7 +70,7 @@ async function editData(payload: FormSubmitEvent<Schema>, sessionId: number) {
             success.value = true
         }
         else {
-            successToast({ description: data.message })
+            errorToast({ description: data.message })
         }
     }
     catch (error) {

@@ -59,7 +59,7 @@ async function deleteData(id: number) {
             closeDeleteConfirmation()
         }
         else {
-            successToast({ description: data.message })
+            errorToast({ description: data.message })
         }
     }
     catch (error) {

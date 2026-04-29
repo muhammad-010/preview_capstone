@@ -25,7 +25,7 @@ async function activateData() {
             successToast({ description: 'A tenant has been activated' })
         }
         else {
-            successToast({ description: data.message })
+            errorToast({ description: data.message })
         }
     }
     catch (error) {

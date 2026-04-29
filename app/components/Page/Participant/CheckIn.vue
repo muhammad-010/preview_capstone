@@ -125,7 +125,7 @@ async function submitGuestConfirmation(event: FormSubmitEvent<GuestConfirmationS
             emit(EMIT_TABLE_REFRESH)
         }
         else {
-            successToast({ description: data.message })
+            errorToast({ description: data.message })
         }
     }
     catch (error) {

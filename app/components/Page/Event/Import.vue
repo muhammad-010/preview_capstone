@@ -52,7 +52,7 @@ async function uploadTemplate() {
             emit(EMIT_DETAIL_REFRESH)
         }
         else {
-            successToast({ description: data.message })
+            errorToast({ description: data.message })
         }
     }
     catch (error) {

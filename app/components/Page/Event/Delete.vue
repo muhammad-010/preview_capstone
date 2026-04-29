@@ -26,7 +26,7 @@ async function deleteData() {
             if (props.reroute) router.go(-1)
         }
         else {
-            successToast({ description: data.message })
+            errorToast({ description: data.message })
         }
     }
     catch (error) {
