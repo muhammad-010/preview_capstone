@@ -45,7 +45,7 @@ const state = reactive<Partial<ParticipantForm>>(fields ?? {
     name: '',
     email: '',
     phone_number: '',
-    max_attendance: 0,
+    max_attendance: 1,
     custom_attribute: cloneObject(unref(customAttributes.value)),
 })
 
