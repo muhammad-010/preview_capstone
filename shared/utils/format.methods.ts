@@ -94,6 +94,20 @@ export function formatISOWithOffset(datestring: ISOString) {
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}${sign}${offsetHours}:${offsetMinutes}`
 }
 
+/**
+ * format date into YYYY-MM-DDTHH:mm:ssZ
+ * */
+export function formatISOWithoutOffset(datestring: ISOString) {
+    if (!datestring) return 'Invalid Date'
+
+    const date = new Date(datestring)
+    if (isNaN(date.getTime())) {
+        throw new Error('Invalid date string')
+    }
+
+    return date.toISOString().split('.')[0] + 'Z'
+}
+
 export function getISODateArray(iso: ISOString): [number, number, number] {
     const d = new Date(iso)
     return [
