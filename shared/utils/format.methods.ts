@@ -105,7 +105,7 @@ export function formatISOWithoutOffset(datestring: ISOString) {
         throw new Error('Invalid date string')
     }
 
-    return date.toISOString().replace('.000', '')
+    return date.toISOString().split('.')[0] + 'Z'
 }
 
 export function getISODateArray(iso: ISOString): [number, number, number] {
