@@ -3,7 +3,8 @@ import type { Form, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const props = defineProps<{
     tenantId: number
     eventId: number
@@ -59,21 +60,15 @@ async function addData(payload: FormSubmitEvent<Schema>) {
             },
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'A participant has been created',
-                color: 'success',
-            })
+            successToast({ description: 'A participant has been created' })
             success.value = true
+        }
+        else {
+            errorToast({ description: data.message })
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to create new participant',
-            color: 'error',
-        })
-        console.error('Add participant error', error)
+        errorToast({ error, description: 'Failed to create new participant' })
     }
 }
 
@@ -87,21 +82,15 @@ async function editData(payload: FormSubmitEvent<Schema>, participantId: number)
             },
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'A participant has been updated',
-                color: 'success',
-            })
+            successToast({ description: 'A participant has been updated' })
             success.value = true
+        }
+        else {
+            errorToast({ description: data.message })
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to update new participant',
-            color: 'error',
-        })
-        console.error('Edit participant error', error)
+        errorToast({ error, description: 'Failed to update new participant' })
     }
 }
 

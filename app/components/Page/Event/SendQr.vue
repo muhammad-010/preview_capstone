@@ -9,7 +9,8 @@ const emit = defineEmits([EMIT_DETAIL_REFRESH])
 const sendConfirmation = defineModel<boolean>('open', { default: false })
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const sendLoading = ref(false)
 const sendChannels = ref(SEND_CHANNEL_DROPDOWN)
 const selectedSendChannel = ref<SendChannel[]>([])
@@ -18,20 +19,21 @@ async function sendQr() {
     const ids = props.selectedIds.length > 0 ? props.selectedIds : []
     try {
         sendLoading.value = true
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/invitation/send`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/invitation/send`, {
             method: 'POST',
             body: ids.length
                 ? { channel: selectedSendChannel.value, participant_ids: ids }
                 : { channel: selectedSendChannel.value },
         })
+        if (data.success) {
+            successToast({ description: 'QR successfully sent' })
+        }
+        else {
+            errorToast({ description: data.message })
+        }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to send QR',
-            color: 'error',
-        })
-        console.error('Send QR error', error)
+        errorToast({ error, description: 'Failed to send QR' })
     }
     finally {
         sendConfirmation.value = false

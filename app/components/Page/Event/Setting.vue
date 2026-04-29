@@ -6,7 +6,8 @@ const props = defineProps<{
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 
 const { data, refresh } = useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/setting`, {
     transform: res => res.data,
@@ -38,22 +39,16 @@ async function changeSetting(key: string, value: boolean) {
             },
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'Event setting has been updated',
-                color: 'success',
-            })
+            successToast({ description: 'Event setting has been updated' })
+            refresh()
+            emit(EMIT_DETAIL_REFRESH)
         }
-        refresh()
-        emit(EMIT_DETAIL_REFRESH)
+        else {
+            errorToast({ description: data.message })
+        }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to update event setting',
-            color: 'error',
-        })
-        console.error('Update event setting error', error)
+        errorToast({ error, description: 'Failed to update event setting' })
     }
     loading.value = false
 }

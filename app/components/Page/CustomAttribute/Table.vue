@@ -23,7 +23,8 @@ function triggerRefresh(skipResetPage?: boolean) {
 }
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 
 // DELETION
 const deleteConfirmation = ref(false)
@@ -54,21 +55,15 @@ async function deleteData(id: number) {
             method: 'DELETE',
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'A custom attribute has been deleted',
-                color: 'success',
-            })
+            successToast({ description: 'A custom attribute has been deleted' })
+            closeDeleteConfirmation()
         }
-        closeDeleteConfirmation()
+        else {
+            errorToast({ description: data.message })
+        }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to delete custom attribute',
-            color: 'error',
-        })
-        console.error('Delete custom attribute error', error)
+        errorToast({ error, description: 'Failed to delete custom attribute' })
         closeDeleteConfirmation(true)
     }
 }

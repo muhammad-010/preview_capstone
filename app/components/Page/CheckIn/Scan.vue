@@ -27,7 +27,7 @@ const mirrorCamera = ref(true)
 
 const pauseQr = defineModel<boolean>('pause-qr', { default: false })
 const emit = defineEmits([EMIT_QR_DETECT])
-const toast = useToast()
+const { errorToast } = useErrorToast()
 
 function onDetect(detectedBarCodes: DetectedBarcode[]) {
     if (props.isPreview) return
@@ -39,26 +39,21 @@ function onDetect(detectedBarCodes: DetectedBarcode[]) {
 function onError(error: Error) {
     if (props.isPreview) return
 
-    let desc = 'Failed to read QR'
+    let description = 'Failed to read QR'
     switch (error.name) {
         case 'NotAllowedError':
-            desc = 'Can not access camera'
+            description = 'Can not access camera'
             break
         case 'NotFoundError':
-            desc = 'No camera found'
+            description = 'No camera found'
             break
         case 'StreamApiNotSupportedError':
-            desc = 'Can not scan using this browser'
+            description = 'Can not scan using this browser'
             break
         default:
             break
     }
-    toast.add({
-        title: 'Error',
-        description: desc,
-        color: 'error',
-    })
-    console.error(desc, error)
+    errorToast({ description })
 }
 </script>
 

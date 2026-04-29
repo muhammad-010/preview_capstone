@@ -3,7 +3,8 @@ import type { Form, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const props = defineProps<{
     tenantId: number
     eventId: number
@@ -38,21 +39,15 @@ async function addData(payload: FormSubmitEvent<Schema>) {
             body: payload.data,
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'New custom attribute has been created',
-                color: 'success',
-            })
+            successToast({ description: 'New custom attribute has been created' })
             success.value = true
+        }
+        else {
+            errorToast({ description: data.message })
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to create new custom attribute',
-            color: 'error',
-        })
-        console.error('Add custom attribute error', error)
+        errorToast({ error, description: 'Failed to create new custom attribute' })
     }
 }
 
@@ -63,21 +58,15 @@ async function editData(payload: FormSubmitEvent<Schema>, attributeId: number) {
             body: payload.data,
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'A custom attribute has been updated',
-                color: 'success',
-            })
+            successToast({ description: 'A custom attribute has been updated' })
             success.value = true
+        }
+        else {
+            errorToast({ description: data.message })
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to update custom attribute',
-            color: 'error',
-        })
-        console.error('Edit custom attribute error', error)
+        errorToast({ error, description: 'Failed to update custom attribute' })
     }
 }
 

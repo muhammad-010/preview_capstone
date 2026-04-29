@@ -3,7 +3,8 @@ import type { Form, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const props = defineProps<{
     tenantId?: number
     fields?: TenantForm
@@ -85,21 +86,15 @@ async function addData(payload: FormSubmitEvent<Schema>) {
             body: payload.data,
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'A tenant has been created',
-                color: 'success',
-            })
+            successToast({ description: 'A tenant has been created' })
             success.value = true
+        }
+        else {
+            errorToast({ description: data.message })
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to create new tenant',
-            color: 'error',
-        })
-        console.error('Add tenant error', error)
+        errorToast({ error, description: 'Failed to create new tenant' })
     }
 }
 
@@ -110,21 +105,15 @@ async function editData(payload: FormSubmitEvent<Schema>, id: number) {
             body: payload.data,
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'A tenant has been updated',
-                color: 'success',
-            })
+            successToast({ description: 'A tenant has been updated' })
             success.value = true
+        }
+        else {
+            errorToast({ description: data.message })
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to update new tenant',
-            color: 'error',
-        })
-        console.error('Edit tenant error', error)
+        errorToast({ error, description: 'Failed to update new tenant' })
     }
 }
 

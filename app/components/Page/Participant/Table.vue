@@ -20,7 +20,8 @@ const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attr
 // const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
 const filterSessionStatus = defineModel<ParticipantSessionStatus | null>('filter-session-status', { default: null })
 const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 
 function triggerRefresh(skipResetPage?: boolean) {
     if (!skipResetPage) {
@@ -207,21 +208,15 @@ async function deleteData(id: number) {
             method: 'DELETE',
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'A participant has been deleted',
-                color: 'success',
-            })
+            successToast({ description: 'A participant has been deleted' })
+            closeDeleteConfirmation()
         }
-        closeDeleteConfirmation()
+        else {
+            errorToast({ description: data.message })
+        }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to delete participant',
-            color: 'error',
-        })
-        console.error('Delete participant error', error)
+        errorToast({ error, description: 'Failed to delete participant' })
         closeDeleteConfirmation(true)
     }
 }

@@ -7,7 +7,7 @@ const props = defineProps<{
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { errorToast } = useErrorToast()
 const search = ref('')
 const query = ref('')
 const page = ref(1)
@@ -70,12 +70,7 @@ async function exportData() {
         if (data.filepath) {
             const filename = data.filepath.split('/').pop()
             if (!filename) {
-                toast.add({
-                    title: 'Error',
-                    description: 'Cannot read filename',
-                    color: 'error',
-                })
-                console.error('Export participant error: can\'t read filename')
+                errorToast({ description: 'Cannot read filename from filepath' })
                 return
             }
             await useDownload(
@@ -84,22 +79,12 @@ async function exportData() {
             )
         }
         else {
-            toast.add({
-                title: 'Error',
-                description: 'Cannot read filepath',
-                color: 'error',
-            })
-            console.error('Export participant error: can\'t read filepath')
+            errorToast({ description: 'Cannot read filepath' })
             return
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to export participant',
-            color: 'error',
-        })
-        console.error('Export participant error', error)
+        errorToast({ error, description: 'Failed to export participant' })
     }
 }
 

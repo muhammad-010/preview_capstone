@@ -17,7 +17,8 @@ const sessionDialog = defineModel<boolean>('open', { default: false })
 const emit = defineEmits([EMIT_TABLE_REFRESH])
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const checkInDialog = ref(false)
 const guestConfirmationDialog = ref(false)
 const guestConfirmation = reactive({ count: 0 })
@@ -92,22 +93,13 @@ async function checkIn() {
             guestConfirmationDialog.value = true
         }
         else {
-            toast.add({
-                title: 'Success',
-                description: 'Manual check in success',
-                color: 'success',
-            })
+            successToast({ description: 'Manual check in success' })
             emit(EMIT_TABLE_REFRESH)
         }
         closeCheckInDialog(!data.confirmation_attendance)
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to manually check in participant',
-            color: 'error',
-        })
-        console.error('Manual check in participant error', error)
+        errorToast({ error, description: 'Failed to manually check in participant' })
     }
 }
 
@@ -120,28 +112,24 @@ function validateGuestConfirmation(state: Partial<GuestConfirmationSchema>): For
 
 async function submitGuestConfirmation(event: FormSubmitEvent<GuestConfirmationSchema>) {
     try {
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/check-in/confirm/manual`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/check-in/confirm/manual`, {
             method: 'POST',
             body: {
                 participant_id: target.value.id,
                 count_attendance: Number(event.data.count),
             },
         })
-        toast.add({
-            title: 'Success',
-            description: 'Manual submit participant guest success',
-            color: 'success',
-        })
-        closeGuestConfirmationDialog()
-        emit(EMIT_TABLE_REFRESH)
+        if (data.success) {
+            successToast({ description: 'Manual submit participant guest success' })
+            closeGuestConfirmationDialog()
+            emit(EMIT_TABLE_REFRESH)
+        }
+        else {
+            errorToast({ description: data.message })
+        }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to manually submit participant guest',
-            color: 'error',
-        })
-        console.error('Manual submit participant guest error', error)
+        errorToast({ error, description: 'Failed to manually submit participant guest' })
     }
 }
 </script>
