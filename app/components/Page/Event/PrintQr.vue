@@ -9,7 +9,7 @@ const emit = defineEmits([EMIT_DETAIL_REFRESH])
 const printConfirmation = defineModel<boolean>('open', { default: false })
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { errorToast } = useErrorToast()
 const printLoading = ref(false)
 
 async function printQr() {
@@ -23,12 +23,7 @@ async function printQr() {
         if (data.filepath) {
             const filename = data.filepath.split('/').pop()
             if (!filename) {
-                toast.add({
-                    title: 'Error',
-                    description: 'Cannot read filename',
-                    color: 'error',
-                })
-                console.error('Print QR error: can\'t read filename')
+                errorToast({ description: 'Cannot read filename from filepath' })
                 return
             }
             await useDownload(
@@ -37,22 +32,12 @@ async function printQr() {
             )
         }
         else {
-            toast.add({
-                title: 'Error',
-                description: 'Cannot read filepath',
-                color: 'error',
-            })
-            console.error('Print QR error: can\'t read filepath')
+            errorToast({ description: 'Cannot read filepath' })
             return
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to print QR',
-            color: 'error',
-        })
-        console.error('Print QR error', error)
+        errorToast({ error, description: 'Failed to print QR' })
     }
     finally {
         printConfirmation.value = false

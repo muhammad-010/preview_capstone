@@ -8,7 +8,8 @@ const emit = defineEmits([EMIT_DETAIL_REFRESH])
 const importDialog = defineModel<boolean>('open', { default: false })
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const downloadLoading = ref(false)
 const uploadLoading = ref(false)
 const uploadFile = ref<File | null>(null)
@@ -27,12 +28,7 @@ async function downloadTemplate() {
         )
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to download template',
-            color: 'error',
-        })
-        console.error('Download template error', error)
+        errorToast({ error, description: 'Failed to download template' })
     }
     finally {
         downloadLoading.value = false
@@ -46,20 +42,18 @@ async function uploadTemplate() {
     body.append('file', uploadFile.value)
     try {
         uploadLoading.value = true
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/bulk`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/bulk`, {
             method: 'POST',
             body,
         })
-        closeImportDialog()
-        emit(EMIT_DETAIL_REFRESH)
+        if (data.success) {
+            successToast({ description: 'Participants successfully uploaded' })
+            closeImportDialog()
+            emit(EMIT_DETAIL_REFRESH)
+        }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to upload participants',
-            color: 'error',
-        })
-        console.error('Upload participants error', error)
+        errorToast({ error, description: 'Failed to upload participants' })
     }
     finally {
         uploadLoading.value = false

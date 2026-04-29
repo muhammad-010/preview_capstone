@@ -8,7 +8,8 @@ const emit = defineEmits([EMIT_DETAIL_REFRESH])
 
 const { $api } = useNuxtApp()
 const router = useRouter()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const deleteConfirmation = ref(false)
 const deleteLoading = ref(false)
 
@@ -20,22 +21,13 @@ async function deleteData() {
             method: 'DELETE',
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'An event has been deleted',
-                color: 'success',
-            })
+            successToast({ description: 'An event has been deleted' })
             emit(EMIT_DETAIL_REFRESH)
             if (props.reroute) router.go(-1)
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to delete event',
-            color: 'error',
-        })
-        console.error('Delete event error', error)
+        errorToast({ error, description: 'Failed to delete event' })
     }
     finally {
         deleteLoading.value = false

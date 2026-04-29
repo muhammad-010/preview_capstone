@@ -1,5 +1,15 @@
 import type { BreadcrumbItem, NavigationMenuItem } from '@nuxt/ui'
 
+export interface SuccessToastOpt {
+    title?: string
+    description?: string
+    skipToast?: boolean
+}
+
+export interface ErrorToastOpt extends SuccessToastOpt {
+    error?: unknown
+}
+
 export interface AppRoute {
     title: string
     description?: string
@@ -100,6 +110,7 @@ export interface BlockSetting {
 }
 
 export interface Block {
+    elementId?: number
     uid: string
     id: string
     value: string

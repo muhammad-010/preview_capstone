@@ -5,7 +5,8 @@ const props = defineProps<{
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const deactivateConfirmation = ref(false)
 const deactivateLoading = ref(false)
 
@@ -21,20 +22,11 @@ async function deactivateData() {
         })
         if (data.success) {
             deactivateConfirmation.value = false
-            toast.add({
-                title: 'Success',
-                description: 'A tenant has been deactivated',
-                color: 'success',
-            })
+            successToast({ description: 'A tenant has been deactivated' })
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to deactivate new tenant',
-            color: 'error',
-        })
-        console.error('Deactivate tenant error', error)
+        errorToast({ error, description: 'Failed to deactivate new tenant' })
     }
     finally {
         deactivateLoading.value = false

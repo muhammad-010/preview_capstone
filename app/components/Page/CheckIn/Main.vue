@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
 import type { DetectedBarcode } from 'nuxt-qrcode'
-import { FetchError } from 'ofetch'
 
 const props = defineProps<{
     tenantId: number
@@ -26,7 +25,7 @@ const errorMessage = defineModel<string>('error-message', { default: '' })
 const emit = defineEmits([EMIT_CHECK_IN_SUCCESS, EMIT_CHECK_IN_FAILED])
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { errorToast } = useErrorToast()
 const isClient = import.meta.client
 
 // CHECK IN METHOD
@@ -175,20 +174,12 @@ async function qrDetected(qrCodes: DetectedBarcode[]) {
     if (props.isPreview || !props.sessionId) return
 
     if (qrCodes.length <= 0) {
-        toast.add({
-            title: 'Error',
-            description: 'No QR read',
-            color: 'error',
-        })
+        errorToast({ description: 'No QR read' })
         return
     }
     const qrCode = qrCodes[0]
     if (!qrCode || !qrCode.rawValue) {
-        toast.add({
-            title: 'Error',
-            description: 'Invalid QR code',
-            color: 'error',
-        })
+        errorToast({ description: 'Invalid QR code' })
         return
     }
     participantQr.value = qrCode.rawValue
@@ -215,19 +206,12 @@ async function qrDetected(qrCodes: DetectedBarcode[]) {
         }
     }
     catch (error) {
-        if (error instanceof FetchError && error.response) {
-            openCheckInFailed(error.response._data.data.message)
-        }
-        else {
-            toast.add({
-                title: 'Error',
-                description: 'Failed submitting QR',
-                color: 'error',
-            })
-            console.error('Failed submitting QR', error)
-            playErrorSound()
-            resetRef()
-        }
+        const description = errorToast({
+            error,
+            description: 'Failed submitting QR',
+            skipToast: true,
+        })
+        openCheckInFailed(description)
     }
     finally {
         setTimeout(() => {
@@ -275,17 +259,12 @@ async function manualCheckIn() {
         }
     }
     catch (error) {
-        if (error instanceof FetchError && error.response) {
-            openCheckInFailed(error.response._data.data.message)
-        }
-        else {
-            toast.add({
-                title: 'Error',
-                description: 'Failed to manually check in participant',
-                color: 'error',
-            })
-            console.error('Manual check in participant error', error)
-        }
+        const description = errorToast({
+            error,
+            description: 'Failed to manually check in participant',
+            skipToast: true,
+        })
+        openCheckInFailed(description)
     }
 }
 
@@ -316,17 +295,12 @@ async function confirmAttendanceQr(event: FormSubmitEvent<ConfirmAttendanceSchem
         openCheckInSuccess()
     }
     catch (error) {
-        if (error instanceof FetchError && error.response) {
-            openCheckInFailed(error.response._data.data.message)
-        }
-        else {
-            toast.add({
-                title: 'Error',
-                description: 'Failed confirming check-in',
-                color: 'error',
-            })
-            console.error('Failed confirming check-in', error)
-        }
+        const description = errorToast({
+            error,
+            description: 'Failed to confirming check-in',
+            skipToast: true,
+        })
+        openCheckInFailed(description)
     }
 }
 
@@ -344,17 +318,12 @@ async function confirmAttendanceManual(event: FormSubmitEvent<ConfirmAttendanceS
         openCheckInSuccess()
     }
     catch (error) {
-        if (error instanceof FetchError && error.response) {
-            openCheckInFailed(error.response._data.data.message)
-        }
-        else {
-            toast.add({
-                title: 'Error',
-                description: 'Failed confirming check-in',
-                color: 'error',
-            })
-            console.error('Failed confirming check-in', error)
-        }
+        const description = errorToast({
+            error,
+            description: 'Failed to manually confirming check-in',
+            skipToast: true,
+        })
+        openCheckInFailed(description)
     }
 }
 

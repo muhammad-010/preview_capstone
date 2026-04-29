@@ -23,7 +23,8 @@ function triggerRefresh(skipResetPage?: boolean) {
 }
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 
 // DELETION
 const deleteConfirmation = ref(false)
@@ -54,21 +55,12 @@ async function deleteData(id: number) {
             method: 'DELETE',
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'A session has been deleted',
-                color: 'success',
-            })
+            successToast({ description: 'A session has been deleted' })
         }
         closeDeleteConfirmation()
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to delete session',
-            color: 'error',
-        })
-        console.error('Delete session error', error)
+        errorToast({ error, description: 'Failed to delete session' })
         closeDeleteConfirmation(true)
     }
 }

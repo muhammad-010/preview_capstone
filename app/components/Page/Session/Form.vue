@@ -3,7 +3,8 @@ import type { Form, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const props = defineProps<{
     tenantId: number
     eventId: number
@@ -46,21 +47,12 @@ async function addData(payload: FormSubmitEvent<Schema>) {
             body: payload.data,
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'New session has been created',
-                color: 'success',
-            })
+            successToast({ description: 'New session has been created' })
             success.value = true
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to create new session',
-            color: 'error',
-        })
-        console.error('Add session error', error)
+        errorToast({ error, description: 'Failed to create new session' })
     }
 }
 
@@ -71,21 +63,12 @@ async function editData(payload: FormSubmitEvent<Schema>, sessionId: number) {
             body: payload.data,
         })
         if (data.success) {
-            toast.add({
-                title: 'Success',
-                description: 'A session has been updated',
-                color: 'success',
-            })
+            successToast({ description: 'A session has been updated' })
             success.value = true
         }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to update session',
-            color: 'error',
-        })
-        console.error('Edit session error', error)
+        errorToast({ error, description: 'Failed to update session' })
     }
 }
 

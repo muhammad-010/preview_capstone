@@ -9,25 +9,24 @@ const emit = defineEmits([EMIT_DETAIL_REFRESH])
 const bulkDeleteConfirmation = defineModel<boolean>('open', { default: false })
 
 const { $api } = useNuxtApp()
-const toast = useToast()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
 const bulkDeleteLoading = ref(false)
 
 async function bulkDelete() {
     const ids = props.selectedIds.length > 0 ? props.selectedIds : []
     try {
         bulkDeleteLoading.value = true
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/bulk`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/bulk`, {
             method: 'DELETE',
             body: ids.length ? { participant_ids: ids } : {},
         })
+        if (data.success) {
+            successToast({ description: 'Bulk delete success' })
+        }
     }
     catch (error) {
-        toast.add({
-            title: 'Error',
-            description: 'Failed to bulk delete',
-            color: 'error',
-        })
-        console.error('Bulk delete error', error)
+        errorToast({ error, description: 'Failed to bulk delete' })
     }
     finally {
         bulkDeleteConfirmation.value = false
