@@ -42,7 +42,6 @@ export const APP_ROUTES: AppRoute[] = [
         label: 'Dashboard',
         icon: 'lucide:layout-dashboard',
         to: '/dashboard-event',
-        isDefault: true,
         render: true,
     },
     {
@@ -99,6 +98,7 @@ export const APP_ROUTES: AppRoute[] = [
         label: 'Events',
         icon: 'lucide:calendar',
         to: '/events',
+        isDefault: true,
         render: true,
         child: [
             {
