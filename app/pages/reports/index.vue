@@ -2,6 +2,7 @@
 useHead({
     title: 'Reports',
 })
+setLayoutPropState(buildLayoutProp([], '', {}))
 </script>
 
 <template>
