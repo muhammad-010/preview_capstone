@@ -23,7 +23,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
 <template>
     <div class="my-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        <!-- <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
             <CardTotal
                 title="Total Events"
                 :total="80"
@@ -48,9 +48,10 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 percentage
                 icon="lucide:users"
             />
-        </div>
+        </div> -->
 
-        <div class="grid grid-cols-3 gap-4">
+        <!-- <div class="grid grid-cols-3 gap-4"> -->
+        <div class="grid gap-4">
             <UCard class="col-span-3 xl:col-span-2">
                 <template #header>
                     <div class="card-toolbar">
@@ -76,13 +77,13 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 />
             </UCard>
 
-            <UCard class="col-span-3 xl:col-span-1">
+            <!-- <UCard class="col-span-3 xl:col-span-1">
                 <template #header>
                     <div class="flex justify-between items-center">
                         <h3>Live Activity</h3>
                     </div>
                 </template>
-            </UCard>
+            </UCard> -->
         </div>
     </div>
 </template>
