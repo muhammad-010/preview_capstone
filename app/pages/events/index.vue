@@ -24,7 +24,7 @@ function searchData() {
 function clearSearch() {
     page.value = 1
     search.value = ''
-    query.value = search.value
+    query.value = ''
     refresh()
 }
 
