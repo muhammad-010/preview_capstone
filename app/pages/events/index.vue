@@ -2,58 +2,37 @@
 const route = useRoute()
 const { tenantId } = useUserState()
 
-async function useList(tId: number) {
-    const search = ref('')
-    const query = ref('')
-    const page = ref(1)
-    const limit = ref(5)
+const search = ref('')
+const query = ref('')
+const page = ref(1)
+const limit = ref(5)
 
-    const { data, pending, refresh } = await useApi(`/api/tenant/${tId}/event`, {
-        transform: res => res.data,
-        query: { query, page, limit },
-        watch: [page, limit],
-    })
-    const list = computed<TenantEvent[]>(() => data.value?.event ?? [])
-    const total = computed(() => data.value?.total_data ?? 0)
+const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId.value}/event`, {
+    transform: res => res.data,
+    query: { query, page, limit },
+    watch: [page, limit],
+})
+const list = computed<TenantEvent[]>(() => data.value?.event ?? [])
+const total = computed(() => data.value?.total_data ?? 0)
 
-    function searchData() {
-        page.value = 1
-        query.value = search.value
-        refresh()
-    }
-
-    function clearSearch() {
-        page.value = 1
-        search.value = ''
-        query.value = search.value
-        refresh()
-    }
-
-    return {
-        search,
-        page,
-        limit,
-        list,
-        total,
-        pending,
-        searchData,
-        clearSearch,
-    }
+function searchData() {
+    page.value = 1
+    query.value = search.value
+    refresh()
 }
 
-const {
-    search,
-    page,
-    limit,
-    list,
-    total,
-    pending,
-    searchData,
-    clearSearch,
-} = await useList(tenantId.value)
+function clearSearch() {
+    page.value = 1
+    search.value = ''
+    query.value = search.value
+    refresh()
+}
 
 useHead({
     title: 'Events',
+})
+definePageMeta({
+    middleware: ['events'],
 })
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 </script>
@@ -71,14 +50,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     />
 
                     <div class="card-toolbar-actions">
-                        <!-- <UButton
-                            color="neutral"
-                            variant="outline"
-                            icon="lucide:filter"
-                            class="cursor-pointer"
-                        >
-                            Filter
-                        </UButton> -->
                         <UButton
                             color="primary"
                             icon="lucide:plus"
