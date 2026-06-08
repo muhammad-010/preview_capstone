@@ -1,18 +1,25 @@
 <script setup lang="ts">
 const props = defineProps<{
+    editorMode: EditorMode
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
     canvasSizeOptions: CanvasSize[]
-    defaultBreakpoint: Breakpoint
+
+    defaultSelectedCanvasSizeIds: Breakpoint[]
+    defaultActiveCanvasSizeId: Breakpoint
     defaultOrientation: Orientation
+    defaultSelectedBlocks: ElementBlock[]
+    defaultActiveStaticBlocks: string[]
 
     withPreview?: boolean
     htmlPreviewFn?: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
     previewPath?: string
     previewKey?: string
+
     canvasImageBased?: boolean
-    defaultScale?: number
+
     pageTitle?: string
+    defaultScale?: number
 }>()
 
 const DRAG_X_LIMIT = 10
@@ -27,10 +34,10 @@ const toast = useToast()
 
 // CANVAS SIZE
 const selectCanvasSizePopover = ref<boolean>(false)
-const selectedCanvasSizeIds = ref<Breakpoint[]>([props.defaultBreakpoint])
+const selectedCanvasSizeIds = ref<Breakpoint[]>(props.defaultSelectedCanvasSizeIds)
 const removeCanvasSizeModal = ref<boolean>(false)
 const removeCanvasSizeTarget = ref<Breakpoint | null>(null)
-const activeCanvasSizeId = ref<Breakpoint>(props.defaultBreakpoint)
+const activeCanvasSizeId = ref<Breakpoint>(props.defaultActiveCanvasSizeId)
 const activeCanvasSize = computed(() => props.canvasSizeOptions.find(c => c.id === activeCanvasSizeId.value)!)
 const selectedCanvasSizes = computed(() => selectedCanvasSizeIds.value.reduce<typeof props.canvasSizeOptions>((acc, id) => {
     const found = props.canvasSizeOptions.find(c => c.id === id)
@@ -181,8 +188,8 @@ const canvasStyle = computed(() => ({
 }))
 
 // BLOCKS
-const blockContainer = ref<ElementBlock[]>([])
-const activeStaticBlocks = ref<string[]>([])
+const blockContainer = ref<ElementBlock[]>(props.defaultSelectedBlocks)
+const activeStaticBlocks = ref<string[]>(props.defaultActiveStaticBlocks)
 
 function findCustomBlock(id: string) {
     return props.customBlocks.find(b => b.id === id)
@@ -562,7 +569,7 @@ function saveToLocalStorage() {
 
         return {
             bgImage: bgImage.value.perBreakpoint?.[slug]?.dataUrl || '',
-            slug,
+            slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
             customBlock,
             staticBlock,
         }
@@ -981,3 +988,4 @@ function preview() {
         </div>
     </div>
 </template>
+

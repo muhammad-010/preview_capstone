@@ -455,15 +455,18 @@ export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
 export function mapTemplateVariantToBlocks(variants: TemplateVariant[]): {
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
+    breakpoints: Breakpoint[]
 } {
     const blockMap: Record<number, ElementBlock> = {}
 
     const defaultMap: Record<string, ElementBlock> = {}
     for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
     for (const b of CUSTOM_BLOCKS) defaultMap[b.id] = b
+    const breakpoints: Breakpoint[] = []
 
     for (const variant of variants) {
         const bp = variant.slug as Breakpoint
+        breakpoints.push(bp)
 
         for (const el of variant.elements) {
             const group = STATIC_BLOCK_IDS.includes(el.type) ? STATIC_BLOCK_NUMBER_IDS[el.type]! : el.group
@@ -511,5 +514,7 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[]): {
     return {
         customBlocks,
         staticBlocks,
+        breakpoints,
     }
 }
+

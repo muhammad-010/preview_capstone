@@ -43,7 +43,15 @@ const background = computed<Record<Breakpoint, string | undefined>>(() => {
 const blocks = computed<{
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
-}>(() => template.value ? mapTemplateVariantToBlocks(template.value.variants) : { customBlocks: [], staticBlocks: [] })
+}>(() => {
+    if (template.value) {
+        const { customBlocks, staticBlocks } = mapTemplateVariantToBlocks(template.value.variants)
+        return { customBlocks, staticBlocks }
+    }
+    else {
+        return { customBlocks: [], staticBlocks: [] }
+    }
+})
 
 useHead({
     title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),
@@ -103,3 +111,4 @@ definePageMeta({
         </NuxtLayout>
     </div>
 </template>
+

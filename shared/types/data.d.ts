@@ -169,6 +169,8 @@ export type TenantEventSettingKeys = 'confirmation_attendance' | 'public_ticket_
 export type TenantEventSetting = Record<TenantEventSettingKeys, Setting>
 
 // TEMPLATE
+export type TemplateType = 'invitation' | 'scanqr'
+
 export interface TemplateElement {
     element_id?: number
     group: number
@@ -271,3 +273,4 @@ export interface UserForm {
     password: string
     password_confirm: string
 }
+
