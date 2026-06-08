@@ -89,6 +89,7 @@ export interface ElementBackgroundImage extends BackgroundImage {
 }
 
 export interface CanvasSize {
+    variantId?: number
     id: Breakpoint
     width: number
     height: number
@@ -145,3 +146,4 @@ export interface SavedTemplate {
 }
 
 export type BackgroundPerBreakpoint = Record<Breakpoint, string | undefined>
+

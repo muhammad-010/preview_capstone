@@ -22,8 +22,15 @@ const {
     staticBlocks: selectedStaticBlocks,
     breakpoints: selectedBreakpoints,
 } = mapTemplateVariantToBlocks(template.value?.variants || [])
-const defaultSelectedCanvasSizeIds = computed<Breakpoint[]>(() => selectedBreakpoints.length ? selectedBreakpoints : [BREAKPOINT_MD])
-const defaultActiveCanvasSizeId = computed(() => selectedBreakpoints.length ? selectedBreakpoints[0]! : BREAKPOINT_MD)
+const mappedSelectedBreakpoints = computed(() => Object.entries(selectedBreakpoints).map(([key]) => key as Breakpoint))
+const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_CHECK_IN_PAGE.map((e) => {
+    return {
+        ...e,
+        variantId: selectedBreakpoints[e.id],
+    }
+}))
+const defaultSelectedCanvasSizeIds = computed<Breakpoint[]>(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value : [BREAKPOINT_MD])
+const defaultActiveCanvasSizeId = computed(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value[0]! : BREAKPOINT_MD)
 const defaultOrientation = computed(() => {
     const canvas = CANVAS_SIZE_PRESETS_CHECK_IN_PAGE.find(e => e.id === defaultActiveCanvasSizeId.value)
     if (canvas) {
@@ -61,7 +68,7 @@ definePageMeta({
         :editor-mode="EDITOR_MODE_CHECK_IN_PAGE"
         :custom-blocks="customBlocks"
         :static-blocks="staticBlocks"
-        :canvas-size-options="CANVAS_SIZE_PRESETS_CHECK_IN_PAGE"
+        :canvas-size-options="canvasSizeOptions"
         :default-selected-canvas-size-ids="defaultSelectedCanvasSizeIds"
         :default-active-canvas-size-id="defaultActiveCanvasSizeId"
         :default-orientation="defaultOrientation"

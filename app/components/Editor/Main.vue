@@ -533,7 +533,7 @@ watch([
     }, 500)
 }, { deep: true })
 
-// PREVIEW
+// SAVE
 function reduceElementBlockPerBreakpoint(bp: Breakpoint): (blocks: ElementBlock[], block: ElementBlock) => ElementBlock[] {
     return (blocks: ElementBlock[], block: ElementBlock): ElementBlock[] => {
         if (!block.perBreakpoint || !block.perBreakpoint[bp]) return blocks
@@ -568,6 +568,7 @@ function saveToLocalStorage() {
             .reduce<ElementBlock[]>(reducer, [])
 
         return {
+            variantId: size.variantId,
             bgImage: bgImage.value.perBreakpoint?.[slug]?.dataUrl || '',
             slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
             customBlock,
@@ -578,6 +579,7 @@ function saveToLocalStorage() {
     localStorage.setItem(props.previewKey, JSON.stringify(settings))
 }
 
+// PREVIEW
 function preview() {
     if (!import.meta.client || !props.previewPath) return
 
