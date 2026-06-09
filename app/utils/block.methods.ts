@@ -11,6 +11,10 @@ export function getBlockStyleValue(style: BlockSetting[], key: string): string |
     return style.find(s => s.key === key)?.value
 }
 
+export function blockValueIsTemplate(str: string): boolean {
+    return /^\{\{\s*.+?\s*\}\}$/.test(str)
+}
+
 export function compilePreviewStyle(block: Block) {
     if (block.id === BLOCK_TEXT_ID) {
         return `
@@ -337,13 +341,17 @@ export function templateVariantToSavedVariant(variant: TemplateVariant): SavedVa
 
         const saved: ElementBlock = {
             ...blockDef,
+            elementId: el.element_id,
+            uid: el.group,
             id: el.type,
             x: el.position_x,
             y: el.position_y,
             value: el.value,
+            withValue: !blockValueIsTemplate(el.value),
             style: filterBlockData('style', el.style, blockDef),
             setting: filterBlockData('setting', el.setting, blockDef),
         }
+        if (saved.setting.length <= 0) saved.editableData = false
 
         if (isCustom) {
             customBlock.push(saved)
@@ -356,6 +364,7 @@ export function templateVariantToSavedVariant(variant: TemplateVariant): SavedVa
     return {
         variantId: variant.variant_id,
         bgImage: variant.background_image_url || '',
+        bgImageUploadKey: '',
         slug: variant.slug,
         customBlock,
         staticBlock,
@@ -368,10 +377,14 @@ export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant
     const allBlocks = [...ss.customBlock, ...ss.staticBlock]
 
     for (const block of allBlocks) {
+        // do not accept undefined uid
+        // as it's for grouping the element
+        if (block.uid === undefined) continue
         const el: TemplateElement = {
+            element_id: block.elementId,
             value: block.value,
             type: block.id,
-            group: STATIC_BLOCK_IDS.includes(block.id) ? STATIC_BLOCK_NUMBER_IDS[block.id]! : formatNumberStringToNumber(block.uid),
+            group: block.uid,
             position_x: block.x,
             position_y: block.y,
             style: Object.fromEntries(block.style.map(s => [s.key, s.value])),
@@ -381,20 +394,23 @@ export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant
         elements.push(el)
     }
 
-    return {
+    const variant: TemplateVariant = {
         variant_id: ss.variantId,
         slug: ss.slug,
-        background_image_url: ss.bgImage || null,
         setting: {},
         elements,
     }
+    if (ss.bgImage !== '') variant.background_image_url = ss.bgImage
+    if (ss.bgImageUploadKey !== '') variant.background_url_upload_key = ss.bgImageUploadKey
+
+    return variant
 }
 
 export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
 } {
-    const blockMap: Record<string, ElementBlock> = {}
+    const blockMap: Record<number, ElementBlock> = {}
 
     const defaultMap: Record<string, ElementBlock> = {}
     for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
@@ -404,8 +420,10 @@ export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
         const bp = variant.slug as Breakpoint
 
         for (const el of [...variant.customBlock, ...variant.staticBlock]) {
-            const group = STATIC_BLOCK_IDS.includes(el.id) ? STATIC_BLOCK_NUMBER_IDS[el.id]! : el.uid
-            let block = blockMap[group]
+            // do not accept undefined uid
+            // as it's for grouping the element
+            if (el.uid === undefined) continue
+            let block = blockMap[el.uid]
 
             if (!block) {
                 const base = defaultMap[el.id]
@@ -414,18 +432,22 @@ export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
                 block = {
                     ...base,
                     value: el.value,
+                    withValue: !blockValueIsTemplate(el.value),
                     perBreakpoint: {},
                 }
+                if (block.setting.length <= 0) block.editableData = false
 
-                blockMap[group] = block
+                blockMap[el.uid] = block
             }
 
             block.perBreakpoint![bp] = {
-                uid: `${group}`,
+                elementId: el.elementId,
+                uid: el.uid,
                 id: el.id,
                 x: el.x,
                 y: el.y,
                 value: el.value,
+                withValue: !blockValueIsTemplate(el.value),
                 style: el.style,
                 setting: el.setting,
             }
@@ -452,7 +474,7 @@ export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
     }
 }
 
-export function mapTemplateVariantToBlocks(variants: TemplateVariant[]): {
+export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBreakpoints: Breakpoint[]): {
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
     breakpoints: Partial<Record<Breakpoint, number | undefined>>
@@ -469,8 +491,7 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[]): {
         breakpoints[bp] = variant.variant_id
 
         for (const el of variant.elements) {
-            const group = STATIC_BLOCK_IDS.includes(el.type) ? STATIC_BLOCK_NUMBER_IDS[el.type]! : el.group
-            let block = blockMap[group]
+            let block = blockMap[el.group]
 
             if (!block) {
                 const base = defaultMap[el.type]
@@ -478,19 +499,24 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[]): {
                 if (!base) continue
                 block = {
                     ...base,
+                    uid: el.group,
                     value: el.value,
+                    withValue: !blockValueIsTemplate(el.value),
                     perBreakpoint: {},
                 }
+                if (block.setting.length <= 0) block.editableData = false
 
-                blockMap[group] = block
+                blockMap[el.group] = block
             }
 
             block.perBreakpoint![bp] = {
-                uid: `${group}`,
+                elementId: el.element_id,
+                uid: el.group,
                 id: el.type,
                 x: el.position_x,
                 y: el.position_y,
                 value: el.value,
+                withValue: !blockValueIsTemplate(el.value),
                 style: Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : cloneObject(block.style),
                 setting: Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : cloneObject(block.setting),
             }
@@ -503,6 +529,21 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[]): {
     const customBlocks: ElementBlock[] = []
 
     for (const block of allBlocks) {
+        const blockBreakpoint = Object.keys(block.perBreakpoint || {}) as Breakpoint[]
+        // only accept block that has breakpoints
+        if (blockBreakpoint.length <= 0) {
+            continue
+        }
+
+        for (const validBp of validBreakpoints) {
+            // set block breakpoint data for unsaved breakpoint
+            // so it can render when valid breakpoints added
+            if (block.perBreakpoint![validBp] === undefined) {
+                block.perBreakpoint![validBp] = cloneObject(block.perBreakpoint![blockBreakpoint[0]!])
+                block.perBreakpoint![validBp]!.elementId = undefined
+            }
+        }
+
         if (STATIC_BLOCK_IDS.includes(block.id)) {
             staticBlocks.push(block)
         }

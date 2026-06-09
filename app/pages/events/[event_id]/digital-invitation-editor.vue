@@ -3,25 +3,22 @@ const route = useRoute()
 const eventId = Number(route.params.event_id)
 const { tenantId } = useUserState()
 
-const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/find`, {
+const { data } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/find`, {
     transform: res => res.data,
 })
 const templates = computed(() => data.value?.template || [])
 const invitationTemplate = computed(() => templates.value.find(item => item.type === TEMPLATE_INVITATION))
-const template = ref<Template | undefined>()
-if (invitationTemplate.value?.template_id) {
-    const { data: templateData } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${invitationTemplate.value?.template_id}`, {
-        transform: res => ({
-            ...res.data,
-        }),
-    })
-    template.value = templateData.value ?? undefined
-}
+const { data: templateData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${invitationTemplate.value?.template_id}`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const template = computed(() => templateData.value)
 const {
     customBlocks: selectedCustomBlocks,
     staticBlocks: selectedStaticBlocks,
     breakpoints: selectedBreakpoints,
-} = mapTemplateVariantToBlocks(template.value?.variants || [])
+} = mapTemplateVariantToBlocks(template.value?.variants || [], CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map(e => e.id) as Breakpoint[])
 const mappedSelectedBreakpoints = computed(() => Object.entries(selectedBreakpoints).map(([key]) => key as Breakpoint))
 const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map((e) => {
     return {
@@ -61,6 +58,9 @@ definePageMeta({
 
 <template>
     <EditorMain
+        :tenant-id="tenantId"
+        :event-id="eventId"
+        :template-id="template?.template_id"
         :editor-mode="EDITOR_MODE_INVITATION_EMAIL"
         :custom-blocks="customBlocks"
         :static-blocks="[]"

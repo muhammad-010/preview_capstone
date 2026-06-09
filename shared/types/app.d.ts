@@ -76,6 +76,7 @@ export type CoordinateKey = keyof Coordinate
 export interface BackgroundImage {
     file?: File
     dataUrl: string
+    uploadKey: string
     width: number
     height: number
     name?: string
@@ -112,7 +113,7 @@ export interface BlockSetting {
 
 export interface Block {
     elementId?: number
-    uid: string
+    uid?: number
     id: string
     value: string
     setting: BlockSetting[]
@@ -135,6 +136,7 @@ export interface SavedVariant {
     variantId?: number
     slug: string
     bgImage: string
+    bgImageUploadKey: string
     customBlock: ElementBlock[]
     staticBlock: ElementBlock[]
 }

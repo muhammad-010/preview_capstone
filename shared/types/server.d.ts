@@ -110,6 +110,10 @@ export type TenantEventTemplateResult = Result<{
     template: Template[]
 }>
 
+export type UploadMediaResult = Result<{
+    upload_key: string
+}>
+
 // PARTICIPANTS
 export type ParticipantListResult = Result<
     PaginatedData<Participant, 'participant'>
