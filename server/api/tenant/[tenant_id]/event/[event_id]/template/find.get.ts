@@ -16,4 +16,3 @@ export default defineEventHandler(async (event): Promise<TenantEventTemplateResu
         return res
     }
 })
-

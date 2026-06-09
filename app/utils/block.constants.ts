@@ -141,4 +141,3 @@ export const STATIC_BLOCKS: ElementBlock[] = [
     STATIC_BLOCK_SCANNER_QR,
     STATIC_BLOCK_INPUT_CARD,
 ]
-

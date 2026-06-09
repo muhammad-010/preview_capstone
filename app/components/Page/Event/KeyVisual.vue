@@ -65,4 +65,3 @@ defineProps<{
         </UCard>
     </div>
 </template>
-

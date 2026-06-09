@@ -168,4 +168,3 @@ export type TenantMemberFormResult = Result<UserForm>
 export type TenantMemberAddResult = Result<
     AddedData<number, 'user_id'>
 >
-

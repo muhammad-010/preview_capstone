@@ -141,4 +141,3 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
         </UTabs>
     </div>
 </template>
-

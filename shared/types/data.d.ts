@@ -274,4 +274,3 @@ export interface UserForm {
     password: string
     password_confirm: string
 }
-
