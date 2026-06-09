@@ -493,7 +493,7 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
         breakpoints[bp] = variant.variant_id
         backgroundImages[bp] = {
             dataUrl: variant.background_image_url || '',
-            name: (variant.background_image_url || '').split('/').filter(Boolean).pop(),
+            name: (variant.background_image_url || '').split('/').filter(Boolean).pop() || '',
             uploadKey: '',
             width: variant.setting.width ? Number(variant.setting.width.replace(/px$/, '')) : 0,
             height: variant.setting.height ? Number(variant.setting.height.replace(/px$/, '')) : 0,
