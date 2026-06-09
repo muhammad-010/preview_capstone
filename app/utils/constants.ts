@@ -25,6 +25,7 @@ export const EMIT_CHECK_IN_FAILED = 'failed'
 export const EMIT_QR_DETECT = 'qr-detect'
 export const EMIT_LOTTERY_DONE = 'lottery-done'
 export const EMIT_DETAIL_REFRESH = 'refresh'
+export const EMIT_EDITOR_REFRESH = 'refresh'
 
 // STATE
 export const STATE_LAYOUT_PAGE_TITLE = 'layout:pageTitle'
@@ -80,3 +81,4 @@ export const TENANT_EVENT_SETTINGS = {
         value: false,
     },
 }
+

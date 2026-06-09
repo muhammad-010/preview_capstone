@@ -8,43 +8,42 @@ const { data } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/te
 })
 const templates = computed(() => data.value?.template || [])
 const invitationTemplate = computed(() => templates.value.find(item => item.type === TEMPLATE_INVITATION))
-const { data: templateData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${invitationTemplate.value?.template_id}`, {
+const { data: templateData, refresh } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${invitationTemplate.value?.template_id}`, {
     transform: res => ({
         ...res.data,
     }),
 })
 const template = computed(() => templateData.value)
+const validBreakpoints = CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map(e => e.id) as Breakpoint[]
 const {
     customBlocks: selectedCustomBlocks,
     staticBlocks: selectedStaticBlocks,
     breakpoints: selectedBreakpoints,
-} = mapTemplateVariantToBlocks(template.value?.variants || [], CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map(e => e.id) as Breakpoint[])
+    backgroundImages: selectedBackgroundImages,
+} = mapTemplateVariantToBlocks(template.value?.variants || [], validBreakpoints)
 const mappedSelectedBreakpoints = computed(() => Object.entries(selectedBreakpoints).map(([key]) => key as Breakpoint))
-const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map((e) => {
-    return {
-        ...e,
-        variantId: selectedBreakpoints[e.id],
-    }
-}))
+const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map(e => ({ ...e, variantId: selectedBreakpoints[e.id] })))
 const defaultSelectedCanvasSizeIds = computed<Breakpoint[]>(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value : [BREAKPOINT_MD])
 const defaultActiveCanvasSizeId = computed(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value[0]! : BREAKPOINT_MD)
 const defaultOrientation = computed(() => {
     const canvas = CANVAS_SIZE_PRESETS_INVITATION_EMAIL.find(e => e.id === defaultActiveCanvasSizeId.value)
-    if (canvas) {
-        return canvas.orientation
-    }
-    else {
-        return EDITOR_CANVAS_PORTRAIT
-    }
+    return canvas ? canvas.orientation : EDITOR_CANVAS_PORTRAIT
 })
 const defaultSelectedBlocks = computed(() => [...selectedCustomBlocks, ...selectedStaticBlocks])
-const defaultActiveStaticBlocks = computed(() => {
-    if (!selectedStaticBlocks.length) {
-        return []
+const defaultActiveStaticBlocks = computed(() => selectedStaticBlocks.length ? selectedStaticBlocks.map(e => e.id) : [])
+const defaultBackgroundImages = computed(() => {
+    const backgroundImages = cloneObject(selectedBackgroundImages)
+    for (const bp of validBreakpoints) {
+        if (!backgroundImages[bp]) {
+            backgroundImages[bp] = {
+                dataUrl: '',
+                uploadKey: '',
+                width: 0,
+                height: 0,
+            }
+        }
     }
-    else {
-        return selectedStaticBlocks.map(e => e.id)
-    }
+    return backgroundImages
 })
 
 const customBlocks = ref([
@@ -70,9 +69,11 @@ definePageMeta({
         :default-orientation="defaultOrientation"
         :default-selected-blocks="defaultSelectedBlocks"
         :default-active-static-blocks="defaultActiveStaticBlocks"
+        :default-background-images="defaultBackgroundImages"
         canvas-image-based
         page-title="Digital Invitation Key Visual Editor"
         :default-scale="0.4"
+        @refresh="refresh"
     />
 </template>
 

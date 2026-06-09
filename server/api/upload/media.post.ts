@@ -10,7 +10,7 @@ export default defineEventHandler(async (event): Promise<UploadMediaResult> => {
         })
     }
     const body = new FormData()
-    body.append('file', new Blob([new Uint8Array(file.data)]), file.filename)
+    body.append('file', new Blob([new Uint8Array(file.data)], { type: file.type }), file.filename)
 
     const res: UploadMediaResult = await api(event, method, path, {
         body,

@@ -332,6 +332,7 @@ export function templateVariantToSavedVariant(variant: TemplateVariant): SavedVa
     const customBlock: ElementBlock[] = []
     const staticBlock: ElementBlock[] = []
 
+    if (variant.elements === null) variant.elements = []
     for (const el of variant.elements) {
         const isCustom = BLOCK_IDS.some(b => b === el.type)
         const blockDef = isCustom
@@ -478,6 +479,7 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
     breakpoints: Partial<Record<Breakpoint, number | undefined>>
+    backgroundImages: Partial<Record<Breakpoint, BackgroundImage>>
 } {
     const blockMap: Record<number, ElementBlock> = {}
 
@@ -485,11 +487,20 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
     for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
     for (const b of CUSTOM_BLOCKS) defaultMap[b.id] = b
     const breakpoints: Partial<Record<Breakpoint, number | undefined>> = {}
+    const backgroundImages: Partial<Record<Breakpoint, BackgroundImage>> = {}
 
     for (const variant of variants) {
         const bp = variant.slug as Breakpoint
         breakpoints[bp] = variant.variant_id
+        backgroundImages[bp] = {
+            dataUrl: variant.background_image_url || '',
+            name: variant.background_image_url,
+            uploadKey: '',
+            width: 0,
+            height: 0,
+        }
 
+        if (variant.elements === null) variant.elements = []
         for (const el of variant.elements) {
             let block = blockMap[el.group]
 
@@ -556,6 +567,7 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
         customBlocks,
         staticBlocks,
         breakpoints,
+        backgroundImages,
     }
 }
 

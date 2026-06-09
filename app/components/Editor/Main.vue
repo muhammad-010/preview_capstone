@@ -14,6 +14,7 @@ const props = defineProps<{
     defaultOrientation: Orientation
     defaultSelectedBlocks: ElementBlock[]
     defaultActiveStaticBlocks: string[]
+    defaultBackgroundImages: Partial<Record<Breakpoint, BackgroundImage>>
 
     withPreview?: boolean
     htmlPreviewFn?: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
@@ -38,6 +39,7 @@ const toast = useToast()
 const { $api } = useNuxtApp()
 const { successToast } = useSuccessToast()
 const { errorToast } = useErrorToast()
+const emit = defineEmits([EMIT_EDITOR_REFRESH])
 
 // CANVAS SIZE
 const selectCanvasSizePopover = ref<boolean>(false)
@@ -92,15 +94,7 @@ function removeCanvasSize() {
 }
 
 // BACKGROUND IMAGE
-const bgImage = ref<Partial<Record<Breakpoint, BackgroundImage>>>(props.canvasSizeOptions.reduce((acc, cur) => {
-    acc[cur.id] = {
-        dataUrl: '',
-        uploadKey: '',
-        width: 0,
-        height: 0,
-    }
-    return acc
-}, {} as Partial<Record<Breakpoint, BackgroundImage>>))
+const bgImage = ref<Partial<Record<Breakpoint, BackgroundImage>>>(props.defaultBackgroundImages)
 const activeBgImage = computed<BackgroundImage | undefined>(() => {
     if (!bgImage.value || !bgImage.value[activeCanvasSizeId.value]) return
 
@@ -114,6 +108,7 @@ function clearImage(remove: (index?: number | undefined) => void, index?: number
     bgImage.value[activeCanvasSizeId.value] = {
         dataUrl: '',
         uploadKey: '',
+        name: undefined,
         width: 0,
         height: 0,
     }
@@ -150,6 +145,29 @@ watch(
         }
         bgImage.value[activeCanvasSizeId.value]!.name = file.name
         reader.readAsDataURL(file)
+
+        const body = new FormData()
+        body.append('file', file)
+        try {
+            const data = await $api(`/api/upload/media`, {
+                method: 'POST',
+                body,
+            })
+            if (data.success) {
+                successToast({ description: 'Background image uploaded' })
+                bgImage.value[activeCanvasSizeId.value]!.uploadKey = data.data.upload_key
+            }
+            else {
+                errorToast({ description: data.message })
+            }
+        }
+        catch (error) {
+            errorToast({ error, description: 'Failed to upload background image' })
+        }
+
+        if (bgImage.value[activeCanvasSizeId.value]!.uploadKey) {
+            await saveTemplates()
+        }
     },
     { deep: true },
 )
@@ -593,22 +611,6 @@ function makeSettings(): SavedVariant[] {
     })
 }
 
-function makeVariants(skipImage?: boolean): TemplateVariant[] {
-    return selectedCanvasSizes.value.map((size) => {
-        const slug = size.id
-        const { customBlock, staticBlock } = groupElementBlock(slug)
-
-        return savedVariantToTemplateVariant({
-            variantId: size.variantId,
-            bgImage: '',
-            bgImageUploadKey: skipImage ? '' : bgImage.value?.[slug]?.uploadKey || '',
-            slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
-            customBlock,
-            staticBlock,
-        })
-    })
-}
-
 function saveToLocalStorage() {
     if (!props.previewKey) return
 
@@ -616,12 +618,28 @@ function saveToLocalStorage() {
     localStorage.setItem(props.previewKey, JSON.stringify(settings))
 }
 
+function makeVariants(): TemplateVariant[] {
+    return selectedCanvasSizes.value.map((size) => {
+        const slug = size.id
+        const { customBlock, staticBlock } = groupElementBlock(slug)
+
+        return savedVariantToTemplateVariant({
+            variantId: size.variantId,
+            bgImage: '',
+            bgImageUploadKey: bgImage.value?.[slug]?.uploadKey || '',
+            slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
+            customBlock,
+            staticBlock,
+        })
+    })
+}
+
 async function saveTemplates() {
     if (!props.templateId) return
 
     try {
         loadingPreview.value = true
-        const variants = makeVariants(true)
+        const variants = makeVariants()
         const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/template/${props.templateId}`, {
             method: 'PUT',
             body: {
@@ -630,6 +648,7 @@ async function saveTemplates() {
         })
         if (data.success) {
             successToast({ description: 'Key visual been saved' })
+            emit(EMIT_EDITOR_REFRESH)
         }
         else {
             errorToast({ description: data.message })
@@ -951,14 +970,14 @@ function preview() {
                                 <UFieldGroup>
                                     <UInput
                                         readonly
-                                        :model-value="bgImage[activeCanvasSizeId]!.file ? bgImage[activeCanvasSizeId]!.name : 'Choose Image'"
+                                        :model-value="bgImage[activeCanvasSizeId]!.name || 'Choose Image'"
                                         :ui="{ base: 'cursor-pointer' }"
                                         @click="open()"
                                     />
                                     <UButton
-                                        :disabled="!Boolean(bgImage[activeCanvasSizeId]!.file)"
+                                        :disabled="!Boolean(bgImage[activeCanvasSizeId]!.file) && !Boolean(bgImage[activeCanvasSizeId]!.dataUrl)"
                                         icon="lucide:x"
-                                        :color="!Boolean(bgImage[activeCanvasSizeId]!.file) ? 'neutral' : 'error'"
+                                        :color="!Boolean(bgImage[activeCanvasSizeId]!.file) && !Boolean(bgImage[activeCanvasSizeId]!.dataUrl) ? 'neutral' : 'error'"
                                         @click="clearImage(removeFile)"
                                     />
                                 </UFieldGroup>
