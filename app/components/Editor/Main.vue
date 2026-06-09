@@ -321,7 +321,7 @@ function dropCanvas(e: DragEvent) {
 }
 
 function startMoveCanvasBlock(e: MouseEvent) {
-    if (!draggingCanvasBlock.value) return
+    if (draggingCanvasBlock.value === null) return
 
     const newXPx = (e.clientX - offset.value.x) / canvasScale.value
     const newYPx = (e.clientY - offset.value.y) / canvasScale.value
@@ -336,7 +336,7 @@ function startMoveCanvasBlock(e: MouseEvent) {
 }
 
 function stopMoveCanvasBlock() {
-    if (!draggingCanvasBlock.value) return
+    if (draggingCanvasBlock.value === null) return
 
     const block = blockContainer.value.find((_, i) => i === draggingCanvasBlock.value)
     if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) return
@@ -759,24 +759,30 @@ function preview() {
                         <h3>Page Sizes</h3>
                     </template>
                     <div class="space-y-2">
-                        <div
+                        <UFieldGroup
                             v-for="canvas in selectedCanvasSizes"
                             :key="`selcanvar-${canvas.id}`"
-                            class="flex items-center gap-2 py-2 px-4 border-2 rounded-lg w-52"
-                            :class="activeCanvasSizeId === canvas.id ? 'border-primary-500 dark:border-primary-400' : 'border-neutral-950/25 dark:border-neutral-50/25'"
                         >
-                            <UIcon
-                                :name="activeCanvasSizeId === canvas.id ? 'lucide:eye' : 'lucide:eye-off'"
-                                :class="`cursor-pointer ${activeCanvasSizeId === canvas.id && selectedCanvasSizes.length > 1 ? 'text-primary' : 'text-dimmed'}`"
+                            <UButton
+                                class="cursor-pointer w-44"
+                                variant="outline"
+                                size="lg"
+                                :color="activeCanvasSizeId === canvas.id ? 'primary' : 'neutral'"
+                                :ui="{ base: 'justify-start!' }"
                                 @click="toggleActiveCanvasSize(canvas.id)"
-                            />
-                            {{ canvas.label }}
-                            <UIcon
-                                name="lucide:trash"
-                                :class="`cursor-pointer ${selectedCanvasSizes.length > 1 ? 'text-error' : 'text-dimmed'} ml-auto`"
+                            >
+                                <UIcon
+                                    :name="activeCanvasSizeId === canvas.id ? 'lucide:eye' : 'lucide:eye-off'"
+                                    :class="`${activeCanvasSizeId === canvas.id && selectedCanvasSizes.length > 1 ? 'text-primary' : 'text-dimmed'}`"
+                                />
+                                {{ canvas.label }}
+                            </UButton>
+                            <UButton
+                                icon="lucide:trash"
+                                color="error"
                                 @click="confirmRemoveCanvasSize(canvas.id)"
                             />
-                        </div>
+                        </UFieldGroup>
                         <UPopover v-model:open="selectCanvasSizePopover">
                             <UButton
                                 icon="lucide:plus"
@@ -787,17 +793,19 @@ function preview() {
                             />
 
                             <template #content>
-                                <div class="p-2">
-                                    <UFieldGroup orientation="vertical">
-                                        <div
-                                            v-for="canvas in unselectedCanvasSizes"
-                                            :key="`unselcanvar-${canvas.id}`"
-                                            class="cursor-pointer flex items-center gap-2 py-2 px-4 border border-neutral-950/25 dark:border-neutral-50/25 hover:border-primary first:rounded-t last:rounded-b w-52"
-                                            @click="addCanvasSize(canvas.id)"
-                                        >
-                                            {{ canvas.label }}
-                                        </div>
-                                    </UFieldGroup>
+                                <div class="flex flex-col gap-2 p-2">
+                                    <UButton
+                                        v-for="canvas in unselectedCanvasSizes"
+                                        :key="`unselcanvar-${canvas.id}`"
+                                        class="cursor-pointer w-52"
+                                        variant="outline"
+                                        size="lg"
+                                        color="neutral"
+                                        :ui="{ base: 'justify-start!' }"
+                                        @click="addCanvasSize(canvas.id)"
+                                    >
+                                        {{ canvas.label }}
+                                    </UButton>
                                 </div>
                             </template>
                         </UPopover>
