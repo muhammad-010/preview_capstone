@@ -886,7 +886,7 @@ function preview() {
                             <div :style="canvasStyle">
                                 <template
                                     v-for="block, bidx in blockContainer"
-                                    :key="bidx"
+                                    :key="`${block.id}-${bidx}`"
                                 >
                                     <div
                                         v-if="block.perBreakpoint && block.perBreakpoint[activeCanvasSizeId]"
