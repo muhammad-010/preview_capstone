@@ -122,3 +122,8 @@ export const SEND_CHANNEL_COLORS: Record<SendChannel, 'neutral' | 'success'> = {
     [SEND_CHANNEL_EMAIL]: 'neutral',
     [SEND_CHANNEL_WHATSAPP]: 'success',
 } as const
+
+// EVENT TEMPLATE
+export const TEMPLATE_INVITATION = 'invitation'
+export const TEMPLATE_SCANQR = 'scanqr'
+

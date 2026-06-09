@@ -1,18 +1,30 @@
 <script setup lang="ts">
 const props = defineProps<{
+    tenantId: number
+    eventId: number
+    templateId?: number
+
+    editorMode: EditorMode
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
     canvasSizeOptions: CanvasSize[]
-    defaultBreakpoint: Breakpoint
+
+    defaultSelectedCanvasSizeIds: Breakpoint[]
+    defaultActiveCanvasSizeId: Breakpoint
     defaultOrientation: Orientation
+    defaultSelectedBlocks: ElementBlock[]
+    defaultActiveStaticBlocks: string[]
+    defaultBackgroundImages: Partial<Record<Breakpoint, BackgroundImage>>
 
     withPreview?: boolean
     htmlPreviewFn?: (bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) => string
     previewPath?: string
     previewKey?: string
+
     canvasImageBased?: boolean
-    defaultScale?: number
+
     pageTitle?: string
+    defaultScale?: number
 }>()
 
 const DRAG_X_LIMIT = 10
@@ -24,13 +36,17 @@ const MAX_FILE_SIZE = 1024 * 1024 // 1MB
 
 const router = useRouter()
 const toast = useToast()
+const { $api } = useNuxtApp()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
+const emit = defineEmits([EMIT_EDITOR_REFRESH])
 
 // CANVAS SIZE
 const selectCanvasSizePopover = ref<boolean>(false)
-const selectedCanvasSizeIds = ref<Breakpoint[]>([props.defaultBreakpoint])
+const selectedCanvasSizeIds = ref<Breakpoint[]>(props.defaultSelectedCanvasSizeIds)
 const removeCanvasSizeModal = ref<boolean>(false)
 const removeCanvasSizeTarget = ref<Breakpoint | null>(null)
-const activeCanvasSizeId = ref<Breakpoint>(props.defaultBreakpoint)
+const activeCanvasSizeId = ref<Breakpoint>(props.defaultActiveCanvasSizeId)
 const activeCanvasSize = computed(() => props.canvasSizeOptions.find(c => c.id === activeCanvasSizeId.value)!)
 const selectedCanvasSizes = computed(() => selectedCanvasSizeIds.value.reduce<typeof props.canvasSizeOptions>((acc, id) => {
     const found = props.canvasSizeOptions.find(c => c.id === id)
@@ -78,47 +94,37 @@ function removeCanvasSize() {
 }
 
 // BACKGROUND IMAGE
-const bgImage = ref<ElementBackgroundImage>({
-    dataUrl: '',
-    width: 0,
-    height: 0,
-    perBreakpoint: props.canvasSizeOptions.reduce((acc, cur) => {
-        acc[cur.id] = {
-            dataUrl: '',
-            width: 0,
-            height: 0,
-        }
-        return acc
-    }, {} as Partial<Record<Breakpoint, BackgroundImage>>),
-})
+const bgImage = ref<Partial<Record<Breakpoint, BackgroundImage>>>(props.defaultBackgroundImages)
 const activeBgImage = computed<BackgroundImage | undefined>(() => {
-    if (!bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
+    if (!bgImage.value || !bgImage.value[activeCanvasSizeId.value]) return
 
-    return bgImage.value.perBreakpoint![activeCanvasSizeId.value]!
+    return bgImage.value[activeCanvasSizeId.value]!
 })
 
 function clearImage(remove: (index?: number | undefined) => void, index?: number | undefined) {
     remove(index)
-    if (!bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
+    if (!bgImage.value || !bgImage.value[activeCanvasSizeId.value]) return
 
-    bgImage.value.perBreakpoint![activeCanvasSizeId.value] = {
+    bgImage.value[activeCanvasSizeId.value] = {
         dataUrl: '',
+        uploadKey: '',
+        name: undefined,
         width: 0,
         height: 0,
     }
 }
 
 watch(
-    () => bgImage.value.perBreakpoint?.[activeCanvasSizeId.value]?.file,
-    (file) => {
-        if (!file || !bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
+    () => bgImage.value?.[activeCanvasSizeId.value]?.file,
+    async (file) => {
+        if (!file || !bgImage.value || !bgImage.value[activeCanvasSizeId.value]) return
         if (file.size > MAX_FILE_SIZE) {
             toast.add({
                 title: 'Background Exceed Limit',
                 description: 'Max file limit are 1MB',
                 color: 'error',
             })
-            bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.file = undefined
+            bgImage.value[activeCanvasSizeId.value]!.file = undefined
             return
         }
 
@@ -126,8 +132,8 @@ watch(
         reader.onload = () => {
             const img = new Image()
             img.onload = () => {
-                bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.width = img.width
-                bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.height = img.height
+                bgImage.value[activeCanvasSizeId.value]!.width = img.width
+                bgImage.value[activeCanvasSizeId.value]!.height = img.height
 
                 if (props.canvasSizeOptions) {
                     canvasOrientation.value = img.width > img.height ? EDITOR_CANVAS_LANDSCAPE : EDITOR_CANVAS_PORTRAIT
@@ -135,10 +141,33 @@ watch(
             }
             const src = reader.result as string
             img.src = src
-            bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.dataUrl = src
+            bgImage.value[activeCanvasSizeId.value]!.dataUrl = src
         }
-        bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.name = file.name
+        bgImage.value[activeCanvasSizeId.value]!.name = file.name
         reader.readAsDataURL(file)
+
+        const body = new FormData()
+        body.append('file', file)
+        try {
+            const data = await $api(`/api/upload/media`, {
+                method: 'POST',
+                body,
+            })
+            if (data.success) {
+                successToast({ description: 'Background image uploaded' })
+                bgImage.value[activeCanvasSizeId.value]!.uploadKey = data.data.upload_key
+            }
+            else {
+                errorToast({ description: data.message })
+            }
+        }
+        catch (error) {
+            errorToast({ error, description: 'Failed to upload background image' })
+        }
+
+        if (bgImage.value[activeCanvasSizeId.value]!.uploadKey) {
+            await saveTemplates()
+        }
     },
     { deep: true },
 )
@@ -181,8 +210,13 @@ const canvasStyle = computed(() => ({
 }))
 
 // BLOCKS
-const blockContainer = ref<ElementBlock[]>([])
-const activeStaticBlocks = ref<string[]>([])
+const blockContainer = ref<ElementBlock[]>(props.defaultSelectedBlocks)
+const activeStaticBlocks = ref<string[]>(props.defaultActiveStaticBlocks)
+onMounted(() => {
+    if (blockContainer.value.length > 0) {
+        refreshGeneratedHtml()
+    }
+})
 
 function findCustomBlock(id: string) {
     return props.customBlocks.find(b => b.id === id)
@@ -214,15 +248,15 @@ function syncStaticBlock(block: ElementBlock) {
 }
 
 // DRAG BLOCKS
-const selectedUid = ref<string | null>(null)
-const draggingCanvasBlock = ref<string | null>(null)
+const selectedIdx = ref<number | null>(null)
+const draggingCanvasBlock = ref<number | null>(null)
 const draggingBlock = ref<string | null>(null)
 const offset = ref<Coordinate>({ x: 0, y: 0 })
 const tempPosition = ref<Coordinate>({ x: 0, y: 0 })
 
-function dragCanvasBlock(e: MouseEvent, uid: string, item: Block) {
-    draggingCanvasBlock.value = uid
-    selectedUid.value = uid
+function dragCanvasBlock(e: MouseEvent, idx: number, item: Block) {
+    draggingCanvasBlock.value = idx
+    selectedIdx.value = idx
 
     offset.value = {
         x: e.clientX - percentToPx(item.x, canvasWidth.value) * canvasScale.value,
@@ -257,11 +291,9 @@ function dropCanvas(e: DragEvent) {
     const yPx = Math.max(0, Math.min((e.clientY - canvasRect.top) / canvasScale.value, canvasHeight.value - DRAG_Y_LIMIT))
     const h = Math.round(pxToPercent(yPx, canvasHeight.value))
     const w = Math.round(pxToPercent(xPx, canvasWidth.value))
-    const uid = `${Date.now()}`
 
     const newBlock: ElementBlock = {
         ...block,
-        uid,
         setting: cloneObject(block.setting),
         style: cloneObject(block.style),
         x: w,
@@ -270,7 +302,6 @@ function dropCanvas(e: DragEvent) {
     }
     props.canvasSizeOptions.forEach((c) => {
         const b: Block = {
-            uid: uid,
             id: block.id,
             value: block.value,
             setting: cloneObject(block.setting),
@@ -285,7 +316,7 @@ function dropCanvas(e: DragEvent) {
     })
     blockContainer.value.push(newBlock)
 
-    selectedUid.value = uid
+    selectedIdx.value = blockContainer.value.length - 1
     draggingBlock.value = null
 }
 
@@ -307,7 +338,7 @@ function startMoveCanvasBlock(e: MouseEvent) {
 function stopMoveCanvasBlock() {
     if (!draggingCanvasBlock.value) return
 
-    const block = blockContainer.value.find(i => i.uid === draggingCanvasBlock.value)
+    const block = blockContainer.value.find((_, i) => i === draggingCanvasBlock.value)
     if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) return
 
     block.perBreakpoint[activeCanvasSizeId.value]!.x = Math.round(tempPosition.value.x)
@@ -332,10 +363,10 @@ onBeforeUnmount(() => {
 
 // BLOCK MANIPULATIONS
 const selectedItem = computed(() =>
-    blockContainer.value.find(i => i.uid === selectedUid.value),
+    blockContainer.value.find((_, i) => i === selectedIdx.value),
 )
-const itemPosition = computed(() => (uid: string, block: Block) => {
-    if (draggingCanvasBlock.value === uid) return tempPosition.value
+const itemPosition = computed(() => (idx: number, block: Block) => {
+    if (draggingCanvasBlock.value === idx) return tempPosition.value
     return { x: block.x, y: block.y }
 })
 
@@ -345,7 +376,6 @@ onMounted(() => {
         block.perBreakpoint = {}
         props.canvasSizeOptions.forEach((c) => {
             block.perBreakpoint![c.id] = {
-                uid: b.uid,
                 id: b.id,
                 value: b.value,
                 setting: cloneObject(b.setting),
@@ -363,8 +393,9 @@ function toggleStaticBlock(id: string) {
     if (index > -1) {
         // Remove
         activeStaticBlocks.value.splice(index, 1)
-        blockContainer.value = blockContainer.value.filter(i => i.id !== id)
-        if (selectedUid.value === id) selectedUid.value = null
+        const idx = blockContainer.value.findIndex(i => i.id === id)
+        blockContainer.value.splice(idx, 1)
+        if (selectedIdx.value === idx) selectedIdx.value = null
     }
     else {
         // Add
@@ -378,14 +409,13 @@ function toggleStaticBlock(id: string) {
             style: cloneObject(block.style),
             perBreakpoint: cloneObject(block.perBreakpoint),
         })
-        selectedUid.value = id
+        selectedIdx.value = blockContainer.value.length - 1
     }
 }
 
 function duplicateBlock(block: ElementBlock) {
     const newBlock: ElementBlock = {
         ...block,
-        uid: `${Date.now()}`,
         setting: cloneObject(block.setting),
         style: cloneObject(block.style),
         x: block.x + 5,
@@ -402,10 +432,12 @@ function duplicateBlock(block: ElementBlock) {
         })
     }
     blockContainer.value.push(newBlock)
+    selectedIdx.value = blockContainer.value.length - 1
 }
 
-function removeBlock(uid: string) {
-    blockContainer.value = blockContainer.value.filter(i => i.uid !== uid)
+function removeBlock(idx: number) {
+    selectedIdx.value = null
+    blockContainer.value.splice(idx, 1)
 }
 
 function endDragCustomBlock() {
@@ -502,9 +534,9 @@ function refreshGeneratedHtml() {
         if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) return ''
         return renderBlock(block.perBreakpoint[activeCanvasSizeId.value]!, block.value)
     }).join('\n')
-    const bgImg = !bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]
+    const bgImg = !bgImage.value || !bgImage.value[activeCanvasSizeId.value]
         ? { dataUrl: '' } as BackgroundImage
-        : bgImage.value.perBreakpoint[activeCanvasSizeId.value]!
+        : bgImage.value[activeCanvasSizeId.value]!
 
     generatedHtml.value = getrenderPreviewHtml(bgImg, canvasWidth.value, canvasHeight.value, customContent, staticContent)
     loadingPreview.value = false
@@ -526,51 +558,111 @@ watch([
     }, 500)
 }, { deep: true })
 
-// PREVIEW
-function reduceElementBlockPerBreakpoint(bp: Breakpoint): (blocks: ElementBlock[], block: ElementBlock) => ElementBlock[] {
-    return (blocks: ElementBlock[], block: ElementBlock): ElementBlock[] => {
-        if (!block.perBreakpoint || !block.perBreakpoint[bp]) return blocks
+// SAVE
+
+function groupElementBlock(bp: Breakpoint): { customBlock: ElementBlock[], staticBlock: ElementBlock[] } {
+    const blocks = blockContainer.value
+    const customBlock: ElementBlock[] = []
+    const staticBlock: ElementBlock[] = []
+
+    for (let idx = 0; idx < props.staticBlocks.length; idx++) {
+        const staticBlock = props.staticBlocks[idx]!
+        if (!blocks.find(block => block.id === staticBlock.id)) {
+            blocks.push(staticBlock)
+        }
+    }
+
+    for (let idx = 0; idx < blocks.length; idx++) {
+        const block = blocks[idx]!
+        if (!block.perBreakpoint || !block.perBreakpoint[bp]) continue
 
         const bpBlock: Block = block.perBreakpoint[bp]!
-        blocks.push({
+        const b: ElementBlock = {
             ...block,
+            uid: idx,
+            elementId: bpBlock.elementId,
             style: cloneObject(bpBlock.style),
             setting: cloneObject(bpBlock.setting),
             x: bpBlock.x,
             y: bpBlock.y,
             perBreakpoint: undefined,
-        })
+        }
 
-        return blocks
+        if (checkCustomBlock(block.id)) customBlock.push(b)
+        if (checkStaticBlock(block.id)) staticBlock.push(b)
     }
+
+    return { customBlock, staticBlock }
+}
+
+function makeSettings(): SavedVariant[] {
+    return selectedCanvasSizes.value.map((size) => {
+        const slug = size.id
+        const { customBlock, staticBlock } = groupElementBlock(slug)
+
+        return {
+            variantId: size.variantId,
+            bgImage: bgImage.value?.[slug]?.dataUrl || '',
+            bgImageUploadKey: '',
+            slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
+            customBlock,
+            staticBlock,
+        }
+    })
 }
 
 function saveToLocalStorage() {
     if (!props.previewKey) return
 
-    const settings: SavedVariant[] = selectedCanvasSizes.value.map((size) => {
-        const slug = size.id
-        const reducer = reduceElementBlockPerBreakpoint(slug)
-
-        const customBlock = blockContainer.value
-            .filter(b => checkCustomBlock(b.id))
-            .reduce<ElementBlock[]>(reducer, [])
-
-        const staticBlock = props.staticBlocks
-            .filter(b => checkStaticBlock(b.id))
-            .reduce<ElementBlock[]>(reducer, [])
-
-        return {
-            bgImage: bgImage.value.perBreakpoint?.[slug]?.dataUrl || '',
-            slug,
-            customBlock,
-            staticBlock,
-        }
-    })
-
+    const settings = makeSettings()
     localStorage.setItem(props.previewKey, JSON.stringify(settings))
 }
 
+function makeVariants(): TemplateVariant[] {
+    return selectedCanvasSizes.value.map((size) => {
+        const slug = size.id
+        const { customBlock, staticBlock } = groupElementBlock(slug)
+
+        return savedVariantToTemplateVariant({
+            variantId: size.variantId,
+            bgImage: '',
+            bgImageUploadKey: bgImage.value?.[slug]?.uploadKey || '',
+            slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
+            customBlock,
+            staticBlock,
+        })
+    })
+}
+
+async function saveTemplates() {
+    if (!props.templateId) return
+
+    try {
+        loadingPreview.value = true
+        const variants = makeVariants()
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/template/${props.templateId}`, {
+            method: 'PUT',
+            body: {
+                variants,
+            },
+        })
+        if (data.success) {
+            successToast({ description: 'Key visual been saved' })
+            emit(EMIT_EDITOR_REFRESH)
+        }
+        else {
+            errorToast({ description: data.message })
+        }
+    }
+    catch (error) {
+        errorToast({ error, description: 'Failed to save key visual' })
+    }
+    finally {
+        loadingPreview.value = false
+    }
+}
+
+// PREVIEW
 function preview() {
     if (!import.meta.client || !props.previewPath) return
 
@@ -617,8 +709,9 @@ function preview() {
 
                 <UButton
                     class="cursor-pointer"
-                    label="Save Settings"
-                    @click="saveToLocalStorage"
+                    label="Save"
+                    :disabled="loadingPreview"
+                    @click="saveTemplates"
                 />
             </div>
         </div>
@@ -792,24 +885,24 @@ function preview() {
                         >
                             <div :style="canvasStyle">
                                 <template
-                                    v-for="block in blockContainer"
-                                    :key="block.uid"
+                                    v-for="block, bidx in blockContainer"
+                                    :key="bidx"
                                 >
                                     <div
                                         v-if="block.perBreakpoint && block.perBreakpoint[activeCanvasSizeId]"
                                         class="absolute cursor-move"
                                         :style="{
-                                            left: itemPosition(block.uid, block.perBreakpoint[activeCanvasSizeId]!).x + '%',
-                                            top: itemPosition(block.uid, block.perBreakpoint[activeCanvasSizeId]!).y + '%',
+                                            left: itemPosition(bidx, block.perBreakpoint[activeCanvasSizeId]!).x + '%',
+                                            top: itemPosition(bidx, block.perBreakpoint[activeCanvasSizeId]!).y + '%',
                                         }"
-                                        @mousedown.prevent="dragCanvasBlock($event, block.uid, block.perBreakpoint[activeCanvasSizeId]!)"
-                                        @click.stop="selectedUid = block.uid"
+                                        @mousedown.prevent="dragCanvasBlock($event, bidx, block.perBreakpoint[activeCanvasSizeId]!)"
+                                        @click.stop="selectedIdx = bidx"
                                     >
                                         <UChip position="top-left">
                                             <EditorBlock
                                                 class="flex items-center justify-between"
                                                 :class="[
-                                                    selectedUid === block.uid ? 'border-neutral-500 dark:border-neutral-400' : '',
+                                                    selectedIdx === bidx ? 'border-neutral-500 dark:border-neutral-400' : '',
                                                 ]"
                                             >
                                                 {{ findCustomBlock(block.id)?.label || findStaticBlock(block.id)?.label }}
@@ -827,7 +920,7 @@ function preview() {
                                                         size="xs"
                                                         color="error"
                                                         label="Del"
-                                                        @click.stop="removeBlock(block.uid)"
+                                                        @click.stop="removeBlock(bidx)"
                                                     />
                                                 </div>
                                             </EditorBlock>
@@ -868,33 +961,33 @@ function preview() {
                             Background Image (Max 1MB)
                         </h4>
 
-                        <template v-if="bgImage.perBreakpoint && bgImage.perBreakpoint[activeCanvasSizeId]">
+                        <template v-if="bgImage && bgImage[activeCanvasSizeId]">
                             <UFileUpload
                                 v-slot="{ open, removeFile }"
-                                v-model="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
+                                v-model="bgImage[activeCanvasSizeId]!.file"
                                 accept="image/*"
                             >
                                 <UFieldGroup>
                                     <UInput
                                         readonly
-                                        :model-value="bgImage.perBreakpoint![activeCanvasSizeId]!.file ? bgImage.perBreakpoint![activeCanvasSizeId]!.name : 'Choose Image'"
+                                        :model-value="bgImage[activeCanvasSizeId]!.name || 'Choose Image'"
                                         :ui="{ base: 'cursor-pointer' }"
                                         @click="open()"
                                     />
                                     <UButton
-                                        :disabled="!Boolean(bgImage.perBreakpoint![activeCanvasSizeId]!.file)"
+                                        :disabled="!Boolean(bgImage[activeCanvasSizeId]!.file) && !Boolean(bgImage[activeCanvasSizeId]!.dataUrl)"
                                         icon="lucide:x"
-                                        :color="!Boolean(bgImage.perBreakpoint![activeCanvasSizeId]!.file) ? 'neutral' : 'error'"
+                                        :color="!Boolean(bgImage[activeCanvasSizeId]!.file) && !Boolean(bgImage[activeCanvasSizeId]!.dataUrl) ? 'neutral' : 'error'"
                                         @click="clearImage(removeFile)"
                                     />
                                 </UFieldGroup>
 
                                 <p
-                                    v-if="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
+                                    v-if="bgImage[activeCanvasSizeId]!.file"
                                     class="text-sm text-muted mt-2"
                                 >
-                                    width: {{ bgImage.perBreakpoint![activeCanvasSizeId]!.width }}
-                                    height: {{ bgImage.perBreakpoint![activeCanvasSizeId]!.height }}
+                                    width: {{ bgImage[activeCanvasSizeId]!.width }}
+                                    height: {{ bgImage[activeCanvasSizeId]!.height }}
                                 </p>
                             </UFileUpload>
                         </template>
@@ -903,7 +996,10 @@ function preview() {
 
                 <template v-if="selectedItem">
                     <!-- SETTINGS -->
-                    <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                    <UCard
+                        v-if="selectedItem.withValue || selectedItem.editableData"
+                        :ui="{ body: 'p-2 sm:p-3' }"
+                    >
                         <template #header>
                             <h3>Block Settings</h3>
                         </template>
@@ -981,3 +1077,4 @@ function preview() {
         </div>
     </div>
 </template>
+

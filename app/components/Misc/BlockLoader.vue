@@ -22,11 +22,12 @@ const responsivePosition = computed(() =>
 <template>
     <div>
         <div
-            v-for="(block, id) in renderableBlocks"
-            :key="block.uid"
-            :class="responsivePosition[id]!.tailwindClass"
-            :style="responsivePosition[id]!.style"
+            v-for="(block, idx) in renderableBlocks"
+            :key="idx"
+            :class="responsivePosition[idx]!.tailwindClass"
+            :style="responsivePosition[idx]!.style"
             v-html="renderHtmlBlock(block)"
         />
     </div>
 </template>
+

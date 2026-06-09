@@ -106,6 +106,14 @@ export type TenantEventSettingResult = Result<TenantEventSetting>
 // TEMPLATE
 export type ScanPageTemplateResult = Result<Template>
 
+export type TenantEventTemplateResult = Result<{
+    template: Template[]
+}>
+
+export type UploadMediaResult = Result<{
+    upload_key: string
+}>
+
 // PARTICIPANTS
 export type ParticipantListResult = Result<
     PaginatedData<Participant, 'participant'>
@@ -160,3 +168,4 @@ export type TenantMemberFormResult = Result<UserForm>
 export type TenantMemberAddResult = Result<
     AddedData<number, 'user_id'>
 >
+
