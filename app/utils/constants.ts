@@ -81,4 +81,3 @@ export const TENANT_EVENT_SETTINGS = {
         value: false,
     },
 }
-

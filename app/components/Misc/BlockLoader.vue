@@ -30,4 +30,3 @@ const responsivePosition = computed(() =>
         />
     </div>
 </template>
-

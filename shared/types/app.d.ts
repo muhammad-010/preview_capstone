@@ -148,4 +148,3 @@ export interface SavedTemplate {
 }
 
 export type BackgroundPerBreakpoint = Record<Breakpoint, string | undefined>
-

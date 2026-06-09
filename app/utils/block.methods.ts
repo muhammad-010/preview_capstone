@@ -570,4 +570,3 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
         backgroundImages,
     }
 }
-
