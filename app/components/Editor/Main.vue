@@ -92,32 +92,26 @@ function removeCanvasSize() {
 }
 
 // BACKGROUND IMAGE
-const bgImage = ref<ElementBackgroundImage>({
-    dataUrl: '',
-    uploadKey: '',
-    width: 0,
-    height: 0,
-    perBreakpoint: props.canvasSizeOptions.reduce((acc, cur) => {
-        acc[cur.id] = {
-            dataUrl: '',
-            uploadKey: '',
-            width: 0,
-            height: 0,
-        }
-        return acc
-    }, {} as Partial<Record<Breakpoint, BackgroundImage>>),
-})
+const bgImage = ref<Partial<Record<Breakpoint, BackgroundImage>>>(props.canvasSizeOptions.reduce((acc, cur) => {
+    acc[cur.id] = {
+        dataUrl: '',
+        uploadKey: '',
+        width: 0,
+        height: 0,
+    }
+    return acc
+}, {} as Partial<Record<Breakpoint, BackgroundImage>>))
 const activeBgImage = computed<BackgroundImage | undefined>(() => {
-    if (!bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
+    if (!bgImage.value || !bgImage.value[activeCanvasSizeId.value]) return
 
-    return bgImage.value.perBreakpoint![activeCanvasSizeId.value]!
+    return bgImage.value[activeCanvasSizeId.value]!
 })
 
 function clearImage(remove: (index?: number | undefined) => void, index?: number | undefined) {
     remove(index)
-    if (!bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
+    if (!bgImage.value || !bgImage.value[activeCanvasSizeId.value]) return
 
-    bgImage.value.perBreakpoint![activeCanvasSizeId.value] = {
+    bgImage.value[activeCanvasSizeId.value] = {
         dataUrl: '',
         uploadKey: '',
         width: 0,
@@ -126,16 +120,16 @@ function clearImage(remove: (index?: number | undefined) => void, index?: number
 }
 
 watch(
-    () => bgImage.value.perBreakpoint?.[activeCanvasSizeId.value]?.file,
+    () => bgImage.value?.[activeCanvasSizeId.value]?.file,
     async (file) => {
-        if (!file || !bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]) return
+        if (!file || !bgImage.value || !bgImage.value[activeCanvasSizeId.value]) return
         if (file.size > MAX_FILE_SIZE) {
             toast.add({
                 title: 'Background Exceed Limit',
                 description: 'Max file limit are 1MB',
                 color: 'error',
             })
-            bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.file = undefined
+            bgImage.value[activeCanvasSizeId.value]!.file = undefined
             return
         }
 
@@ -143,8 +137,8 @@ watch(
         reader.onload = () => {
             const img = new Image()
             img.onload = () => {
-                bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.width = img.width
-                bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.height = img.height
+                bgImage.value[activeCanvasSizeId.value]!.width = img.width
+                bgImage.value[activeCanvasSizeId.value]!.height = img.height
 
                 if (props.canvasSizeOptions) {
                     canvasOrientation.value = img.width > img.height ? EDITOR_CANVAS_LANDSCAPE : EDITOR_CANVAS_PORTRAIT
@@ -152,9 +146,9 @@ watch(
             }
             const src = reader.result as string
             img.src = src
-            bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.dataUrl = src
+            bgImage.value[activeCanvasSizeId.value]!.dataUrl = src
         }
-        bgImage.value.perBreakpoint![activeCanvasSizeId.value]!.name = file.name
+        bgImage.value[activeCanvasSizeId.value]!.name = file.name
         reader.readAsDataURL(file)
     },
     { deep: true },
@@ -522,9 +516,9 @@ function refreshGeneratedHtml() {
         if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) return ''
         return renderBlock(block.perBreakpoint[activeCanvasSizeId.value]!, block.value)
     }).join('\n')
-    const bgImg = !bgImage.value.perBreakpoint || !bgImage.value.perBreakpoint[activeCanvasSizeId.value]
+    const bgImg = !bgImage.value || !bgImage.value[activeCanvasSizeId.value]
         ? { dataUrl: '' } as BackgroundImage
-        : bgImage.value.perBreakpoint[activeCanvasSizeId.value]!
+        : bgImage.value[activeCanvasSizeId.value]!
 
     generatedHtml.value = getrenderPreviewHtml(bgImg, canvasWidth.value, canvasHeight.value, customContent, staticContent)
     loadingPreview.value = false
@@ -590,7 +584,7 @@ function makeSettings(): SavedVariant[] {
 
         return {
             variantId: size.variantId,
-            bgImage: bgImage.value.perBreakpoint?.[slug]?.dataUrl || '',
+            bgImage: bgImage.value?.[slug]?.dataUrl || '',
             bgImageUploadKey: '',
             slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
             customBlock,
@@ -607,7 +601,7 @@ function makeVariants(skipImage?: boolean): TemplateVariant[] {
         return savedVariantToTemplateVariant({
             variantId: size.variantId,
             bgImage: '',
-            bgImageUploadKey: skipImage ? '' : bgImage.value.perBreakpoint?.[slug]?.uploadKey || '',
+            bgImageUploadKey: skipImage ? '' : bgImage.value?.[slug]?.uploadKey || '',
             slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
             customBlock,
             staticBlock,
@@ -948,33 +942,33 @@ function preview() {
                             Background Image (Max 1MB)
                         </h4>
 
-                        <template v-if="bgImage.perBreakpoint && bgImage.perBreakpoint[activeCanvasSizeId]">
+                        <template v-if="bgImage && bgImage[activeCanvasSizeId]">
                             <UFileUpload
                                 v-slot="{ open, removeFile }"
-                                v-model="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
+                                v-model="bgImage[activeCanvasSizeId]!.file"
                                 accept="image/*"
                             >
                                 <UFieldGroup>
                                     <UInput
                                         readonly
-                                        :model-value="bgImage.perBreakpoint![activeCanvasSizeId]!.file ? bgImage.perBreakpoint![activeCanvasSizeId]!.name : 'Choose Image'"
+                                        :model-value="bgImage[activeCanvasSizeId]!.file ? bgImage[activeCanvasSizeId]!.name : 'Choose Image'"
                                         :ui="{ base: 'cursor-pointer' }"
                                         @click="open()"
                                     />
                                     <UButton
-                                        :disabled="!Boolean(bgImage.perBreakpoint![activeCanvasSizeId]!.file)"
+                                        :disabled="!Boolean(bgImage[activeCanvasSizeId]!.file)"
                                         icon="lucide:x"
-                                        :color="!Boolean(bgImage.perBreakpoint![activeCanvasSizeId]!.file) ? 'neutral' : 'error'"
+                                        :color="!Boolean(bgImage[activeCanvasSizeId]!.file) ? 'neutral' : 'error'"
                                         @click="clearImage(removeFile)"
                                     />
                                 </UFieldGroup>
 
                                 <p
-                                    v-if="bgImage.perBreakpoint![activeCanvasSizeId]!.file"
+                                    v-if="bgImage[activeCanvasSizeId]!.file"
                                     class="text-sm text-muted mt-2"
                                 >
-                                    width: {{ bgImage.perBreakpoint![activeCanvasSizeId]!.width }}
-                                    height: {{ bgImage.perBreakpoint![activeCanvasSizeId]!.height }}
+                                    width: {{ bgImage[activeCanvasSizeId]!.width }}
+                                    height: {{ bgImage[activeCanvasSizeId]!.height }}
                                 </p>
                             </UFileUpload>
                         </template>
