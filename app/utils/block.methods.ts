@@ -495,8 +495,8 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
             dataUrl: variant.background_image_url || '',
             name: (variant.background_image_url || '').split('/').filter(Boolean).pop() || '',
             uploadKey: '',
-            width: variant.setting.width ? Number(variant.setting.width.replace(/px$/, '')) : 0,
-            height: variant.setting.height ? Number(variant.setting.height.replace(/px$/, '')) : 0,
+            width: variant.setting.width ? Number(variant.setting.width.replace(/px$/, '')) || 0 : 0,
+            height: variant.setting.height ? Number(variant.setting.height.replace(/px$/, '')) || 0 : 0,
         }
 
         if (variant.elements === null) variant.elements = []

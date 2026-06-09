@@ -166,7 +166,9 @@ watch(
         }
 
         if (bgImage.value[activeCanvasSizeId.value]!.uploadKey) {
-            await saveTemplates()
+            await saveTemplates(() => {
+                bgImage.value[activeCanvasSizeId.value]!.uploadKey = ''
+            })
         }
     },
     { deep: true },
@@ -604,7 +606,7 @@ function makeSettings(): SavedVariant[] {
             variantId: size.variantId,
             bgImage: bgImage.value?.[slug]?.dataUrl || '',
             bgImageUploadKey: '',
-            slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
+            slug,
             customBlock,
             staticBlock,
         }
@@ -627,14 +629,14 @@ function makeVariants(): TemplateVariant[] {
             variantId: size.variantId,
             bgImage: '',
             bgImageUploadKey: bgImage.value?.[slug]?.uploadKey || '',
-            slug: props.editorMode === EDITOR_MODE_INVITATION_EMAIL && slug === BREAKPOINT_MD ? 'default' : slug,
+            slug,
             customBlock,
             staticBlock,
         })
     })
 }
 
-async function saveTemplates() {
+async function saveTemplates(cb?: () => void) {
     if (!props.templateId) return
 
     try {
@@ -649,6 +651,9 @@ async function saveTemplates() {
         if (data.success) {
             successToast({ description: 'Key visual been saved' })
             emit(EMIT_EDITOR_REFRESH)
+            if (cb !== undefined) {
+                cb()
+            }
         }
         else {
             errorToast({ description: data.message })
@@ -711,7 +716,7 @@ function preview() {
                     class="cursor-pointer"
                     label="Save"
                     :disabled="loadingPreview"
-                    @click="saveTemplates"
+                    @click="() => saveTemplates()"
                 />
             </div>
         </div>
