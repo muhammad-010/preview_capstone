@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export function isStylingSuffix(value: string): value is StylingSuffix {
+/* eslint-disable @typescript-eslint/no-explicit-any */export function isStylingSuffix(value: string): value is StylingSuffix {
     return STYLING_SUFFIXES.includes(value as StylingSuffix)
 }
 
@@ -494,10 +493,10 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
         breakpoints[bp] = variant.variant_id
         backgroundImages[bp] = {
             dataUrl: variant.background_image_url || '',
-            name: variant.background_image_url,
+            name: (variant.background_image_url || '').split('/').filter(Boolean).pop(),
             uploadKey: '',
-            width: 0,
-            height: 0,
+            width: variant.setting.width ? Number(variant.setting.width.replace(/px$/, '')) : 0,
+            height: variant.setting.height ? Number(variant.setting.height.replace(/px$/, '')) : 0,
         }
 
         if (variant.elements === null) variant.elements = []
@@ -528,8 +527,8 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
                 y: el.position_y,
                 value: el.value,
                 withValue: !blockValueIsTemplate(el.value),
-                style: Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : cloneObject(block.style),
-                setting: Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : cloneObject(block.setting),
+                style: el.style && Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : cloneObject(block.style),
+                setting: el.setting && Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : cloneObject(block.setting),
             }
         }
     }
