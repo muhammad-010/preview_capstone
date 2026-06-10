@@ -24,9 +24,11 @@ export const CANVAS_SIZE_PRESETS_CHECK_IN_PAGE: CanvasSize[] = [
 
 export const BLOCK_TEXT_ID = 'text'
 export const BLOCK_IMAGE_ID = 'image'
+export const BLOCK_QR_IMAGE_ID = 'qr-image'
 export const BLOCK_IDS: string[] = [
     BLOCK_TEXT_ID,
     BLOCK_IMAGE_ID,
+    BLOCK_QR_IMAGE_ID,
 ]
 export const STATIC_BLOCK_SCANNER_QR_ID = 'scanner-qr'
 export const STATIC_BLOCK_INPUT_CARD_ID = 'input-card'
@@ -64,6 +66,8 @@ export const BLOCK_STYLE_FONT_WEIGHT_OPTIONS = [
     '900',
 ]
 
+export const BLOCK_SETTING_WIDTH = STYLE_WIDTH
+export const BLOCK_SETTING_HEIGHT = STYLE_HEIGHT
 export const BLOCK_SETTING_TITLE = 'title'
 export const BLOCK_SETTING_INPUT_PLACEHOLDER = 'input-placeholder'
 export const BLOCK_SETTING_BUTTON_TEXT = 'button-text'
@@ -106,9 +110,25 @@ export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     editableData: true,
 }
 
+export const BLOCK_QR_IMAGE_DEFAULT: ElementBlock = {
+    id: BLOCK_QR_IMAGE_ID,
+    label: 'QR Image',
+    value: 'https://placehold.co/100',
+    setting: [
+        { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '100px' },
+        { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '100px' },
+    ],
+    style: [],
+    x: 0,
+    y: 0,
+    withValue: true,
+    editableData: true,
+}
+
 export const CUSTOM_BLOCKS: ElementBlock[] = [
     BLOCK_TEXT_DEFAULT,
     BLOCK_IMAGE_DEFAULT,
+    BLOCK_QR_IMAGE_DEFAULT,
 ]
 
 export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {

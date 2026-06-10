@@ -24,7 +24,7 @@ export function compilePreviewStyle(block: Block) {
         `
     }
 
-    if (block.id === BLOCK_IMAGE_ID) {
+    if (block.id === BLOCK_IMAGE_ID || block.id === BLOCK_QR_IMAGE_ID) {
         return `
             ${BLOCK_STYLE_WIDTH}:${getBlockStyleValue(block.style, BLOCK_STYLE_WIDTH)};
             ${BLOCK_STYLE_HEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_HEIGHT)};
@@ -42,23 +42,28 @@ export function renderHtmlBlock(block: ElementBlock) {
         .map(([key, value]) => `${key}: ${value};`)
         .join(' ')
 
-    switch (block.id) {
-        case BLOCK_TEXT_ID:
-            return `
-                <p class="${cssClass}" style="${cssStyle}">
-                    ${block.value || ''}
-                </p>
-            `
-        case BLOCK_IMAGE_ID:
-            return `
-                <img
-                    src="${block.value || ''}"
-                    class="${cssClass}"
-                    style="${cssStyle}"
-                />
-            `
-        default:
-            return ''
+    if (block.id === BLOCK_TEXT_ID) {
+        return `
+          <p class="${cssClass}" style="${cssStyle}">
+              ${block.value || ''}
+          </p>
+      `
+    }
+    else if (block.id === BLOCK_IMAGE_ID || block.id === BLOCK_QR_IMAGE_ID) {
+        const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
+        const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
+        return `
+          <img
+              src="${block.value || ''}"
+              class="${cssClass}"
+              style="${cssStyle}"
+              ${settingWidth ? `width=${settingWidth.value}` : ''}
+              ${settingHeight ? `width=${settingHeight.value}` : ''}
+          />
+      `
+    }
+    else {
+        return ''
     }
 }
 
@@ -72,12 +77,17 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
     }
     else if (
         block.id === BLOCK_IMAGE_ID
+        || block.id === BLOCK_QR_IMAGE_ID
         || (block.id === STATIC_BLOCK_SCANNER_QR_ID)
     ) {
+        const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
+        const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
         return `
             <img
                 src="${value || ''}"
                 style="${previewStyle}"
+                ${settingWidth ? `width=${settingWidth.value}` : ''}
+                ${settingHeight ? `width=${settingHeight.value}` : ''}
             />
         `
     }

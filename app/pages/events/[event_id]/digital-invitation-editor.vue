@@ -48,6 +48,7 @@ const defaultBackgroundImages = computed(() => {
 
 const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
+    BLOCK_QR_IMAGE_DEFAULT,
 ])
 
 definePageMeta({
