@@ -22,6 +22,13 @@ export const CANVAS_SIZE_PRESETS_CHECK_IN_PAGE: CanvasSize[] = [
     { id: BREAKPOINT_XL, width: 1280, height: 720, label: 'Desktop', breakpoint: BREAKPOINT_XL, orientation: EDITOR_CANVAS_LANDSCAPE },
 ]
 
+export const CHECK_IN_VALID_BREAKPOINTS: Breakpoint[] = [
+    BREAKPOINT_SM,
+    BREAKPOINT_MD,
+    BREAKPOINT_LG,
+    BREAKPOINT_XL,
+]
+
 export const BLOCK_TEXT_ID = 'text'
 export const BLOCK_IMAGE_ID = 'image'
 export const BLOCK_QR_IMAGE_ID = 'qr-image'
