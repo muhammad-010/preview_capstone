@@ -45,7 +45,7 @@ const blocks = computed<{
     staticBlocks: ElementBlock[]
 }>(() => {
     if (template.value) {
-        const { customBlocks, staticBlocks } = mapTemplateVariantToBlocks(template.value.variants)
+        const { customBlocks, staticBlocks } = mapTemplateVariantToBlocks(template.value.variants, CHECK_IN_VALID_BREAKPOINTS)
         return { customBlocks, staticBlocks }
     }
     else {
