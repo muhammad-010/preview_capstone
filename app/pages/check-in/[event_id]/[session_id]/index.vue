@@ -45,7 +45,7 @@ const blocks = computed<{
     staticBlocks: ElementBlock[]
 }>(() => {
     if (template.value) {
-        const variants= parseDynamicVariantsElement(template.value.variants)
+        const variants = parseDynamicVariantsElement(template.value.variants)
         return parseTemplateVariants(variants, CHECK_IN_VALID_BREAKPOINTS)
     }
     else {

@@ -12,11 +12,12 @@ export function getBlockStyleValue(style: BlockSetting[], key: string): string |
 }
 
 export function getBlockValue(block: Block): string | boolean | number {
-  if (DYNAMIC_BLOCK_TYPES.includes(block.type)) {
-    return block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)?.value || block.value || ''
-  } else {
-    return block.value || ''
-  }
+    if (DYNAMIC_BLOCK_TYPES.includes(block.type)) {
+        return block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)?.value || block.value || ''
+    }
+    else {
+        return block.value || ''
+    }
 }
 
 export function compilePreviewStyle(block: Block) {
@@ -77,7 +78,7 @@ export function renderHtmlBlock(block: ElementBlock) {
           </p>
       `
     }
-    else if ( block.type === BLOCK_QR_IMAGE_TYPE) {
+    else if (block.type === BLOCK_QR_IMAGE_TYPE) {
         const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
         const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
         const defaultValue = block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)
@@ -99,8 +100,8 @@ export function renderHtmlBlock(block: ElementBlock) {
 
 export function renderPreviewHtml(block: Block, value: string | boolean | number, previewStyle: string) {
     if (
-      block.type === BLOCK_TEXT_TYPE
-      || block.type === BLOCK_DYNAMIC_TEXT_TYPE
+        block.type === BLOCK_TEXT_TYPE
+        || block.type === BLOCK_DYNAMIC_TEXT_TYPE
     ) {
         return `
             <p style="${previewStyle}">
@@ -152,47 +153,47 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
 }
 
 export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): ElementBlock[] {
-  const blocks: ElementBlock[] =[]
+    const blocks: ElementBlock[] = []
 
-  for (let idx = 0; idx < elements.length; idx++) {
-    const el = elements[idx]!
-    if (!DYNAMIC_BLOCK_TYPES.includes(el.type)) continue
+    for (let idx = 0; idx < elements.length; idx++) {
+        const el = elements[idx]!
+        if (!DYNAMIC_BLOCK_TYPES.includes(el.type)) continue
 
-    const style: BlockSetting[] = []
-    const setting: BlockSetting[] = [
-        {
-          key: BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE,
-          label: 'Default Preview Value',
-          type: 'text',
-          value: el.default_value,
-          hidden: true,
-        },
-    ]
+        const style: BlockSetting[] = []
+        const setting: BlockSetting[] = [
+            {
+                key: BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE,
+                label: 'Default Preview Value',
+                type: 'text',
+                value: el.default_value,
+                hidden: true,
+            },
+        ]
 
-    if (el.type === BLOCK_DYNAMIC_TEXT_TYPE) {
-      style.push(...cloneObject(BLOCK_TEXT_DEFAULT_STYLE))
+        if (el.type === BLOCK_DYNAMIC_TEXT_TYPE) {
+            style.push(...cloneObject(BLOCK_TEXT_DEFAULT_STYLE))
+        }
+        else if (el.type === BLOCK_QR_IMAGE_TYPE) {
+            style.push(...cloneObject(BLOCK_IMAGE_DEFAULT_STYLE))
+            setting.push(
+                { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '100px' },
+                { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '100px' },
+            )
+        }
+
+        blocks.push({
+            id: el.value, // because somehow BE can't provide different type for each dynamic element
+            type: el.type,
+            label: el.name,
+            value: el.value,
+            setting,
+            style,
+            x: 0,
+            y: 0,
+        })
     }
-    else if (el.type === BLOCK_QR_IMAGE_TYPE) {
-      style.push(...cloneObject(BLOCK_IMAGE_DEFAULT_STYLE))
-      setting.push(
-        { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '100px' },
-        { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '100px' },
-      )
-    }
 
-    blocks.push({
-      id: el.value, // because somehow BE can't provide different type for each dynamic element
-      type: el.type,
-      label: el.name,
-      value: el.value,
-      setting,
-      style,
-      x: 0,
-      y: 0,
-    })
-  }
-  
-  return blocks
+    return blocks
 }
 
 export function getPositionStyle(block: Block) {
@@ -420,28 +421,28 @@ function filterBlockData(
 }
 
 export function parseDynamicVariantsElement(variants: TemplateVariant[]): TemplateVariant[] {
-  const parsed: TemplateVariant[] = []
-  for (const variant of variants) {
-    for (const element of variant.elements) {
-      switch (element.type) {
-      case BLOCK_DYNAMIC_TEXT_TYPE:
-        element.type = BLOCK_TEXT_TYPE
-        break
-      default:
-        break
-      }
+    const parsed: TemplateVariant[] = []
+    for (const variant of variants) {
+        for (const element of variant.elements) {
+            switch (element.type) {
+                case BLOCK_DYNAMIC_TEXT_TYPE:
+                    element.type = BLOCK_TEXT_TYPE
+                    break
+                default:
+                    break
+            }
+        }
+        parsed.push(variant)
     }
-    parsed.push(variant)
-  }
-  return parsed
+    return parsed
 }
 
 export function makeTemplateVariant(
-  blocks: ElementBlock[],
-  slug: string,
-  bgImage: string,
-  bgImageUploadKey: string,
-  variantId?: number
+    blocks: ElementBlock[],
+    slug: string,
+    bgImage: string,
+    bgImageUploadKey: string,
+    variantId?: number,
 ): TemplateVariant {
     const elements: TemplateElement[] = []
     for (const block of blocks) {
@@ -475,10 +476,10 @@ export function makeTemplateVariant(
 }
 
 export function parseTemplateVariants(
-  variants: TemplateVariant[],
-  validBreakpoints: Breakpoint[],
-  dynamicBlocks?: ElementBlock[],
-  populateBreakpoint?: boolean,
+    variants: TemplateVariant[],
+    validBreakpoints: Breakpoint[],
+    dynamicBlocks?: ElementBlock[],
+    populateBreakpoint?: boolean,
 ): {
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
@@ -560,14 +561,14 @@ export function parseTemplateVariants(
         }
 
         if (populateBreakpoint) {
-        for (const validBp of validBreakpoints) {
+            for (const validBp of validBreakpoints) {
             // set block breakpoint data for unsaved breakpoint
             // so it can render when valid breakpoints added
-            if (block.perBreakpoint![validBp] === undefined) {
-                block.perBreakpoint![validBp] = cloneObject(block.perBreakpoint![blockBreakpoint[0]!])
-                block.perBreakpoint![validBp]!.elementId = undefined
+                if (block.perBreakpoint![validBp] === undefined) {
+                    block.perBreakpoint![validBp] = cloneObject(block.perBreakpoint![blockBreakpoint[0]!])
+                    block.perBreakpoint![validBp]!.elementId = undefined
+                }
             }
-        }
         }
 
         if (STATIC_BLOCK_TYPES.includes(block.type)) {
@@ -587,14 +588,14 @@ export function parseTemplateVariants(
 }
 
 export function editorParseTemplateVariants(
-  variants: TemplateVariant[],
-  validBreakpoints: Breakpoint[],
-  dynamicBlocks?: ElementBlock[],
+    variants: TemplateVariant[],
+    validBreakpoints: Breakpoint[],
+    dynamicBlocks?: ElementBlock[],
 ): {
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
     breakpoints: Partial<Record<Breakpoint, number | undefined>>
     backgroundImages: Partial<Record<Breakpoint, BackgroundImage>>
 } {
-  return parseTemplateVariants(variants, validBreakpoints, dynamicBlocks, true)
+    return parseTemplateVariants(variants, validBreakpoints, dynamicBlocks, true)
 }

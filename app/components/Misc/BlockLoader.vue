@@ -6,8 +6,8 @@ const props = defineProps<{
 }>()
 
 const availableBlocks = ref<ElementBlock[]>([
-  BLOCK_TEXT_DEFAULT,
-  ...(props.dynamicBlocks ? props.dynamicBlocks : []),
+    BLOCK_TEXT_DEFAULT,
+    ...(props.dynamicBlocks ? props.dynamicBlocks : []),
 ])
 const renderableBlocks = computed(() => {
     return props.blockSettings

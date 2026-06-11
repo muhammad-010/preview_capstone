@@ -605,11 +605,11 @@ function makeVariants(): TemplateVariant[] {
         const { customBlock, staticBlock } = groupElementBlock(slug)
 
         return makeTemplateVariant(
-          [...customBlock, ...staticBlock],
-          size.id,
-          '',
-          bgImage.value?.[slug]?.uploadKey || '',
-          size.variantId,
+            [...customBlock, ...staticBlock],
+            size.id,
+            '',
+            bgImage.value?.[slug]?.uploadKey || '',
+            size.variantId,
         )
     })
 }
@@ -710,7 +710,7 @@ function preview() {
             <!-- LEFT: ElementBlock list + resizable HTML preview -->
             <div class="flex flex-col gap-4">
                 <!-- CANVAS SETTINGS -->
-                    <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
+                <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                     <template #header>
                         <h5>Canvas Settings</h5>
                     </template>
@@ -810,7 +810,7 @@ function preview() {
                 />
 
                 <!-- BLOCKS -->
-                    <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
+                <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                     <template #header>
                         <h5>Blocks</h5>
                     </template>
@@ -853,7 +853,7 @@ function preview() {
 
                 <!-- RAW HTML (resizable) -->
                 <!-- <DevOnly> -->
-                    <!-- <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"> -->
+                <!-- <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"> -->
                 <!--         <template #header> -->
                 <!--             <h5>HTML Preview</h5> -->
                 <!--         </template> -->
@@ -947,7 +947,7 @@ function preview() {
             <!-- RIGHT: Page settings and settings -->
             <div class="flex flex-col gap-4">
                 <!-- PAGE SETTINGS -->
-                    <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
+                <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                     <template #header>
                         <div class="flex items-center justify-between gap-2">
                             <h5>Page Settings</h5>
@@ -1014,17 +1014,17 @@ function preview() {
                         </div>
 
                         <div class="mb-4">
-                          <template
-                            v-for="setting in selectedItem.setting"
-                            :key="setting.key"
-                          >
-                            <EditorDynamicInput
-                                v-if="!setting.hidden"
-                                class="mb-4"
-                                :field="setting"
-                                @update="(e) => updateBlock('setting', setting.key, e)"
-                            />
-                          </template>
+                            <template
+                                v-for="setting in selectedItem.setting"
+                                :key="setting.key"
+                            >
+                                <EditorDynamicInput
+                                    v-if="!setting.hidden"
+                                    class="mb-4"
+                                    :field="setting"
+                                    @update="(e) => updateBlock('setting', setting.key, e)"
+                                />
+                            </template>
                         </div>
                     </UCard>
 
