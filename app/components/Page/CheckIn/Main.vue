@@ -7,6 +7,7 @@ const props = defineProps<{
     eventId: number
     sessionId?: number
     isPreview?: boolean
+    dynamicBlocks?: ElementBlock[]
     customBlockSettings?: ElementBlock[]
     staticBlockSettings?: ElementBlock[]
 }>()
@@ -354,6 +355,7 @@ const inputCardResponsivePos = computed(() => {
     <div class="max-w-[60vw]">
         <MiscBlockLoader
             :block-settings="props.customBlockSettings || []"
+            :dynamic-blocks="props.dynamicBlocks || []"
         />
 
         <div

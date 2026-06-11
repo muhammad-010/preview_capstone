@@ -305,6 +305,7 @@ function dropCanvas(e: DragEvent) {
     props.canvasSizeOptions.forEach((c) => {
         const b: Block = {
             id: block.id,
+            type: block.type,
             value: block.value,
             setting: cloneObject(block.setting),
             style: cloneObject(block.style),
@@ -379,6 +380,7 @@ onMounted(() => {
         props.canvasSizeOptions.forEach((c) => {
             block.perBreakpoint![c.id] = {
                 id: b.id,
+                type: b.type,
                 value: b.value,
                 setting: cloneObject(b.setting),
                 style: cloneObject(b.style),
@@ -529,7 +531,7 @@ function getrenderPreviewHtml(bgImage: BackgroundImage, width: number, height: n
 function refreshGeneratedHtml() {
     const customContent = blockContainer.value.map((block) => {
         if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) return ''
-        return renderBlock(block.perBreakpoint[activeCanvasSizeId.value]!, block.value)
+        return renderBlock(block.perBreakpoint[activeCanvasSizeId.value]!, getBlockValue(block))
     }).join('\n')
     const staticContent = activeStaticBlocks.value.map((id) => {
         const block = findStaticBlock(id)
@@ -829,7 +831,7 @@ function preview() {
                     <template #header>
                         <h3>Blocks</h3>
                     </template>
-                    <div class="space-y-2">
+                    <div class="space-y-2 overflow-y-auto max-h-48">
                         <EditorBlock
                             v-for="card in customBlocks"
                             :key="card.id"
@@ -851,7 +853,7 @@ function preview() {
                     <template #header>
                         <h3>Static Blocks</h3>
                     </template>
-                    <div class="space-y-2">
+                    <div class="space-y-2 overflow-y-auto max-h-48">
                         <EditorBlock
                             v-for="block in staticBlocks"
                             :key="block.id"
@@ -867,21 +869,21 @@ function preview() {
                 </UCard>
 
                 <!-- RAW HTML (resizable) -->
-                <DevOnly>
-                    <UCard :ui="{ body: 'p-2 sm:p-3' }">
-                        <template #header>
-                            <h3>HTML Preview</h3>
-                        </template>
-
-                        <UTextarea
-                            v-model="generatedHtml"
-                            size="sm"
-                            class="rounded w-full font-mono py-1 px-2 resize-y"
-                            readonly
-                            :ui="{ base: 'scrollbar' }"
-                        />
-                    </UCard>
-                </DevOnly>
+                <!-- <DevOnly> -->
+                <!--     <UCard :ui="{ body: 'p-2 sm:p-3' }"> -->
+                <!--         <template #header> -->
+                <!--             <h3>HTML Preview</h3> -->
+                <!--         </template> -->
+                <!---->
+                <!--         <UTextarea -->
+                <!--             v-model="generatedHtml" -->
+                <!--             size="sm" -->
+                <!--             class="rounded w-full font-mono py-1 px-2 resize-y" -->
+                <!--             readonly -->
+                <!--             :ui="{ base: 'scrollbar' }" -->
+                <!--         /> -->
+                <!--     </UCard> -->
+                <!-- </DevOnly> -->
             </div>
 
             <!-- CENTER: Canvas and iframe -->
@@ -1031,13 +1033,17 @@ function preview() {
                             v-if="selectedItem.editableData"
                             class="mb-4"
                         >
+                          <template
+                            v-for="setting in selectedItem.setting"
+                            :key="setting.key"
+                          >
                             <EditorDynamicInput
-                                v-for="setting in selectedItem.setting"
-                                :key="setting.key"
+                                v-if="!setting.hidden"
                                 class="mb-4"
                                 :field="setting"
                                 @update="(e) => updateBlock('setting', setting.key, e)"
                             />
+                          </template>
                         </div>
                     </UCard>
 

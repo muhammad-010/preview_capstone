@@ -171,6 +171,13 @@ export type TenantEventSetting = Record<TenantEventSettingKeys, Setting>
 // TEMPLATE
 export type TemplateType = 'invitation' | 'scanqr'
 
+export interface TemplateElementDynamicVar {
+  name: string
+  default_value: string
+  value: string
+  type: string
+}
+
 export interface TemplateElement {
     element_id?: number
     group: number

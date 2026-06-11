@@ -14,6 +14,12 @@ const { data: templateData, refresh } = await useApi(`/api/tenant/${tenantId.val
     }),
 })
 const template = computed(() => templateData.value)
+const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${checkInTemplate.value?.template_id}/variable`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const templateVariables = computed(() => variableData.value?.variables || [])
 const validBreakpoints = CANVAS_SIZE_PRESETS_CHECK_IN_PAGE.map(e => e.id) as Breakpoint[]
 const {
     customBlocks: selectedCustomBlocks,
@@ -46,8 +52,10 @@ const defaultBackgroundImages = computed(() => {
     return backgroundImages
 })
 
+const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
+    ...dynamicBlocks.value,
 ])
 const staticBlocks = ref([
     STATIC_BLOCK_SCANNER_QR,
@@ -75,7 +83,7 @@ definePageMeta({
         :default-active-static-blocks="defaultActiveStaticBlocks"
         :default-background-images="defaultBackgroundImages"
         with-preview
-        :html-preview-fn="checkInPageHtml"
+        :html-preview-fn="getCheckInPageHtml"
         :preview-path="`/events/${eventId}/check-in-preview`"
         :preview-key="LOCALSTORAGE_CHECK_IN_PREVIEW"
         page-title="Check In Page Key Visual Editor"

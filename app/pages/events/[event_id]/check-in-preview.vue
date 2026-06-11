@@ -9,6 +9,18 @@ const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`,
     }),
 })
 const event = computed<TenantEvent | null>(() => data.value ?? null)
+const { data: templateData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/find`, {
+    transform: res => res.data,
+})
+const templates = computed(() => templateData.value?.template || [])
+const checkInTemplate = computed(() => templates.value.find(item => item.type === TEMPLATE_SCANQR))
+const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${checkInTemplate.value?.template_id}/variable`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const templateVariables = computed(() => variableData.value?.variables || [])
+const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 
 const settings = ref<SavedVariant[]>([])
 
@@ -42,7 +54,7 @@ const background = computed<Record<Breakpoint, string | undefined>>(() => {
 const blocks = computed<{
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
-}>(() => mapSavedVariantToBlocks(settings.value))
+}>(() => mapSavedVariantToBlocks(settings.value, dynamicBlocks.value))
 
 useHead({
     title: computed(() => `[PREVIEW] Check In - ${event.value ? event.value.name : 'Event'}`),
@@ -64,6 +76,7 @@ definePageMeta({
             <PageCheckInMain
                 :tenant-id="tenantId"
                 :event-id="eventId"
+                :dynamic-blocks="dynamicBlocks"
                 :custom-block-settings="blocks.customBlocks"
                 :static-block-settings="blocks.staticBlocks"
                 is-preview

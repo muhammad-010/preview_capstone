@@ -14,6 +14,12 @@ const { data: templateData, refresh } = await useApi(`/api/tenant/${tenantId.val
     }),
 })
 const template = computed(() => templateData.value)
+const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${invitationTemplate.value?.template_id}/variable`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const templateVariables = computed(() => variableData.value?.variables || [])
 const validBreakpoints = CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map(e => e.id) as Breakpoint[]
 const {
     customBlocks: selectedCustomBlocks,
@@ -46,9 +52,10 @@ const defaultBackgroundImages = computed(() => {
     return backgroundImages
 })
 
+const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
-    BLOCK_QR_IMAGE_DEFAULT,
+    ...dynamicBlocks.value,
 ])
 
 definePageMeta({

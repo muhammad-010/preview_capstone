@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */export function isStylingSuffix(value: string): value is StylingSuffix {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function isStylingSuffix(value: string): value is StylingSuffix {
     return STYLING_SUFFIXES.includes(value as StylingSuffix)
 }
 
@@ -10,12 +11,16 @@ export function getBlockStyleValue(style: BlockSetting[], key: string): string |
     return style.find(s => s.key === key)?.value
 }
 
-export function blockValueIsTemplate(str: string): boolean {
-    return /^\{\{\s*.+?\s*\}\}$/.test(str)
+export function getBlockValue(block: Block): string | boolean | number {
+  if (DYNAMIC_BLOCK_IDS.includes(block.type)) {
+    return block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)?.value || block.value || ''
+  } else {
+    return block.value || ''
+  }
 }
 
 export function compilePreviewStyle(block: Block) {
-    if (block.id === BLOCK_TEXT_ID) {
+    if (block.type === BLOCK_TEXT_ID || block.type === BLOCK_DYNAMIC_TEXT_ID) {
         return `
             ${BLOCK_STYLE_COLOR}:${getBlockStyleValue(block.style, BLOCK_STYLE_COLOR)};
             ${BLOCK_STYLE_FONT_SIZE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_SIZE)};
@@ -24,7 +29,7 @@ export function compilePreviewStyle(block: Block) {
         `
     }
 
-    if (block.id === BLOCK_IMAGE_ID || block.id === BLOCK_QR_IMAGE_ID) {
+    if (block.type === BLOCK_IMAGE_ID || block.type === BLOCK_QR_IMAGE_ID) {
         return `
             ${BLOCK_STYLE_WIDTH}:${getBlockStyleValue(block.style, BLOCK_STYLE_WIDTH)};
             ${BLOCK_STYLE_HEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_HEIGHT)};
@@ -42,19 +47,44 @@ export function renderHtmlBlock(block: ElementBlock) {
         .map(([key, value]) => `${key}: ${value};`)
         .join(' ')
 
-    if (block.id === BLOCK_TEXT_ID) {
+    if (block.type === BLOCK_TEXT_ID) {
         return `
           <p class="${cssClass}" style="${cssStyle}">
               ${block.value || ''}
           </p>
       `
     }
-    else if (block.id === BLOCK_IMAGE_ID || block.id === BLOCK_QR_IMAGE_ID) {
+    else if (block.type === BLOCK_IMAGE_ID) {
         const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
         const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
+
         return `
           <img
               src="${block.value || ''}"
+              class="${cssClass}"
+              style="${cssStyle}"
+              ${settingWidth ? `width=${settingWidth.value}` : ''}
+              ${settingHeight ? `width=${settingHeight.value}` : ''}
+          />
+      `
+    }
+    else if (block.type === BLOCK_DYNAMIC_TEXT_ID) {
+        const defaultValue = block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)
+
+        return `
+          <p class="${cssClass}" style="${cssStyle}">
+              ${defaultValue?.value || block.value || ''}
+          </p>
+      `
+    }
+    else if ( block.type === BLOCK_QR_IMAGE_ID) {
+        const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
+        const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
+        const defaultValue = block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)
+
+        return `
+          <img
+              src="${defaultValue?.value || block.value || ''}"
               class="${cssClass}"
               style="${cssStyle}"
               ${settingWidth ? `width=${settingWidth.value}` : ''}
@@ -68,7 +98,10 @@ export function renderHtmlBlock(block: ElementBlock) {
 }
 
 export function renderPreviewHtml(block: Block, value: string | boolean | number, previewStyle: string) {
-    if (block.id === BLOCK_TEXT_ID) {
+    if (
+      block.type === BLOCK_TEXT_ID
+      || block.type === BLOCK_DYNAMIC_TEXT_ID
+    ) {
         return `
             <p style="${previewStyle}">
                 ${value || ''}
@@ -76,12 +109,13 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
         `
     }
     else if (
-        block.id === BLOCK_IMAGE_ID
-        || block.id === BLOCK_QR_IMAGE_ID
-        || (block.id === STATIC_BLOCK_SCANNER_QR_ID)
+        block.type === BLOCK_IMAGE_ID
+        || block.type === BLOCK_QR_IMAGE_ID
+        || (block.type === STATIC_BLOCK_SCANNER_QR_ID)
     ) {
         const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
         const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
+
         return `
             <img
                 src="${value || ''}"
@@ -91,19 +125,23 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
             />
         `
     }
-    else if (block.id === STATIC_BLOCK_INPUT_CARD_ID) {
+    else if (block.type === STATIC_BLOCK_INPUT_CARD_ID) {
+        const settingTitle = block.setting.find(d => d.key === BLOCK_SETTING_TITLE)
+        const settingPlaceholder = block.setting.find(d => d.key === BLOCK_SETTING_INPUT_PLACEHOLDER)
+        const settingButtonText = block.setting.find(d => d.key === BLOCK_SETTING_BUTTON_TEXT)
+
         return `
             <div style="width:200px; padding:16px; border:1px solid #ccc; border-radius:8px; background:#fff; text-align: center">
                 <h3 style="font-size:2rem; margin:0 0 12px 0;">
-                    ${block.setting.find(d => d.key === BLOCK_SETTING_TITLE)?.value || 'Title'}
+                    ${settingTitle?.value || 'Title'}
                 </h3>
                 <input
                     type="text"
-                    placeholder="${block.setting.find(d => d.key === BLOCK_SETTING_INPUT_PLACEHOLDER)?.value || 'Placeholder'}"
+                    placeholder="${settingPlaceholder?.value || 'Placeholder'}"
                     style="width:90%; padding:8px; font-size:1rem; border:1px solid #ccc; border-radius:4px; margin-bottom:12px;"
                 />
                 <button style="width:100%; padding:8px; background:#007bff; color:#fff; border:none; border-radius:4px;">
-                    ${block.setting.find(d => d.key === BLOCK_SETTING_BUTTON_TEXT)?.value || 'Submit'}
+                    ${settingButtonText?.value || 'Submit'}
                 </button>
             </div>
         `
@@ -111,6 +149,52 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
     else {
         return ''
     }
+}
+
+export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): ElementBlock[] {
+  const blocks: ElementBlock[] =[]
+
+  for (let idx = 0; idx < elements.length; idx++) {
+    const el = elements[idx]!
+    if (!DYNAMIC_BLOCK_IDS.includes(el.type)) continue
+
+    const style: BlockSetting[] = []
+    const setting: BlockSetting[] = [
+        {
+          key: BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE,
+          label: 'Default Preview Value',
+          type: 'text',
+          value: el.default_value,
+          hidden: true,
+        },
+    ]
+
+    if (el.type === BLOCK_DYNAMIC_TEXT_ID) {
+      style.push(...cloneObject(BLOCK_TEXT_DEFAULT_STYLE))
+    }
+    else if (el.type === BLOCK_QR_IMAGE_ID) {
+      style.push(...cloneObject(BLOCK_IMAGE_DEFAULT_STYLE))
+      setting.push(
+        { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '100px' },
+        { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '100px' },
+      )
+    }
+
+    blocks.push({
+      id: el.value, // because somehow BE can't provide different type for each text
+      type: el.type,
+      label: el.name,
+      value: el.value,
+      setting,
+      style,
+      x: 0,
+      y: 0,
+      withValue: false,
+      editableData: true,
+    })
+  }
+  
+  return blocks
 }
 
 export function getPositionStyle(block: Block) {
@@ -203,7 +287,7 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
     }, cloneObject(empty))
 }
 
-export function invitationEmailHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+export function getInvitationEmailHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
     return `
     <!DOCTYPE html>
     <html>
@@ -255,7 +339,7 @@ export function invitationEmailHtml(bgImage: BackgroundImage, width: number, hei
     `
 }
 
-export function checkInPageHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+export function getCheckInPageHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
     return `
     <!DOCTYPE html>
     <html>
@@ -349,15 +433,16 @@ export function templateVariantToSavedVariant(variant: TemplateVariant): SavedVa
             : STATIC_BLOCKS.find(b => b.id === el.type)
         if (!blockDef) continue
 
+        const disableValue = !DYNAMIC_BLOCK_IDS.includes(blockDef.id)
         const saved: ElementBlock = {
             ...blockDef,
             elementId: el.element_id,
             uid: el.group,
-            id: el.type,
+            id: DYNAMIC_BLOCK_IDS.includes(el.type) ? el.value : el.type,
             x: el.position_x,
             y: el.position_y,
             value: el.value,
-            withValue: !blockValueIsTemplate(el.value),
+            withValue: disableValue,
             style: filterBlockData('style', el.style, blockDef),
             setting: filterBlockData('setting', el.setting, blockDef),
         }
@@ -393,7 +478,7 @@ export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant
         const el: TemplateElement = {
             element_id: block.elementId,
             value: block.value,
-            type: block.id,
+            type: block.type,
             group: block.uid,
             position_x: block.x,
             position_y: block.y,
@@ -416,7 +501,7 @@ export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant
     return variant
 }
 
-export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
+export function mapSavedVariantToBlocks(variants: SavedVariant[], dynamicBlocks?: ElementBlock[]): {
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
 } {
@@ -425,6 +510,9 @@ export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
     const defaultMap: Record<string, ElementBlock> = {}
     for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
     for (const b of CUSTOM_BLOCKS) defaultMap[b.id] = b
+    if (dynamicBlocks) {
+      for (const b of dynamicBlocks) defaultMap[b.id] = b
+    }
 
     for (const variant of variants) {
         const bp = variant.slug as Breakpoint
@@ -439,10 +527,11 @@ export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
                 const base = defaultMap[el.id]
 
                 if (!base) continue
+                const disableValue = !DYNAMIC_BLOCK_IDS.includes(base.type)
                 block = {
                     ...base,
                     value: el.value,
-                    withValue: !blockValueIsTemplate(el.value),
+                    withValue: disableValue,
                     perBreakpoint: {},
                 }
                 if (block.setting.length <= 0) block.editableData = false
@@ -453,11 +542,12 @@ export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
             block.perBreakpoint![bp] = {
                 elementId: el.elementId,
                 uid: el.uid,
-                id: el.id,
+                id: DYNAMIC_BLOCK_IDS.includes(el.type) ? el.value : el.id,
+                type: el.type,
                 x: el.x,
                 y: el.y,
                 value: el.value,
-                withValue: !blockValueIsTemplate(el.value),
+                withValue: block.withValue,
                 style: el.style,
                 setting: el.setting,
             }
@@ -470,7 +560,7 @@ export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
     const customBlocks: ElementBlock[] = []
 
     for (const block of allBlocks) {
-        if (STATIC_BLOCK_IDS.includes(block.id)) {
+        if (STATIC_BLOCK_IDS.includes(block.type)) {
             staticBlocks.push(block)
         }
         else {
@@ -511,17 +601,21 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
 
         if (variant.elements === null) variant.elements = []
         for (const el of variant.elements) {
+            // do not accept undefined uid
+            // as it's for grouping the element
+            if (el.group === undefined) continue
             let block = blockMap[el.group]
 
             if (!block) {
                 const base = defaultMap[el.type]
 
                 if (!base) continue
+                const disableValue = !DYNAMIC_BLOCK_IDS.includes(base.type)
                 block = {
                     ...base,
                     uid: el.group,
                     value: el.value,
-                    withValue: !blockValueIsTemplate(el.value),
+                    withValue: disableValue,
                     perBreakpoint: {},
                 }
                 if (block.setting.length <= 0) block.editableData = false
@@ -532,11 +626,12 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
             block.perBreakpoint![bp] = {
                 elementId: el.element_id,
                 uid: el.group,
-                id: el.type,
+                id: DYNAMIC_BLOCK_IDS.includes(el.type) ? el.value : el.type,
+                type: el.type,
                 x: el.position_x,
                 y: el.position_y,
                 value: el.value,
-                withValue: !blockValueIsTemplate(el.value),
+                withValue: block.withValue,
                 style: el.style && Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : cloneObject(block.style),
                 setting: el.setting && Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : cloneObject(block.setting),
             }
@@ -564,7 +659,7 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
             }
         }
 
-        if (STATIC_BLOCK_IDS.includes(block.id)) {
+        if (STATIC_BLOCK_IDS.includes(block.type)) {
             staticBlocks.push(block)
         }
         else {

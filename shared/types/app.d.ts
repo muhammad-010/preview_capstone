@@ -107,6 +107,8 @@ export interface BlockSetting {
     options?: string[]
     trueValue?: string
     falseValue?: string
+    /** whether hide this setting */
+    hidden?: boolean
     min?: number
     max?: number
 }
@@ -115,16 +117,19 @@ export interface Block {
     elementId?: number
     uid?: number
     id: string
+    type: string
     value: string
     setting: BlockSetting[]
     style: BlockSetting[]
     x: number
     y: number
+    /** whether display the value setting for this block */
     withValue?: boolean
 }
 
 export interface ElementBlock extends Block {
     label: string
+    /** whether display the setting for this block */
     editableData: boolean
     perBreakpoint?: Partial<Record<
         Breakpoint,
