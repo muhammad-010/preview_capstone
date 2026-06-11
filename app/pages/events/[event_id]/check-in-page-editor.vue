@@ -27,7 +27,7 @@ const {
     staticBlocks: selectedStaticBlocks,
     breakpoints: selectedBreakpoints,
     backgroundImages: selectedBackgroundImages,
-} = mapTemplateVariantToBlocks(template.value?.variants || [], validBreakpoints, dynamicBlocks.value)
+} = editorParseTemplateVariants(template.value?.variants || [], validBreakpoints, dynamicBlocks.value)
 const mappedSelectedBreakpoints = computed(() => Object.entries(selectedBreakpoints).map(([key]) => key as Breakpoint))
 const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_CHECK_IN_PAGE.map(e => ({ ...e, variantId: selectedBreakpoints[e.id] })))
 const defaultSelectedCanvasSizeIds = computed<Breakpoint[]>(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value : [BREAKPOINT_MD])

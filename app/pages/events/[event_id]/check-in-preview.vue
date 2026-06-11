@@ -54,7 +54,7 @@ const background = computed<Record<Breakpoint, string | undefined>>(() => {
 const blocks = computed<{
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
-}>(() => mapTemplateVariantToBlocks(settings.value, CHECK_IN_VALID_BREAKPOINTS, dynamicBlocks.value))
+}>(() => parseTemplateVariants(settings.value, CHECK_IN_VALID_BREAKPOINTS, dynamicBlocks.value))
 
 useHead({
     title: computed(() => `[PREVIEW] Check In - ${event.value ? event.value.name : 'Event'}`),

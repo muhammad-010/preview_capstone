@@ -52,7 +52,7 @@ const blocks = computed<{
     staticBlocks: ElementBlock[]
 }>(() => {
     if (template.value) {
-        return mapTemplateVariantToBlocks(template.value.variants, CHECK_IN_VALID_BREAKPOINTS, dynamicBlocks.value)
+        return parseTemplateVariants(template.value.variants, CHECK_IN_VALID_BREAKPOINTS, dynamicBlocks.value)
     }
     else {
         return { customBlocks: [], staticBlocks: [] }

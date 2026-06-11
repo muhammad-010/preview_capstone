@@ -29,27 +29,27 @@ export const CHECK_IN_VALID_BREAKPOINTS: Breakpoint[] = [
     BREAKPOINT_XL,
 ]
 
-export const BLOCK_TEXT_ID = 'static-text'
-export const BLOCK_IMAGE_ID = 'image'
+export const BLOCK_TEXT_TYPE = 'static-text'
+export const BLOCK_IMAGE_TYPE = 'image'
 /** With dynamic variable */
-export const BLOCK_DYNAMIC_TEXT_ID = 'text'
+export const BLOCK_DYNAMIC_TEXT_TYPE = 'text'
 /** With dynamic variable */
-export const BLOCK_QR_IMAGE_ID = 'qr-image'
-export const BLOCK_IDS: string[] = [
-    BLOCK_TEXT_ID,
-    BLOCK_IMAGE_ID,
-    BLOCK_DYNAMIC_TEXT_ID,
-    BLOCK_QR_IMAGE_ID,
+export const BLOCK_QR_IMAGE_TYPE = 'qr-image'
+export const BLOCK_TYPES: string[] = [
+    BLOCK_TEXT_TYPE,
+    BLOCK_IMAGE_TYPE,
+    BLOCK_DYNAMIC_TEXT_TYPE,
+    BLOCK_QR_IMAGE_TYPE,
 ]
-export const DYNAMIC_BLOCK_IDS: string[] = [
-    BLOCK_DYNAMIC_TEXT_ID,
-    BLOCK_QR_IMAGE_ID,
+export const DYNAMIC_BLOCK_TYPES: string[] = [
+    BLOCK_DYNAMIC_TEXT_TYPE,
+    BLOCK_QR_IMAGE_TYPE,
 ]
-export const STATIC_BLOCK_SCANNER_QR_ID = 'scanner-qr'
-export const STATIC_BLOCK_INPUT_CARD_ID = 'input-card'
-export const STATIC_BLOCK_IDS: string[] = [
-    STATIC_BLOCK_SCANNER_QR_ID,
-    STATIC_BLOCK_INPUT_CARD_ID,
+export const STATIC_BLOCK_SCANNER_QR_TYPE = 'scanner-qr'
+export const STATIC_BLOCK_INPUT_CARD_TYPE = 'input-card'
+export const STATIC_BLOCK_TYPES: string[] = [
+    STATIC_BLOCK_SCANNER_QR_TYPE,
+    STATIC_BLOCK_INPUT_CARD_TYPE,
 ]
 
 export const BLOCK_STYLE_COLOR = STYLE_COLOR
@@ -107,8 +107,8 @@ export const BLOCK_IMAGE_DEFAULT_STYLE: BlockSetting[] = [
 ]
 
 export const BLOCK_TEXT_DEFAULT: ElementBlock = {
-    id: BLOCK_TEXT_ID,
-    type: BLOCK_TEXT_ID,
+    id: `{{ ${BLOCK_TEXT_TYPE} }}`,
+    type: BLOCK_TEXT_TYPE,
     label: 'Text',
     value: 'Hello World',
     setting: [],
@@ -120,8 +120,8 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
 }
 
 export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
-    id: BLOCK_IMAGE_ID,
-    type: BLOCK_IMAGE_ID,
+    id: `{{ ${BLOCK_IMAGE_TYPE} }}`,
+    type: BLOCK_IMAGE_TYPE,
     label: 'Image',
     value: 'https://placehold.co/100',
     setting: [],
@@ -138,8 +138,8 @@ export const CUSTOM_BLOCKS: ElementBlock[] = [
 ]
 
 export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
-    id: STATIC_BLOCK_SCANNER_QR_ID,
-    type: STATIC_BLOCK_SCANNER_QR_ID,
+    id: `{{ ${STATIC_BLOCK_SCANNER_QR_TYPE} }}`,
+    type: STATIC_BLOCK_SCANNER_QR_TYPE,
     label: 'QR Code',
     value: 'https://placehold.co/100?text=QR+Code',
     setting: [],
@@ -150,8 +150,8 @@ export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
 }
 
 export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
-    id: STATIC_BLOCK_INPUT_CARD_ID,
-    type: STATIC_BLOCK_INPUT_CARD_ID,
+    id: `{{ ${STATIC_BLOCK_INPUT_CARD_TYPE} }}`,
+    type: STATIC_BLOCK_INPUT_CARD_TYPE,
     label: 'Input Card',
     value: '',
     setting: [
