@@ -129,8 +129,6 @@ export interface Block {
 
 export interface ElementBlock extends Block {
     label: string
-    /** whether display the setting for this block */
-    editableData: boolean
     perBreakpoint?: Partial<Record<
         Breakpoint,
         Block

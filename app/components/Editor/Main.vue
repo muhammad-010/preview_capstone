@@ -710,9 +710,9 @@ function preview() {
             <!-- LEFT: ElementBlock list + resizable HTML preview -->
             <div class="flex flex-col gap-4">
                 <!-- CANVAS SETTINGS -->
-                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                    <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                     <template #header>
-                        <h3>Canvas Settings</h3>
+                        <h5>Canvas Settings</h5>
                     </template>
 
                     <div class="mb-4">
@@ -743,10 +743,10 @@ function preview() {
                 <!-- VARIANTS -->
                 <UCard
                     v-if="canvasSizeOptions.length > 1"
-                    :ui="{ body: 'p-2 sm:p-3' }"
+                    :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"
                 >
                     <template #header>
-                        <h3>Page Sizes</h3>
+                        <h5>Page Sizes</h5>
                     </template>
                     <div class="space-y-2">
                         <UFieldGroup
@@ -810,11 +810,11 @@ function preview() {
                 />
 
                 <!-- BLOCKS -->
-                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                    <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                     <template #header>
-                        <h3>Blocks</h3>
+                        <h5>Blocks</h5>
                     </template>
-                    <div class="space-y-2 overflow-y-auto max-h-48">
+                    <div class="space-y-2 overflow-y-scroll max-h-48">
                         <EditorBlock
                             v-for="card in customBlocks"
                             :key="card.id"
@@ -831,12 +831,12 @@ function preview() {
                 <!-- STATIC BLOCKS -->
                 <UCard
                     v-if="staticBlocks.length"
-                    :ui="{ body: 'p-2 sm:p-3' }"
+                    :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"
                 >
                     <template #header>
-                        <h3>Static Blocks</h3>
+                        <h5>Static Blocks</h5>
                     </template>
-                    <div class="space-y-2 overflow-y-auto max-h-48">
+                    <div class="space-y-2 overflow-y-scroll max-h-48">
                         <EditorBlock
                             v-for="block in staticBlocks"
                             :key="block.id"
@@ -853,9 +853,9 @@ function preview() {
 
                 <!-- RAW HTML (resizable) -->
                 <!-- <DevOnly> -->
-                <!--     <UCard :ui="{ body: 'p-2 sm:p-3' }"> -->
+                    <!-- <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"> -->
                 <!--         <template #header> -->
-                <!--             <h3>HTML Preview</h3> -->
+                <!--             <h5>HTML Preview</h5> -->
                 <!--         </template> -->
                 <!---->
                 <!--         <UTextarea -->
@@ -947,10 +947,10 @@ function preview() {
             <!-- RIGHT: Page settings and settings -->
             <div class="flex flex-col gap-4">
                 <!-- PAGE SETTINGS -->
-                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                    <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                     <template #header>
                         <div class="flex items-center justify-between gap-2">
-                            <h3>Page Settings</h3>
+                            <h5>Page Settings</h5>
                         </div>
                     </template>
 
@@ -995,11 +995,11 @@ function preview() {
                 <template v-if="selectedItem">
                     <!-- SETTINGS -->
                     <UCard
-                        v-if="selectedItem.withValue || selectedItem.editableData"
-                        :ui="{ body: 'p-2 sm:p-3' }"
+                        v-if="selectedItem.withValue || selectedItem.setting.filter(e => !e.hidden).length"
+                        :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"
                     >
                         <template #header>
-                            <h3>Block Settings</h3>
+                            <h5>Block Settings</h5>
                         </template>
 
                         <div
@@ -1012,10 +1012,8 @@ function preview() {
                                 />
                             </UFormField>
                         </div>
-                        <div
-                            v-if="selectedItem.editableData"
-                            class="mb-4"
-                        >
+
+                        <div class="mb-4">
                           <template
                             v-for="setting in selectedItem.setting"
                             :key="setting.key"
@@ -1031,9 +1029,9 @@ function preview() {
                     </UCard>
 
                     <!-- STYLE -->
-                    <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                    <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                         <template #header>
-                            <h3>Block Styles</h3>
+                            <h5>Block Styles</h5>
                         </template>
 
                         <template

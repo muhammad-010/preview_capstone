@@ -116,7 +116,6 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     x: 0,
     y: 0,
     withValue: true,
-    editableData: true,
 }
 
 export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
@@ -129,7 +128,6 @@ export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
     x: 0,
     y: 0,
     withValue: true,
-    editableData: true,
 }
 
 export const CUSTOM_BLOCKS: ElementBlock[] = [
@@ -146,7 +144,6 @@ export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
     style: [],
     x: 50,
     y: 50,
-    editableData: false,
 }
 
 export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
@@ -162,7 +159,6 @@ export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
     style: [],
     x: 50,
     y: 50,
-    editableData: true,
 }
 
 export const STATIC_BLOCKS: ElementBlock[] = [

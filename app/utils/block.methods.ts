@@ -189,8 +189,6 @@ export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): 
       style,
       x: 0,
       y: 0,
-      withValue: false,
-      editableData: true,
     })
   }
   
@@ -506,15 +504,13 @@ export function parseTemplateVariants(
                 const base = defaultMap[id]
 
                 if (!base) continue
-                const disableValue = !isDynamicBlock
                 block = {
                     ...base,
                     uid: el.group,
                     value: el.value,
-                    withValue: disableValue,
                     perBreakpoint: {},
                 }
-                if (block.setting.length <= 0) block.editableData = false
+                if (isDynamicBlock) block.withValue = false
 
                 blockMap[el.group] = block
             }
