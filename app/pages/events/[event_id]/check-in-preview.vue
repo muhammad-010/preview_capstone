@@ -22,7 +22,7 @@ const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event
 const templateVariables = computed(() => variableData.value?.variables || [])
 const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 
-const settings = ref<SavedVariant[]>([])
+const settings = ref<TemplateVariant[]>([])
 
 function getLocalStorage<T>(key: string): T | null {
     if (!import.meta.client) return null
@@ -37,7 +37,7 @@ function getLocalStorage<T>(key: string): T | null {
 }
 
 onMounted(() => {
-    settings.value = getLocalStorage<SavedVariant[]>(LOCALSTORAGE_CHECK_IN_PREVIEW) || []
+    settings.value = getLocalStorage<TemplateVariant[]>(LOCALSTORAGE_CHECK_IN_PREVIEW) || []
 })
 
 const background = computed<Record<Breakpoint, string | undefined>>(() => {
@@ -46,7 +46,7 @@ const background = computed<Record<Breakpoint, string | undefined>>(() => {
 
     for (const bp of BREAKPOINTS) {
         const variant = settings.value.find(v => v.slug === bp)
-        res[bp] = variant?.bgImage || undefined
+        res[bp] = variant?.background_image_url || undefined
     }
 
     return res
@@ -54,7 +54,7 @@ const background = computed<Record<Breakpoint, string | undefined>>(() => {
 const blocks = computed<{
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
-}>(() => mapSavedVariantToBlocks(settings.value, dynamicBlocks.value))
+}>(() => mapTemplateVariantToBlocks(settings.value, CHECK_IN_VALID_BREAKPOINTS, dynamicBlocks.value))
 
 useHead({
     title: computed(() => `[PREVIEW] Check In - ${event.value ? event.value.name : 'Event'}`),

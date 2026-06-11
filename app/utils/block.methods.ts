@@ -181,7 +181,7 @@ export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): 
     }
 
     blocks.push({
-      id: el.value, // because somehow BE can't provide different type for each text
+      id: el.value, // because somehow BE can't provide different type for each dynamic element
       type: el.type,
       label: el.name,
       value: el.value,
@@ -421,57 +421,15 @@ function filterBlockData(
     }, [])
 }
 
-export function templateVariantToSavedVariant(variant: TemplateVariant): SavedVariant {
-    const customBlock: ElementBlock[] = []
-    const staticBlock: ElementBlock[] = []
-
-    if (variant.elements === null) variant.elements = []
-    for (const el of variant.elements) {
-        const isCustom = BLOCK_IDS.some(b => b === el.type)
-        const blockDef = isCustom
-            ? CUSTOM_BLOCKS.find(b => b.id === el.type)
-            : STATIC_BLOCKS.find(b => b.id === el.type)
-        if (!blockDef) continue
-
-        const disableValue = !DYNAMIC_BLOCK_IDS.includes(blockDef.id)
-        const saved: ElementBlock = {
-            ...blockDef,
-            elementId: el.element_id,
-            uid: el.group,
-            id: DYNAMIC_BLOCK_IDS.includes(el.type) ? el.value : el.type,
-            x: el.position_x,
-            y: el.position_y,
-            value: el.value,
-            withValue: disableValue,
-            style: filterBlockData('style', el.style, blockDef),
-            setting: filterBlockData('setting', el.setting, blockDef),
-        }
-        if (saved.setting.length <= 0) saved.editableData = false
-
-        if (isCustom) {
-            customBlock.push(saved)
-        }
-        else {
-            staticBlock.push(saved)
-        }
-    }
-
-    return {
-        variantId: variant.variant_id,
-        bgImage: variant.background_image_url || '',
-        bgImageUploadKey: '',
-        slug: variant.slug,
-        customBlock,
-        staticBlock,
-    }
-}
-
-export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant {
+export function makeTemplateVariant(
+  blocks: ElementBlock[],
+  slug: string,
+  bgImage: string,
+  bgImageUploadKey: string,
+  variantId?: number
+): TemplateVariant {
     const elements: TemplateElement[] = []
-
-    const allBlocks = [...ss.customBlock, ...ss.staticBlock]
-
-    for (const block of allBlocks) {
+    for (const block of blocks) {
         // do not accept undefined uid
         // as it's for grouping the element
         if (block.uid === undefined) continue
@@ -490,91 +448,18 @@ export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant
     }
 
     const variant: TemplateVariant = {
-        variant_id: ss.variantId,
-        slug: ss.slug,
+        variant_id: variantId,
+        slug: slug,
         setting: {},
         elements,
     }
-    if (ss.bgImage !== '') variant.background_image_url = ss.bgImage
-    if (ss.bgImageUploadKey !== '') variant.background_url_upload_key = ss.bgImageUploadKey
+    if (bgImage !== '') variant.background_image_url = bgImage
+    if (bgImageUploadKey !== '') variant.background_url_upload_key = bgImageUploadKey
 
     return variant
 }
 
-export function mapSavedVariantToBlocks(variants: SavedVariant[], dynamicBlocks?: ElementBlock[]): {
-    customBlocks: ElementBlock[]
-    staticBlocks: ElementBlock[]
-} {
-    const blockMap: Record<number, ElementBlock> = {}
-
-    const defaultMap: Record<string, ElementBlock> = {}
-    for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
-    for (const b of CUSTOM_BLOCKS) defaultMap[b.id] = b
-    if (dynamicBlocks) {
-      for (const b of dynamicBlocks) defaultMap[b.id] = b
-    }
-
-    for (const variant of variants) {
-        const bp = variant.slug as Breakpoint
-
-        for (const el of [...variant.customBlock, ...variant.staticBlock]) {
-            // do not accept undefined uid
-            // as it's for grouping the element
-            if (el.uid === undefined) continue
-            let block = blockMap[el.uid]
-
-            if (!block) {
-                const base = defaultMap[el.id]
-
-                if (!base) continue
-                const disableValue = !DYNAMIC_BLOCK_IDS.includes(base.type)
-                block = {
-                    ...base,
-                    value: el.value,
-                    withValue: disableValue,
-                    perBreakpoint: {},
-                }
-                if (block.setting.length <= 0) block.editableData = false
-
-                blockMap[el.uid] = block
-            }
-
-            block.perBreakpoint![bp] = {
-                elementId: el.elementId,
-                uid: el.uid,
-                id: DYNAMIC_BLOCK_IDS.includes(el.type) ? el.value : el.id,
-                type: el.type,
-                x: el.x,
-                y: el.y,
-                value: el.value,
-                withValue: block.withValue,
-                style: el.style,
-                setting: el.setting,
-            }
-        }
-    }
-
-    const allBlocks = Object.values(blockMap)
-
-    const staticBlocks: ElementBlock[] = []
-    const customBlocks: ElementBlock[] = []
-
-    for (const block of allBlocks) {
-        if (STATIC_BLOCK_IDS.includes(block.type)) {
-            staticBlocks.push(block)
-        }
-        else {
-            customBlocks.push(block)
-        }
-    }
-
-    return {
-        customBlocks,
-        staticBlocks,
-    }
-}
-
-export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBreakpoints: Breakpoint[]): {
+export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBreakpoints: Breakpoint[], dynamicBlocks?: ElementBlock[]): {
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
     breakpoints: Partial<Record<Breakpoint, number | undefined>>
@@ -585,6 +470,8 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
     const defaultMap: Record<string, ElementBlock> = {}
     for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
     for (const b of CUSTOM_BLOCKS) defaultMap[b.id] = b
+    if (dynamicBlocks) for (const b of dynamicBlocks) defaultMap[b.id] = b
+
     const breakpoints: Partial<Record<Breakpoint, number | undefined>> = {}
     const backgroundImages: Partial<Record<Breakpoint, BackgroundImage>> = {}
 
@@ -607,10 +494,13 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
             let block = blockMap[el.group]
 
             if (!block) {
-                const base = defaultMap[el.type]
+                // because somehow BE can't provide different type for each dynamic element
+                // use value as id if it's dynamic element
+                const isDynamicBlock = DYNAMIC_BLOCK_IDS.includes(el.type)
+                const base = defaultMap[isDynamicBlock ? el.value : el.type]
 
                 if (!base) continue
-                const disableValue = !DYNAMIC_BLOCK_IDS.includes(base.type)
+                const disableValue = !isDynamicBlock
                 block = {
                     ...base,
                     uid: el.group,

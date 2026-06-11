@@ -599,43 +599,26 @@ function groupElementBlock(bp: Breakpoint): { customBlock: ElementBlock[], stati
     return { customBlock, staticBlock }
 }
 
-function makeSettings(): SavedVariant[] {
+function makeVariants(): TemplateVariant[] {
     return selectedCanvasSizes.value.map((size) => {
         const slug = size.id
         const { customBlock, staticBlock } = groupElementBlock(slug)
 
-        return {
-            variantId: size.variantId,
-            bgImage: bgImage.value?.[slug]?.dataUrl || '',
-            bgImageUploadKey: '',
-            slug,
-            customBlock,
-            staticBlock,
-        }
+        return makeTemplateVariant(
+          [...customBlock, ...staticBlock],
+          size.id,
+          '',
+          bgImage.value?.[slug]?.uploadKey || '',
+          size.variantId,
+        )
     })
 }
 
 function saveToLocalStorage() {
     if (!props.previewKey) return
 
-    const settings = makeSettings()
-    localStorage.setItem(props.previewKey, JSON.stringify(settings))
-}
-
-function makeVariants(): TemplateVariant[] {
-    return selectedCanvasSizes.value.map((size) => {
-        const slug = size.id
-        const { customBlock, staticBlock } = groupElementBlock(slug)
-
-        return savedVariantToTemplateVariant({
-            variantId: size.variantId,
-            bgImage: '',
-            bgImageUploadKey: bgImage.value?.[slug]?.uploadKey || '',
-            slug,
-            customBlock,
-            staticBlock,
-        })
-    })
+    const variants = makeVariants()
+    localStorage.setItem(props.previewKey, JSON.stringify(variants))
 }
 
 async function saveTemplates(cb?: () => void) {

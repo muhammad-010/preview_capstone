@@ -137,19 +137,4 @@ export interface ElementBlock extends Block {
     >>
 }
 
-export interface SavedVariant {
-    variantId?: number
-    slug: string
-    bgImage: string
-    bgImageUploadKey: string
-    customBlock: ElementBlock[]
-    staticBlock: ElementBlock[]
-}
-
-export interface SavedTemplate {
-    templateId?: number
-    type?: string
-    settings: SavedVariant[]
-}
-
 export type BackgroundPerBreakpoint = Record<Breakpoint, string | undefined>
