@@ -29,6 +29,13 @@ const { data: templateData } = useApi(`/api/tenant/${tenantId.value}/event/${eve
     }),
 })
 const template = computed<Template | null>(() => templateData.value ?? null)
+const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${template.value?.template_id}/variable`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const templateVariables = computed(() => variableData.value?.variables || [])
+const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 const background = computed<Record<Breakpoint, string | undefined>>(() => {
     const res = {} as Record<Breakpoint, string | undefined>
     if (!template.value || !template.value.variants) return res
@@ -45,8 +52,7 @@ const blocks = computed<{
     staticBlocks: ElementBlock[]
 }>(() => {
     if (template.value) {
-        const { customBlocks, staticBlocks } = mapTemplateVariantToBlocks(template.value.variants, CHECK_IN_VALID_BREAKPOINTS)
-        return { customBlocks, staticBlocks }
+        return mapTemplateVariantToBlocks(template.value.variants, CHECK_IN_VALID_BREAKPOINTS, dynamicBlocks.value)
     }
     else {
         return { customBlocks: [], staticBlocks: [] }
