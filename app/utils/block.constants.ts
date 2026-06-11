@@ -29,19 +29,27 @@ export const CHECK_IN_VALID_BREAKPOINTS: Breakpoint[] = [
     BREAKPOINT_XL,
 ]
 
-export const BLOCK_TEXT_ID = 'text'
-export const BLOCK_IMAGE_ID = 'image'
-export const BLOCK_QR_IMAGE_ID = 'qr-image'
-export const BLOCK_IDS: string[] = [
-    BLOCK_TEXT_ID,
-    BLOCK_IMAGE_ID,
-    BLOCK_QR_IMAGE_ID,
+export const BLOCK_TEXT_TYPE = 'static-text'
+export const BLOCK_IMAGE_TYPE = 'image'
+/** With dynamic variable */
+export const BLOCK_DYNAMIC_TEXT_TYPE = 'text'
+/** With dynamic variable */
+export const BLOCK_QR_IMAGE_TYPE = 'qr-image'
+export const BLOCK_TYPES: string[] = [
+    BLOCK_TEXT_TYPE,
+    BLOCK_IMAGE_TYPE,
+    BLOCK_DYNAMIC_TEXT_TYPE,
+    BLOCK_QR_IMAGE_TYPE,
 ]
-export const STATIC_BLOCK_SCANNER_QR_ID = 'scanner-qr'
-export const STATIC_BLOCK_INPUT_CARD_ID = 'input-card'
-export const STATIC_BLOCK_IDS: string[] = [
-    STATIC_BLOCK_SCANNER_QR_ID,
-    STATIC_BLOCK_INPUT_CARD_ID,
+export const DYNAMIC_BLOCK_TYPES: string[] = [
+    BLOCK_DYNAMIC_TEXT_TYPE,
+    BLOCK_QR_IMAGE_TYPE,
+]
+export const STATIC_BLOCK_SCANNER_QR_TYPE = 'scanner-qr'
+export const STATIC_BLOCK_INPUT_CARD_TYPE = 'input-card'
+export const STATIC_BLOCK_TYPES: string[] = [
+    STATIC_BLOCK_SCANNER_QR_TYPE,
+    STATIC_BLOCK_INPUT_CARD_TYPE,
 ]
 
 export const BLOCK_STYLE_COLOR = STYLE_COLOR
@@ -75,6 +83,7 @@ export const BLOCK_STYLE_FONT_WEIGHT_OPTIONS = [
 
 export const BLOCK_SETTING_WIDTH = STYLE_WIDTH
 export const BLOCK_SETTING_HEIGHT = STYLE_HEIGHT
+export const BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE = 'default-dynamic-value'
 export const BLOCK_SETTING_TITLE = 'title'
 export const BLOCK_SETTING_INPUT_PLACEHOLDER = 'input-placeholder'
 export const BLOCK_SETTING_BUTTON_TEXT = 'button-text'
@@ -84,73 +93,62 @@ export const BLOCK_SETTING_LIST: string[] = [
     BLOCK_SETTING_BUTTON_TEXT,
 ]
 
+export const BLOCK_TEXT_DEFAULT_STYLE: BlockSetting[] = [
+    { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
+    // { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
+    { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'text', value: '1rem' },
+    { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'select', value: '500', options: cloneObject(BLOCK_STYLE_FONT_WEIGHT_OPTIONS) },
+    { key: BLOCK_STYLE_FONT_STYLE, label: 'Italic', type: 'checkbox', value: 'normal', trueValue: 'italic', falseValue: 'normal' },
+]
+
+export const BLOCK_IMAGE_DEFAULT_STYLE: BlockSetting[] = [
+    { key: BLOCK_STYLE_WIDTH, label: 'Width', type: 'text', value: '100px' },
+    { key: BLOCK_STYLE_HEIGHT, label: 'Height', type: 'text', value: '100px' },
+]
+
 export const BLOCK_TEXT_DEFAULT: ElementBlock = {
-    id: BLOCK_TEXT_ID,
+    id: `{{ ${BLOCK_TEXT_TYPE} }}`,
+    type: BLOCK_TEXT_TYPE,
     label: 'Text',
     value: 'Hello World',
     setting: [],
-    style: [
-        { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
-        // { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
-        { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'text', value: '1rem' },
-        { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'select', value: '500', options: cloneObject(BLOCK_STYLE_FONT_WEIGHT_OPTIONS) },
-        { key: BLOCK_STYLE_FONT_STYLE, label: 'Italic', type: 'checkbox', value: 'normal', trueValue: 'italic', falseValue: 'normal' },
-    ],
+    style: cloneObject(BLOCK_TEXT_DEFAULT_STYLE),
     x: 0,
     y: 0,
     withValue: true,
-    editableData: true,
 }
 
 export const BLOCK_IMAGE_DEFAULT: ElementBlock = {
-    id: BLOCK_IMAGE_ID,
+    id: `{{ ${BLOCK_IMAGE_TYPE} }}`,
+    type: BLOCK_IMAGE_TYPE,
     label: 'Image',
     value: 'https://placehold.co/100',
     setting: [],
-    style: [
-        { key: BLOCK_STYLE_WIDTH, label: 'Width', type: 'text', value: '100px' },
-        { key: BLOCK_STYLE_HEIGHT, label: 'Height', type: 'text', value: '100px' },
-    ],
+    style: cloneObject(BLOCK_IMAGE_DEFAULT_STYLE),
     x: 0,
     y: 0,
     withValue: true,
-    editableData: true,
-}
-
-export const BLOCK_QR_IMAGE_DEFAULT: ElementBlock = {
-    id: BLOCK_QR_IMAGE_ID,
-    label: 'QR Image',
-    value: 'https://placehold.co/100',
-    setting: [
-        { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '100px' },
-        { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '100px' },
-    ],
-    style: [],
-    x: 0,
-    y: 0,
-    withValue: true,
-    editableData: true,
 }
 
 export const CUSTOM_BLOCKS: ElementBlock[] = [
     BLOCK_TEXT_DEFAULT,
     BLOCK_IMAGE_DEFAULT,
-    BLOCK_QR_IMAGE_DEFAULT,
 ]
 
 export const STATIC_BLOCK_SCANNER_QR: ElementBlock = {
-    id: STATIC_BLOCK_SCANNER_QR_ID,
+    id: `{{ ${STATIC_BLOCK_SCANNER_QR_TYPE} }}`,
+    type: STATIC_BLOCK_SCANNER_QR_TYPE,
     label: 'QR Code',
     value: 'https://placehold.co/100?text=QR+Code',
     setting: [],
     style: [],
     x: 50,
     y: 50,
-    editableData: false,
 }
 
 export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
-    id: STATIC_BLOCK_INPUT_CARD_ID,
+    id: `{{ ${STATIC_BLOCK_INPUT_CARD_TYPE} }}`,
+    type: STATIC_BLOCK_INPUT_CARD_TYPE,
     label: 'Input Card',
     value: '',
     setting: [
@@ -161,7 +159,6 @@ export const STATIC_BLOCK_INPUT_CARD: ElementBlock = {
     style: [],
     x: 50,
     y: 50,
-    editableData: true,
 }
 
 export const STATIC_BLOCKS: ElementBlock[] = [

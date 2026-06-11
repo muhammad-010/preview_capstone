@@ -110,6 +110,10 @@ export type TenantEventTemplateResult = Result<{
     template: Template[]
 }>
 
+export type TenantEventTemplateVariableResult = Result<{
+    variables: TemplateElementDynamicVar[]
+}>
+
 export type UploadMediaResult = Result<{
     upload_key: string
 }>

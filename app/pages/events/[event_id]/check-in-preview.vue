@@ -3,14 +3,26 @@ const route = useRoute()
 const eventId = Number(route.params.event_id)
 const { tenantId } = useUserState()
 
-const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`, {
+const { data } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`, {
     transform: res => ({
         ...res.data,
     }),
 })
 const event = computed<TenantEvent | null>(() => data.value ?? null)
+const { data: templateData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/find`, {
+    transform: res => res.data,
+})
+const templates = computed(() => templateData.value?.template || [])
+const checkInTemplate = computed(() => templates.value.find(item => item.type === TEMPLATE_SCANQR))
+const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${checkInTemplate.value?.template_id}/variable`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const templateVariables = computed(() => variableData.value?.variables || [])
+const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 
-const settings = ref<SavedVariant[]>([])
+const settings = ref<TemplateVariant[]>([])
 
 function getLocalStorage<T>(key: string): T | null {
     if (!import.meta.client) return null
@@ -25,7 +37,7 @@ function getLocalStorage<T>(key: string): T | null {
 }
 
 onMounted(() => {
-    settings.value = getLocalStorage<SavedVariant[]>(LOCALSTORAGE_CHECK_IN_PREVIEW) || []
+    settings.value = getLocalStorage<TemplateVariant[]>(LOCALSTORAGE_CHECK_IN_PREVIEW) || []
 })
 
 const background = computed<Record<Breakpoint, string | undefined>>(() => {
@@ -34,7 +46,7 @@ const background = computed<Record<Breakpoint, string | undefined>>(() => {
 
     for (const bp of BREAKPOINTS) {
         const variant = settings.value.find(v => v.slug === bp)
-        res[bp] = variant?.bgImage || undefined
+        res[bp] = variant?.background_image_url || undefined
     }
 
     return res
@@ -42,7 +54,7 @@ const background = computed<Record<Breakpoint, string | undefined>>(() => {
 const blocks = computed<{
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
-}>(() => mapSavedVariantToBlocks(settings.value))
+}>(() => parseTemplateVariants(settings.value, CHECK_IN_VALID_BREAKPOINTS, dynamicBlocks.value))
 
 useHead({
     title: computed(() => `[PREVIEW] Check In - ${event.value ? event.value.name : 'Event'}`),
@@ -64,6 +76,7 @@ definePageMeta({
             <PageCheckInMain
                 :tenant-id="tenantId"
                 :event-id="eventId"
+                :dynamic-blocks="dynamicBlocks"
                 :custom-block-settings="blocks.customBlocks"
                 :static-block-settings="blocks.staticBlocks"
                 is-preview

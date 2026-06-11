@@ -11,6 +11,7 @@ defineProps<{
         class="
             py-2 px-4
             border border-neutral-950/25 dark:border-neutral-50/25
+            text-sm
             rounded w-52
         "
         :class="[

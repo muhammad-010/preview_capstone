@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */export function isStylingSuffix(value: string): value is StylingSuffix {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function isStylingSuffix(value: string): value is StylingSuffix {
     return STYLING_SUFFIXES.includes(value as StylingSuffix)
 }
 
@@ -10,12 +11,17 @@ export function getBlockStyleValue(style: BlockSetting[], key: string): string |
     return style.find(s => s.key === key)?.value
 }
 
-export function blockValueIsTemplate(str: string): boolean {
-    return /^\{\{\s*.+?\s*\}\}$/.test(str)
+export function getBlockValue(block: Block): string | boolean | number {
+    if (DYNAMIC_BLOCK_TYPES.includes(block.type)) {
+        return block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)?.value || block.value || ''
+    }
+    else {
+        return block.value || ''
+    }
 }
 
 export function compilePreviewStyle(block: Block) {
-    if (block.id === BLOCK_TEXT_ID) {
+    if (block.type === BLOCK_TEXT_TYPE || block.type === BLOCK_DYNAMIC_TEXT_TYPE) {
         return `
             ${BLOCK_STYLE_COLOR}:${getBlockStyleValue(block.style, BLOCK_STYLE_COLOR)};
             ${BLOCK_STYLE_FONT_SIZE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_SIZE)};
@@ -24,7 +30,7 @@ export function compilePreviewStyle(block: Block) {
         `
     }
 
-    if (block.id === BLOCK_IMAGE_ID || block.id === BLOCK_QR_IMAGE_ID) {
+    if (block.type === BLOCK_IMAGE_TYPE || block.type === BLOCK_QR_IMAGE_TYPE) {
         return `
             ${BLOCK_STYLE_WIDTH}:${getBlockStyleValue(block.style, BLOCK_STYLE_WIDTH)};
             ${BLOCK_STYLE_HEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_HEIGHT)};
@@ -42,19 +48,44 @@ export function renderHtmlBlock(block: ElementBlock) {
         .map(([key, value]) => `${key}: ${value};`)
         .join(' ')
 
-    if (block.id === BLOCK_TEXT_ID) {
+    if (block.type === BLOCK_TEXT_TYPE) {
         return `
           <p class="${cssClass}" style="${cssStyle}">
               ${block.value || ''}
           </p>
       `
     }
-    else if (block.id === BLOCK_IMAGE_ID || block.id === BLOCK_QR_IMAGE_ID) {
+    else if (block.type === BLOCK_IMAGE_TYPE) {
         const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
         const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
+
         return `
           <img
               src="${block.value || ''}"
+              class="${cssClass}"
+              style="${cssStyle}"
+              ${settingWidth ? `width=${settingWidth.value}` : ''}
+              ${settingHeight ? `width=${settingHeight.value}` : ''}
+          />
+      `
+    }
+    else if (block.type === BLOCK_DYNAMIC_TEXT_TYPE) {
+        const defaultValue = block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)
+
+        return `
+          <p class="${cssClass}" style="${cssStyle}">
+              ${defaultValue?.value || block.value || ''}
+          </p>
+      `
+    }
+    else if (block.type === BLOCK_QR_IMAGE_TYPE) {
+        const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
+        const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
+        const defaultValue = block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)
+
+        return `
+          <img
+              src="${defaultValue?.value || block.value || ''}"
               class="${cssClass}"
               style="${cssStyle}"
               ${settingWidth ? `width=${settingWidth.value}` : ''}
@@ -68,7 +99,10 @@ export function renderHtmlBlock(block: ElementBlock) {
 }
 
 export function renderPreviewHtml(block: Block, value: string | boolean | number, previewStyle: string) {
-    if (block.id === BLOCK_TEXT_ID) {
+    if (
+        block.type === BLOCK_TEXT_TYPE
+        || block.type === BLOCK_DYNAMIC_TEXT_TYPE
+    ) {
         return `
             <p style="${previewStyle}">
                 ${value || ''}
@@ -76,12 +110,13 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
         `
     }
     else if (
-        block.id === BLOCK_IMAGE_ID
-        || block.id === BLOCK_QR_IMAGE_ID
-        || (block.id === STATIC_BLOCK_SCANNER_QR_ID)
+        block.type === BLOCK_IMAGE_TYPE
+        || block.type === BLOCK_QR_IMAGE_TYPE
+        || (block.type === STATIC_BLOCK_SCANNER_QR_TYPE)
     ) {
         const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
         const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
+
         return `
             <img
                 src="${value || ''}"
@@ -91,19 +126,23 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
             />
         `
     }
-    else if (block.id === STATIC_BLOCK_INPUT_CARD_ID) {
+    else if (block.type === STATIC_BLOCK_INPUT_CARD_TYPE) {
+        const settingTitle = block.setting.find(d => d.key === BLOCK_SETTING_TITLE)
+        const settingPlaceholder = block.setting.find(d => d.key === BLOCK_SETTING_INPUT_PLACEHOLDER)
+        const settingButtonText = block.setting.find(d => d.key === BLOCK_SETTING_BUTTON_TEXT)
+
         return `
             <div style="width:200px; padding:16px; border:1px solid #ccc; border-radius:8px; background:#fff; text-align: center">
                 <h3 style="font-size:2rem; margin:0 0 12px 0;">
-                    ${block.setting.find(d => d.key === BLOCK_SETTING_TITLE)?.value || 'Title'}
+                    ${settingTitle?.value || 'Title'}
                 </h3>
                 <input
                     type="text"
-                    placeholder="${block.setting.find(d => d.key === BLOCK_SETTING_INPUT_PLACEHOLDER)?.value || 'Placeholder'}"
+                    placeholder="${settingPlaceholder?.value || 'Placeholder'}"
                     style="width:90%; padding:8px; font-size:1rem; border:1px solid #ccc; border-radius:4px; margin-bottom:12px;"
                 />
                 <button style="width:100%; padding:8px; background:#007bff; color:#fff; border:none; border-radius:4px;">
-                    ${block.setting.find(d => d.key === BLOCK_SETTING_BUTTON_TEXT)?.value || 'Submit'}
+                    ${settingButtonText?.value || 'Submit'}
                 </button>
             </div>
         `
@@ -111,6 +150,50 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
     else {
         return ''
     }
+}
+
+export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): ElementBlock[] {
+    const blocks: ElementBlock[] = []
+
+    for (let idx = 0; idx < elements.length; idx++) {
+        const el = elements[idx]!
+        if (!DYNAMIC_BLOCK_TYPES.includes(el.type)) continue
+
+        const style: BlockSetting[] = []
+        const setting: BlockSetting[] = [
+            {
+                key: BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE,
+                label: 'Default Preview Value',
+                type: 'text',
+                value: el.default_value,
+                hidden: true,
+            },
+        ]
+
+        if (el.type === BLOCK_DYNAMIC_TEXT_TYPE) {
+            style.push(...cloneObject(BLOCK_TEXT_DEFAULT_STYLE))
+        }
+        else if (el.type === BLOCK_QR_IMAGE_TYPE) {
+            style.push(...cloneObject(BLOCK_IMAGE_DEFAULT_STYLE))
+            setting.push(
+                { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '100px' },
+                { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '100px' },
+            )
+        }
+
+        blocks.push({
+            id: el.value, // because somehow BE can't provide different type for each dynamic element
+            type: el.type,
+            label: el.name,
+            value: el.value,
+            setting,
+            style,
+            x: 0,
+            y: 0,
+        })
+    }
+
+    return blocks
 }
 
 export function getPositionStyle(block: Block) {
@@ -203,7 +286,7 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
     }, cloneObject(empty))
 }
 
-export function invitationEmailHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+export function getInvitationEmailHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
     return `
     <!DOCTYPE html>
     <html>
@@ -255,7 +338,7 @@ export function invitationEmailHtml(bgImage: BackgroundImage, width: number, hei
     `
 }
 
-export function checkInPageHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+export function getCheckInPageHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
     return `
     <!DOCTYPE html>
     <html>
@@ -337,63 +420,39 @@ function filterBlockData(
     }, [])
 }
 
-export function templateVariantToSavedVariant(variant: TemplateVariant): SavedVariant {
-    const customBlock: ElementBlock[] = []
-    const staticBlock: ElementBlock[] = []
-
-    if (variant.elements === null) variant.elements = []
-    for (const el of variant.elements) {
-        const isCustom = BLOCK_IDS.some(b => b === el.type)
-        const blockDef = isCustom
-            ? CUSTOM_BLOCKS.find(b => b.id === el.type)
-            : STATIC_BLOCKS.find(b => b.id === el.type)
-        if (!blockDef) continue
-
-        const saved: ElementBlock = {
-            ...blockDef,
-            elementId: el.element_id,
-            uid: el.group,
-            id: el.type,
-            x: el.position_x,
-            y: el.position_y,
-            value: el.value,
-            withValue: !blockValueIsTemplate(el.value),
-            style: filterBlockData('style', el.style, blockDef),
-            setting: filterBlockData('setting', el.setting, blockDef),
+export function parseDynamicVariantsElement(variants: TemplateVariant[]): TemplateVariant[] {
+    const parsed: TemplateVariant[] = []
+    for (const variant of variants) {
+        for (const element of variant.elements) {
+            switch (element.type) {
+                case BLOCK_DYNAMIC_TEXT_TYPE:
+                    element.type = BLOCK_TEXT_TYPE
+                    break
+                default:
+                    break
+            }
         }
-        if (saved.setting.length <= 0) saved.editableData = false
-
-        if (isCustom) {
-            customBlock.push(saved)
-        }
-        else {
-            staticBlock.push(saved)
-        }
+        parsed.push(variant)
     }
-
-    return {
-        variantId: variant.variant_id,
-        bgImage: variant.background_image_url || '',
-        bgImageUploadKey: '',
-        slug: variant.slug,
-        customBlock,
-        staticBlock,
-    }
+    return parsed
 }
 
-export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant {
+export function makeTemplateVariant(
+    blocks: ElementBlock[],
+    slug: string,
+    bgImage: string,
+    bgImageUploadKey: string,
+    variantId?: number,
+): TemplateVariant {
     const elements: TemplateElement[] = []
-
-    const allBlocks = [...ss.customBlock, ...ss.staticBlock]
-
-    for (const block of allBlocks) {
+    for (const block of blocks) {
         // do not accept undefined uid
         // as it's for grouping the element
         if (block.uid === undefined) continue
         const el: TemplateElement = {
             element_id: block.elementId,
             value: block.value,
-            type: block.id,
+            type: block.type,
             group: block.uid,
             position_x: block.x,
             position_y: block.y,
@@ -405,86 +464,23 @@ export function savedVariantToTemplateVariant(ss: SavedVariant): TemplateVariant
     }
 
     const variant: TemplateVariant = {
-        variant_id: ss.variantId,
-        slug: ss.slug,
+        variant_id: variantId,
+        slug: slug,
         setting: {},
         elements,
     }
-    if (ss.bgImage !== '') variant.background_image_url = ss.bgImage
-    if (ss.bgImageUploadKey !== '') variant.background_url_upload_key = ss.bgImageUploadKey
+    if (bgImage !== '') variant.background_image_url = bgImage
+    if (bgImageUploadKey !== '') variant.background_url_upload_key = bgImageUploadKey
 
     return variant
 }
 
-export function mapSavedVariantToBlocks(variants: SavedVariant[]): {
-    customBlocks: ElementBlock[]
-    staticBlocks: ElementBlock[]
-} {
-    const blockMap: Record<number, ElementBlock> = {}
-
-    const defaultMap: Record<string, ElementBlock> = {}
-    for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
-    for (const b of CUSTOM_BLOCKS) defaultMap[b.id] = b
-
-    for (const variant of variants) {
-        const bp = variant.slug as Breakpoint
-
-        for (const el of [...variant.customBlock, ...variant.staticBlock]) {
-            // do not accept undefined uid
-            // as it's for grouping the element
-            if (el.uid === undefined) continue
-            let block = blockMap[el.uid]
-
-            if (!block) {
-                const base = defaultMap[el.id]
-
-                if (!base) continue
-                block = {
-                    ...base,
-                    value: el.value,
-                    withValue: !blockValueIsTemplate(el.value),
-                    perBreakpoint: {},
-                }
-                if (block.setting.length <= 0) block.editableData = false
-
-                blockMap[el.uid] = block
-            }
-
-            block.perBreakpoint![bp] = {
-                elementId: el.elementId,
-                uid: el.uid,
-                id: el.id,
-                x: el.x,
-                y: el.y,
-                value: el.value,
-                withValue: !blockValueIsTemplate(el.value),
-                style: el.style,
-                setting: el.setting,
-            }
-        }
-    }
-
-    const allBlocks = Object.values(blockMap)
-
-    const staticBlocks: ElementBlock[] = []
-    const customBlocks: ElementBlock[] = []
-
-    for (const block of allBlocks) {
-        if (STATIC_BLOCK_IDS.includes(block.id)) {
-            staticBlocks.push(block)
-        }
-        else {
-            customBlocks.push(block)
-        }
-    }
-
-    return {
-        customBlocks,
-        staticBlocks,
-    }
-}
-
-export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBreakpoints: Breakpoint[]): {
+export function parseTemplateVariants(
+    variants: TemplateVariant[],
+    validBreakpoints: Breakpoint[],
+    dynamicBlocks?: ElementBlock[],
+    populateBreakpoint?: boolean,
+): {
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
     breakpoints: Partial<Record<Breakpoint, number | undefined>>
@@ -495,6 +491,8 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
     const defaultMap: Record<string, ElementBlock> = {}
     for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
     for (const b of CUSTOM_BLOCKS) defaultMap[b.id] = b
+    if (dynamicBlocks) for (const b of dynamicBlocks) defaultMap[b.id] = b
+
     const breakpoints: Partial<Record<Breakpoint, number | undefined>> = {}
     const backgroundImages: Partial<Record<Breakpoint, BackgroundImage>> = {}
 
@@ -511,20 +509,26 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
 
         if (variant.elements === null) variant.elements = []
         for (const el of variant.elements) {
-            let block = blockMap[el.group]
+            // do not accept undefined uid
+            // as it's for grouping the element
+            if (el.group === undefined) continue
+            const isDynamicBlock = DYNAMIC_BLOCK_TYPES.includes(el.type)
+            const id = isDynamicBlock ? el.value : `{{ ${el.type} }}`
 
+            let block = blockMap[el.group]
             if (!block) {
-                const base = defaultMap[el.type]
+                // because somehow BE can't provide different type for each dynamic element
+                // use value as id if it's dynamic element
+                const base = defaultMap[id]
 
                 if (!base) continue
                 block = {
                     ...base,
                     uid: el.group,
                     value: el.value,
-                    withValue: !blockValueIsTemplate(el.value),
                     perBreakpoint: {},
                 }
-                if (block.setting.length <= 0) block.editableData = false
+                if (isDynamicBlock) block.withValue = false
 
                 blockMap[el.group] = block
             }
@@ -532,11 +536,12 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
             block.perBreakpoint![bp] = {
                 elementId: el.element_id,
                 uid: el.group,
-                id: el.type,
+                id,
+                type: el.type,
                 x: el.position_x,
                 y: el.position_y,
                 value: el.value,
-                withValue: !blockValueIsTemplate(el.value),
+                withValue: block.withValue,
                 style: el.style && Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : cloneObject(block.style),
                 setting: el.setting && Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : cloneObject(block.setting),
             }
@@ -555,16 +560,18 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
             continue
         }
 
-        for (const validBp of validBreakpoints) {
+        if (populateBreakpoint) {
+            for (const validBp of validBreakpoints) {
             // set block breakpoint data for unsaved breakpoint
             // so it can render when valid breakpoints added
-            if (block.perBreakpoint![validBp] === undefined) {
-                block.perBreakpoint![validBp] = cloneObject(block.perBreakpoint![blockBreakpoint[0]!])
-                block.perBreakpoint![validBp]!.elementId = undefined
+                if (block.perBreakpoint![validBp] === undefined) {
+                    block.perBreakpoint![validBp] = cloneObject(block.perBreakpoint![blockBreakpoint[0]!])
+                    block.perBreakpoint![validBp]!.elementId = undefined
+                }
             }
         }
 
-        if (STATIC_BLOCK_IDS.includes(block.id)) {
+        if (STATIC_BLOCK_TYPES.includes(block.type)) {
             staticBlocks.push(block)
         }
         else {
@@ -578,4 +585,17 @@ export function mapTemplateVariantToBlocks(variants: TemplateVariant[], validBre
         breakpoints,
         backgroundImages,
     }
+}
+
+export function editorParseTemplateVariants(
+    variants: TemplateVariant[],
+    validBreakpoints: Breakpoint[],
+    dynamicBlocks?: ElementBlock[],
+): {
+    customBlocks: ElementBlock[]
+    staticBlocks: ElementBlock[]
+    breakpoints: Partial<Record<Breakpoint, number | undefined>>
+    backgroundImages: Partial<Record<Breakpoint, BackgroundImage>>
+} {
+    return parseTemplateVariants(variants, validBreakpoints, dynamicBlocks, true)
 }

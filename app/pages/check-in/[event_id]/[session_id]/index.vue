@@ -16,19 +16,19 @@ const targetParticipant = ref<ParticipantCheckInTarget>({
 })
 const errorMessage = ref<string>('')
 
-const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`, {
+const { data } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`, {
     transform: res => ({
         ...res.data,
     }),
 })
 const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
 
-const { data: templateData } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/session/${sessionId}/template/render/scanqr`, {
+const { data: templateData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/session/${sessionId}/template/render/scanqr`, {
     transform: res => ({
         ...res.data,
     }),
 })
-const template = computed<Template | null>(() => templateData.value ?? null)
+const template = computed(() => templateData.value)
 const background = computed<Record<Breakpoint, string | undefined>>(() => {
     const res = {} as Record<Breakpoint, string | undefined>
     if (!template.value || !template.value.variants) return res
@@ -45,8 +45,8 @@ const blocks = computed<{
     staticBlocks: ElementBlock[]
 }>(() => {
     if (template.value) {
-        const { customBlocks, staticBlocks } = mapTemplateVariantToBlocks(template.value.variants, CHECK_IN_VALID_BREAKPOINTS)
-        return { customBlocks, staticBlocks }
+        const variants = parseDynamicVariantsElement(template.value.variants)
+        return parseTemplateVariants(variants, CHECK_IN_VALID_BREAKPOINTS)
     }
     else {
         return { customBlocks: [], staticBlocks: [] }

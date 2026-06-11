@@ -2,13 +2,17 @@
 <script setup lang="ts">
 const props = defineProps<{
     blockSettings: ElementBlock[]
+    dynamicBlocks?: ElementBlock[]
 }>()
 
-const availableBlocks = ref<ElementBlock[]>([BLOCK_TEXT_DEFAULT])
+const availableBlocks = ref<ElementBlock[]>([
+    BLOCK_TEXT_DEFAULT,
+    ...(props.dynamicBlocks ? props.dynamicBlocks : []),
+])
 const renderableBlocks = computed(() => {
     return props.blockSettings
         .map((saved) => {
-            const base = availableBlocks.value.find(ab => ab.id === saved.id)
+            const base = availableBlocks.value.find(ab => ab.type === saved.type)
             if (!base) return undefined
             return saved
         })

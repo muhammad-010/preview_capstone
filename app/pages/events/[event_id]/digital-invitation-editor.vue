@@ -14,13 +14,20 @@ const { data: templateData, refresh } = await useApi(`/api/tenant/${tenantId.val
     }),
 })
 const template = computed(() => templateData.value)
+const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${invitationTemplate.value?.template_id}/variable`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const templateVariables = computed(() => variableData.value?.variables || [])
 const validBreakpoints = CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map(e => e.id) as Breakpoint[]
+const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 const {
     customBlocks: selectedCustomBlocks,
     staticBlocks: selectedStaticBlocks,
     breakpoints: selectedBreakpoints,
     backgroundImages: selectedBackgroundImages,
-} = mapTemplateVariantToBlocks(template.value?.variants || [], validBreakpoints)
+} = editorParseTemplateVariants(template.value?.variants || [], validBreakpoints, dynamicBlocks.value)
 const mappedSelectedBreakpoints = computed(() => Object.entries(selectedBreakpoints).map(([key]) => key as Breakpoint))
 const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map(e => ({ ...e, variantId: selectedBreakpoints[e.id] })))
 const defaultSelectedCanvasSizeIds = computed<Breakpoint[]>(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value : [BREAKPOINT_MD])
@@ -48,7 +55,7 @@ const defaultBackgroundImages = computed(() => {
 
 const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
-    BLOCK_QR_IMAGE_DEFAULT,
+    ...dynamicBlocks.value,
 ])
 
 definePageMeta({

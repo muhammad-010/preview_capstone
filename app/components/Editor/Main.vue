@@ -168,6 +168,7 @@ watch(
         if (bgImage.value[activeCanvasSizeId.value]!.uploadKey) {
             await saveTemplates(() => {
                 bgImage.value[activeCanvasSizeId.value]!.uploadKey = ''
+                bgImage.value[activeCanvasSizeId.value]!.file = undefined
             })
         }
     },
@@ -305,6 +306,7 @@ function dropCanvas(e: DragEvent) {
     props.canvasSizeOptions.forEach((c) => {
         const b: Block = {
             id: block.id,
+            type: block.type,
             value: block.value,
             setting: cloneObject(block.setting),
             style: cloneObject(block.style),
@@ -379,6 +381,7 @@ onMounted(() => {
         props.canvasSizeOptions.forEach((c) => {
             block.perBreakpoint![c.id] = {
                 id: b.id,
+                type: b.type,
                 value: b.value,
                 setting: cloneObject(b.setting),
                 style: cloneObject(b.style),
@@ -529,7 +532,7 @@ function getrenderPreviewHtml(bgImage: BackgroundImage, width: number, height: n
 function refreshGeneratedHtml() {
     const customContent = blockContainer.value.map((block) => {
         if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) return ''
-        return renderBlock(block.perBreakpoint[activeCanvasSizeId.value]!, block.value)
+        return renderBlock(block.perBreakpoint[activeCanvasSizeId.value]!, getBlockValue(block))
     }).join('\n')
     const staticContent = activeStaticBlocks.value.map((id) => {
         const block = findStaticBlock(id)
@@ -597,42 +600,18 @@ function groupElementBlock(bp: Breakpoint): { customBlock: ElementBlock[], stati
     return { customBlock, staticBlock }
 }
 
-function makeSettings(): SavedVariant[] {
+function makeVariants(preview?: boolean): TemplateVariant[] {
     return selectedCanvasSizes.value.map((size) => {
         const slug = size.id
         const { customBlock, staticBlock } = groupElementBlock(slug)
 
-        return {
-            variantId: size.variantId,
-            bgImage: bgImage.value?.[slug]?.dataUrl || '',
-            bgImageUploadKey: '',
-            slug,
-            customBlock,
-            staticBlock,
-        }
-    })
-}
-
-function saveToLocalStorage() {
-    if (!props.previewKey) return
-
-    const settings = makeSettings()
-    localStorage.setItem(props.previewKey, JSON.stringify(settings))
-}
-
-function makeVariants(): TemplateVariant[] {
-    return selectedCanvasSizes.value.map((size) => {
-        const slug = size.id
-        const { customBlock, staticBlock } = groupElementBlock(slug)
-
-        return savedVariantToTemplateVariant({
-            variantId: size.variantId,
-            bgImage: '',
-            bgImageUploadKey: bgImage.value?.[slug]?.uploadKey || '',
-            slug,
-            customBlock,
-            staticBlock,
-        })
+        return makeTemplateVariant(
+            [...customBlock, ...staticBlock],
+            size.id,
+            preview ? bgImage.value?.[slug]?.dataUrl || '' : '',
+            bgImage.value?.[slug]?.uploadKey || '',
+            size.variantId,
+        )
     })
 }
 
@@ -670,8 +649,10 @@ async function saveTemplates(cb?: () => void) {
 // PREVIEW
 function preview() {
     if (!import.meta.client || !props.previewPath) return
+    if (!props.previewKey) return
 
-    saveToLocalStorage()
+    const variants = makeVariants(true)
+    localStorage.setItem(props.previewKey, JSON.stringify(variants))
     window.open(props.previewPath, '_blank', 'noopener,noreferrer')
 }
 </script>
@@ -725,9 +706,9 @@ function preview() {
             <!-- LEFT: ElementBlock list + resizable HTML preview -->
             <div class="flex flex-col gap-4">
                 <!-- CANVAS SETTINGS -->
-                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                     <template #header>
-                        <h3>Canvas Settings</h3>
+                        <h5>Canvas Settings</h5>
                     </template>
 
                     <div class="mb-4">
@@ -758,10 +739,10 @@ function preview() {
                 <!-- VARIANTS -->
                 <UCard
                     v-if="canvasSizeOptions.length > 1"
-                    :ui="{ body: 'p-2 sm:p-3' }"
+                    :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"
                 >
                     <template #header>
-                        <h3>Page Sizes</h3>
+                        <h5>Page Sizes</h5>
                     </template>
                     <div class="space-y-2">
                         <UFieldGroup
@@ -825,11 +806,11 @@ function preview() {
                 />
 
                 <!-- BLOCKS -->
-                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                     <template #header>
-                        <h3>Blocks</h3>
+                        <h5>Blocks</h5>
                     </template>
-                    <div class="space-y-2">
+                    <div class="space-y-2 overflow-y-scroll max-h-48">
                         <EditorBlock
                             v-for="card in customBlocks"
                             :key="card.id"
@@ -846,12 +827,12 @@ function preview() {
                 <!-- STATIC BLOCKS -->
                 <UCard
                     v-if="staticBlocks.length"
-                    :ui="{ body: 'p-2 sm:p-3' }"
+                    :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"
                 >
                     <template #header>
-                        <h3>Static Blocks</h3>
+                        <h5>Static Blocks</h5>
                     </template>
-                    <div class="space-y-2">
+                    <div class="space-y-2 overflow-y-scroll max-h-48">
                         <EditorBlock
                             v-for="block in staticBlocks"
                             :key="block.id"
@@ -867,21 +848,21 @@ function preview() {
                 </UCard>
 
                 <!-- RAW HTML (resizable) -->
-                <DevOnly>
-                    <UCard :ui="{ body: 'p-2 sm:p-3' }">
-                        <template #header>
-                            <h3>HTML Preview</h3>
-                        </template>
-
-                        <UTextarea
-                            v-model="generatedHtml"
-                            size="sm"
-                            class="rounded w-full font-mono py-1 px-2 resize-y"
-                            readonly
-                            :ui="{ base: 'scrollbar' }"
-                        />
-                    </UCard>
-                </DevOnly>
+                <!-- <DevOnly> -->
+                <!-- <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"> -->
+                <!--         <template #header> -->
+                <!--             <h5>HTML Preview</h5> -->
+                <!--         </template> -->
+                <!---->
+                <!--         <UTextarea -->
+                <!--             v-model="generatedHtml" -->
+                <!--             size="sm" -->
+                <!--             class="rounded w-full font-mono py-1 px-2 resize-y" -->
+                <!--             readonly -->
+                <!--             :ui="{ base: 'scrollbar' }" -->
+                <!--         /> -->
+                <!--     </UCard> -->
+                <!-- </DevOnly> -->
             </div>
 
             <!-- CENTER: Canvas and iframe -->
@@ -962,10 +943,10 @@ function preview() {
             <!-- RIGHT: Page settings and settings -->
             <div class="flex flex-col gap-4">
                 <!-- PAGE SETTINGS -->
-                <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                     <template #header>
                         <div class="flex items-center justify-between gap-2">
-                            <h3>Page Settings</h3>
+                            <h5>Page Settings</h5>
                         </div>
                     </template>
 
@@ -989,7 +970,7 @@ function preview() {
                                     />
                                     <UButton
                                         :disabled="!Boolean(bgImage[activeCanvasSizeId]!.file) && !Boolean(bgImage[activeCanvasSizeId]!.dataUrl)"
-                                        icon="lucide:x"
+                                        icon="lucide:trash"
                                         :color="!Boolean(bgImage[activeCanvasSizeId]!.file) && !Boolean(bgImage[activeCanvasSizeId]!.dataUrl) ? 'neutral' : 'error'"
                                         @click="clearImage(removeFile)"
                                     />
@@ -1010,11 +991,11 @@ function preview() {
                 <template v-if="selectedItem">
                     <!-- SETTINGS -->
                     <UCard
-                        v-if="selectedItem.withValue || selectedItem.editableData"
-                        :ui="{ body: 'p-2 sm:p-3' }"
+                        v-if="selectedItem.withValue || selectedItem.setting.filter(e => !e.hidden).length"
+                        :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"
                     >
                         <template #header>
-                            <h3>Block Settings</h3>
+                            <h5>Block Settings</h5>
                         </template>
 
                         <div
@@ -1027,24 +1008,26 @@ function preview() {
                                 />
                             </UFormField>
                         </div>
-                        <div
-                            v-if="selectedItem.editableData"
-                            class="mb-4"
-                        >
-                            <EditorDynamicInput
+
+                        <div class="mb-4">
+                            <template
                                 v-for="setting in selectedItem.setting"
                                 :key="setting.key"
-                                class="mb-4"
-                                :field="setting"
-                                @update="(e) => updateBlock('setting', setting.key, e)"
-                            />
+                            >
+                                <EditorDynamicInput
+                                    v-if="!setting.hidden"
+                                    class="mb-4"
+                                    :field="setting"
+                                    @update="(e) => updateBlock('setting', setting.key, e)"
+                                />
+                            </template>
                         </div>
                     </UCard>
 
                     <!-- STYLE -->
-                    <UCard :ui="{ body: 'p-2 sm:p-3' }">
+                    <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
                         <template #header>
-                            <h3>Block Styles</h3>
+                            <h5>Block Styles</h5>
                         </template>
 
                         <template
