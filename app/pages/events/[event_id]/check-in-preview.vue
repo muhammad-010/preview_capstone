@@ -3,7 +3,7 @@ const route = useRoute()
 const eventId = Number(route.params.event_id)
 const { tenantId } = useUserState()
 
-const { data } = useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`, {
+const { data } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/detail`, {
     transform: res => ({
         ...res.data,
     }),
