@@ -419,6 +419,23 @@ function filterBlockData(
     }, [])
 }
 
+export function parseDynamicVariantsElement(variants: TemplateVariant[]): TemplateVariant[] {
+  const parsed: TemplateVariant[] = []
+  for (const variant of variants) {
+    for (const element of variant.elements) {
+      switch (element.type) {
+      case BLOCK_DYNAMIC_TEXT_TYPE:
+        element.type = BLOCK_TEXT_TYPE
+        break
+      default:
+        break
+      }
+    }
+    parsed.push(variant)
+  }
+  return parsed
+}
+
 export function makeTemplateVariant(
   blocks: ElementBlock[],
   slug: string,
