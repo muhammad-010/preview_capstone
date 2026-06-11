@@ -21,12 +21,13 @@ const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event
 })
 const templateVariables = computed(() => variableData.value?.variables || [])
 const validBreakpoints = CANVAS_SIZE_PRESETS_CHECK_IN_PAGE.map(e => e.id) as Breakpoint[]
+const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 const {
     customBlocks: selectedCustomBlocks,
     staticBlocks: selectedStaticBlocks,
     breakpoints: selectedBreakpoints,
     backgroundImages: selectedBackgroundImages,
-} = mapTemplateVariantToBlocks(template.value?.variants || [], validBreakpoints)
+} = mapTemplateVariantToBlocks(template.value?.variants || [], validBreakpoints, dynamicBlocks.value)
 const mappedSelectedBreakpoints = computed(() => Object.entries(selectedBreakpoints).map(([key]) => key as Breakpoint))
 const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_CHECK_IN_PAGE.map(e => ({ ...e, variantId: selectedBreakpoints[e.id] })))
 const defaultSelectedCanvasSizeIds = computed<Breakpoint[]>(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value : [BREAKPOINT_MD])
@@ -52,7 +53,6 @@ const defaultBackgroundImages = computed(() => {
     return backgroundImages
 })
 
-const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
     ...dynamicBlocks.value,
