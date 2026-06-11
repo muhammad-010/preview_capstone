@@ -991,7 +991,12 @@ function preview() {
                 <template v-if="selectedItem">
                     <!-- SETTINGS -->
                     <UCard
-                        v-if="selectedItem.withValue || selectedItem.setting.filter(e => !e.hidden).length"
+                        v-if="
+                            selectedItem.withValue
+                                || (selectedItem.perBreakpoint
+                                    && selectedItem.perBreakpoint[activeCanvasSizeId]
+                                    && selectedItem.perBreakpoint[activeCanvasSizeId]!.setting.filter(e => !e.hidden).length
+                                )"
                         :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"
                     >
                         <template #header>
@@ -1009,9 +1014,12 @@ function preview() {
                             </UFormField>
                         </div>
 
-                        <div class="mb-4">
+                        <div
+                            v-if="selectedItem.perBreakpoint && selectedItem.perBreakpoint[activeCanvasSizeId]"
+                            class="mb-4"
+                        >
                             <template
-                                v-for="setting in selectedItem.setting"
+                                v-for="setting in selectedItem.perBreakpoint[activeCanvasSizeId]!.setting"
                                 :key="setting.key"
                             >
                                 <EditorDynamicInput

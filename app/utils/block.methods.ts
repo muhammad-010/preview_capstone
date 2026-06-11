@@ -65,7 +65,7 @@ export function renderHtmlBlock(block: ElementBlock) {
               class="${cssClass}"
               style="${cssStyle}"
               ${settingWidth ? `width=${settingWidth.value}` : ''}
-              ${settingHeight ? `width=${settingHeight.value}` : ''}
+              ${settingHeight ? `height=${settingHeight.value}` : ''}
           />
       `
     }
@@ -89,7 +89,7 @@ export function renderHtmlBlock(block: ElementBlock) {
               class="${cssClass}"
               style="${cssStyle}"
               ${settingWidth ? `width=${settingWidth.value}` : ''}
-              ${settingHeight ? `width=${settingHeight.value}` : ''}
+              ${settingHeight ? `height=${settingHeight.value}` : ''}
           />
       `
     }
@@ -122,7 +122,7 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
                 src="${value || ''}"
                 style="${previewStyle}"
                 ${settingWidth ? `width=${settingWidth.value}` : ''}
-                ${settingHeight ? `width=${settingHeight.value}` : ''}
+                ${settingHeight ? `height=${settingHeight.value}` : ''}
             />
         `
     }
@@ -174,10 +174,9 @@ export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): 
             style.push(...cloneObject(BLOCK_TEXT_DEFAULT_STYLE))
         }
         else if (el.type === BLOCK_QR_IMAGE_TYPE) {
-            style.push(...cloneObject(BLOCK_IMAGE_DEFAULT_STYLE))
             setting.push(
-                { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '100px' },
-                { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '100px' },
+                { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '200px' },
+                { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '200px' },
             )
         }
 
@@ -402,7 +401,7 @@ function filterBlockData(
     const allowedList = type === 'style' ? BLOCK_STYLE_LIST : BLOCK_SETTING_LIST
     const defList = type === 'style' ? blockDef.style : blockDef.setting
 
-    return Object.entries(data).reduce<BlockSetting[]>((acc, [key, value]) => {
+    const settings = Object.entries(data).reduce<BlockSetting[]>((acc, [key, value]) => {
         if (!allowedList.includes(key)) return acc
 
         const def = defList.find(s => s.key === key)
@@ -418,6 +417,11 @@ function filterBlockData(
 
         return acc
     }, [])
+    if (!settings.length) {
+        settings.push(...defList)
+    }
+
+    return settings
 }
 
 export function parseDynamicVariantsElement(variants: TemplateVariant[]): TemplateVariant[] {
