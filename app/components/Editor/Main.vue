@@ -168,6 +168,7 @@ watch(
         if (bgImage.value[activeCanvasSizeId.value]!.uploadKey) {
             await saveTemplates(() => {
                 bgImage.value[activeCanvasSizeId.value]!.uploadKey = ''
+                bgImage.value[activeCanvasSizeId.value]!.file = undefined
             })
         }
     },
@@ -599,7 +600,7 @@ function groupElementBlock(bp: Breakpoint): { customBlock: ElementBlock[], stati
     return { customBlock, staticBlock }
 }
 
-function makeVariants(): TemplateVariant[] {
+function makeVariants(preview?: boolean): TemplateVariant[] {
     return selectedCanvasSizes.value.map((size) => {
         const slug = size.id
         const { customBlock, staticBlock } = groupElementBlock(slug)
@@ -607,18 +608,11 @@ function makeVariants(): TemplateVariant[] {
         return makeTemplateVariant(
             [...customBlock, ...staticBlock],
             size.id,
-            '',
+            preview ? bgImage.value?.[slug]?.dataUrl || '' : '',
             bgImage.value?.[slug]?.uploadKey || '',
             size.variantId,
         )
     })
-}
-
-function saveToLocalStorage() {
-    if (!props.previewKey) return
-
-    const variants = makeVariants()
-    localStorage.setItem(props.previewKey, JSON.stringify(variants))
 }
 
 async function saveTemplates(cb?: () => void) {
@@ -655,8 +649,10 @@ async function saveTemplates(cb?: () => void) {
 // PREVIEW
 function preview() {
     if (!import.meta.client || !props.previewPath) return
+    if (!props.previewKey) return
 
-    saveToLocalStorage()
+    const variants = makeVariants(true)
+    localStorage.setItem(props.previewKey, JSON.stringify(variants))
     window.open(props.previewPath, '_blank', 'noopener,noreferrer')
 }
 </script>
@@ -974,7 +970,7 @@ function preview() {
                                     />
                                     <UButton
                                         :disabled="!Boolean(bgImage[activeCanvasSizeId]!.file) && !Boolean(bgImage[activeCanvasSizeId]!.dataUrl)"
-                                        icon="lucide:x"
+                                        icon="lucide:trash"
                                         :color="!Boolean(bgImage[activeCanvasSizeId]!.file) && !Boolean(bgImage[activeCanvasSizeId]!.dataUrl) ? 'neutral' : 'error'"
                                         @click="clearImage(removeFile)"
                                     />
