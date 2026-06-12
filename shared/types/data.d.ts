@@ -194,7 +194,13 @@ export interface TemplateVariant {
     slug: string
     background_image_url?: string
     background_url_upload_key?: string
-    setting: Record<string, any>
+    /**
+    * "width" and "height" key are reserved for BE invitation.
+    *
+    * shall FE need to save "width" and "height"
+    * use different key to avoid conflict
+    * */
+    setting?: Record<string, any>
     elements: TemplateElement[]
 }
 
