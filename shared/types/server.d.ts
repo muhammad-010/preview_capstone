@@ -70,6 +70,15 @@ export type TenantEventUserFound = Result<{
     users: User[]
 }>
 
+// EVENT STORE
+export type TenantEventStoreDetailResult = Result<TenantEventStore>
+
+export type TenantEventStoreFormResult = Result<TenantEventStoreForm>
+
+export type TenantEventStoreAddResult = Result<
+    AddedData<number, 'store_id'>
+>
+
 // EVENT SESSION
 export type TenantEventSessionListResult = Result<
     PaginatedData<TenantEventSession, 'event_session'>
