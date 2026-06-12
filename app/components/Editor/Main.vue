@@ -612,8 +612,8 @@ function makeVariants(preview?: boolean): TemplateVariant[] {
             bgImage.value?.[slug]?.uploadKey || '',
             size.variantId,
             {
-                width: `${canvasWidth.value}px`,
-                height: `${canvasHeight.value}px`,
+                width: `${props.canvasImageBased ? activeBgImage.value?.width || 0 : activeCanvasSize.value.width}px`,
+                height: `${props.canvasImageBased ? activeBgImage.value?.height || 0 : activeCanvasSize.value.height}px`,
             },
         )
     })
