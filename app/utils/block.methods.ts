@@ -405,7 +405,7 @@ function filterBlockData(
     for (const [key, value] of entries) {
         if (!allowedList.includes(key)) continue
 
-        const settingIdx = settings.findIndex(s => s.key = key)
+        const settingIdx = settings.findIndex(s => s.key === key)
         if (settingIdx < 0) continue
 
         settings[settingIdx]!.value = value
