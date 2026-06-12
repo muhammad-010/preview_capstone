@@ -403,12 +403,12 @@ function filterBlockData(
     const entries = Object.entries(data)
 
     for (const [key, value] of entries) {
-      if (!allowedList.includes(key)) continue
+        if (!allowedList.includes(key)) continue
 
-      const settingIdx = settings.findIndex(s => s.key = key)
-      if (settingIdx < 0) continue
+        const settingIdx = settings.findIndex(s => s.key = key)
+        if (settingIdx < 0) continue
 
-      settings[settingIdx]!.value = value
+        settings[settingIdx]!.value = value
     }
 
     return settings
