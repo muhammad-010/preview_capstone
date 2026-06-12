@@ -399,26 +399,16 @@ function filterBlockData(
     blockDef: ElementBlock,
 ): BlockSetting[] {
     const allowedList = type === 'style' ? BLOCK_STYLE_LIST : BLOCK_SETTING_LIST
-    const defList = type === 'style' ? blockDef.style : blockDef.setting
+    const settings = type === 'style' ? blockDef.style : blockDef.setting
+    const entries = Object.entries(data)
 
-    const settings = Object.entries(data).reduce<BlockSetting[]>((acc, [key, value]) => {
-        if (!allowedList.includes(key)) return acc
+    for (const [key, value] of entries) {
+      if (!allowedList.includes(key)) continue
 
-        const def = defList.find(s => s.key === key)
-        if (!def) return acc
+      const settingIdx = settings.findIndex(s => s.key = key)
+      if (settingIdx < 0) continue
 
-        acc.push({
-            key,
-            value,
-            label: def.label,
-            type: def.type,
-            options: def.options,
-        })
-
-        return acc
-    }, [])
-    if (!settings.length) {
-        settings.push(...defList)
+      settings[settingIdx]!.value = value
     }
 
     return settings
