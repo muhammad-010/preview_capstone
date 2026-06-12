@@ -611,6 +611,10 @@ function makeVariants(preview?: boolean): TemplateVariant[] {
             preview ? bgImage.value?.[slug]?.dataUrl || '' : '',
             bgImage.value?.[slug]?.uploadKey || '',
             size.variantId,
+            {
+                width: `${canvasWidth.value}px`,
+                height: `${canvasHeight.value}px`,
+            },
         )
     })
 }

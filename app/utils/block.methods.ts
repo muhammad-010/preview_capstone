@@ -447,6 +447,7 @@ export function makeTemplateVariant(
     bgImage: string,
     bgImageUploadKey: string,
     variantId?: number,
+    variantSetting?: Record<string, any>,
 ): TemplateVariant {
     const elements: TemplateElement[] = []
     for (const block of blocks) {
@@ -469,8 +470,8 @@ export function makeTemplateVariant(
 
     const variant: TemplateVariant = {
         variant_id: variantId,
+        setting: variantSetting,
         slug: slug,
-        setting: {},
         elements,
     }
     if (bgImage !== '') variant.background_image_url = bgImage
@@ -503,12 +504,14 @@ export function parseTemplateVariants(
     for (const variant of variants) {
         const bp = variant.slug as Breakpoint
         breakpoints[bp] = variant.variant_id
+        const settingWidth = variant.setting ? variant.setting.width || '0px' : '0px'
+        const settingHeight = variant.setting ? variant.setting.height || '0px' : '0px'
         backgroundImages[bp] = {
             dataUrl: variant.background_image_url || '',
             name: (variant.background_image_url || '').split('/').filter(Boolean).pop() || '',
             uploadKey: '',
-            width: variant.setting.width ? Number(variant.setting.width.replace(/px$/, '')) || 0 : 0,
-            height: variant.setting.height ? Number(variant.setting.height.replace(/px$/, '')) || 0 : 0,
+            width: settingWidth ? Number(settingWidth.replace(/px$/, '')) || 0 : 0,
+            height: settingHeight ? Number(settingHeight.replace(/px$/, '')) || 0 : 0,
         }
 
         if (variant.elements === null) variant.elements = []
