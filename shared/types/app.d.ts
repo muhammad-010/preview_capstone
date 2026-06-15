@@ -104,7 +104,7 @@ export interface BlockSetting {
     value: string | boolean | number
     label?: string
     type?: string
-    options?: string[]
+    options?: Record<'value' | 'label' | 'description', string>[]
     trueValue?: string
     falseValue?: string
     /** whether hide this setting */

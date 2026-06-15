@@ -36,6 +36,10 @@ const colorResponsiveStyleClass = createResponsiveStyleClass({
     buildClass: (twPfx, cssVar) => `${twPfx}text-(${cssVar})`,
 })
 
+const textAlignResponsiveStyleClass = createResponsiveStyleClass({
+    buildClass: (twPfx, cssVar) => `${twPfx}[text-align:var(${cssVar})]`,
+})
+
 const fontSizeResponsiveStyleClass = createResponsiveStyleClass({
     buildClass: (twPfx, cssVar) => `${twPfx}text-(length:${cssVar})`,
 })
@@ -45,7 +49,7 @@ const fontWeightResponsiveStyleClass = createResponsiveStyleClass({
 })
 
 const fontStyleResponsiveStyleClass = createResponsiveStyleClass({
-    buildClass: (twPfx, cssVar) => `${twPfx}[font-style:${cssVar}]`,
+    buildClass: (twPfx, cssVar) => `${twPfx}[font-style:var(${cssVar})]`,
 })
 
 const widthResponsiveStyleClass = createResponsiveStyleClass({
@@ -80,6 +84,8 @@ export function responsiveStyleClass(bp: Breakpoint, suffix: StylingSuffix, isSm
             return yPosResponsiveStyleClass(key, cssVariable, tailwindBreakpoint)
         case STYLING_COLOR_SUFFIX:
             return colorResponsiveStyleClass(key, cssVariable, tailwindBreakpoint)
+        case STYLING_TEXT_ALIGN_SUFFIX:
+            return textAlignResponsiveStyleClass(key, cssVariable, tailwindBreakpoint)
         case STYLING_FONT_SIZE_SUFFIX:
             return fontSizeResponsiveStyleClass(key, cssVariable, tailwindBreakpoint)
         case STYLING_FONT_WEIGHT_SUFFIX:

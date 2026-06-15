@@ -24,6 +24,7 @@ export function compilePreviewStyle(block: Block) {
     if (block.type === BLOCK_TEXT_TYPE || block.type === BLOCK_DYNAMIC_TEXT_TYPE) {
         return `
             ${BLOCK_STYLE_COLOR}:${getBlockStyleValue(block.style, BLOCK_STYLE_COLOR)};
+            ${BLOCK_STYLE_TEXT_ALIGN}:${getBlockStyleValue(block.style, BLOCK_STYLE_TEXT_ALIGN)};
             ${BLOCK_STYLE_FONT_SIZE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_SIZE)};
             ${BLOCK_STYLE_FONT_WEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_WEIGHT)};
             ${BLOCK_STYLE_FONT_STYLE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_STYLE)};
@@ -50,9 +51,9 @@ export function renderHtmlBlock(block: ElementBlock) {
 
     if (block.type === BLOCK_TEXT_TYPE) {
         return `
-          <p class="${cssClass}" style="${cssStyle}">
-              ${block.value || ''}
-          </p>
+          <div class="${cssClass}" style="${cssStyle}">
+              <p>${block.value || ''}</p>
+          </div>
       `
     }
     else if (block.type === BLOCK_IMAGE_TYPE) {
@@ -73,9 +74,9 @@ export function renderHtmlBlock(block: ElementBlock) {
         const defaultValue = block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)
 
         return `
-          <p class="${cssClass}" style="${cssStyle}">
-              ${defaultValue?.value || block.value || ''}
-          </p>
+          <div class="${cssClass}" style="${cssStyle}">
+              <p>${defaultValue?.value || block.value || ''}</p>
+          </div>
       `
     }
     else if (block.type === BLOCK_QR_IMAGE_TYPE) {
@@ -104,9 +105,9 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
         || block.type === BLOCK_DYNAMIC_TEXT_TYPE
     ) {
         return `
-            <p style="${previewStyle}">
-                ${value || ''}
-            </p>
+            <div style="${previewStyle}">
+                <p>${value || ''}</p>
+            </div>
         `
     }
     else if (
@@ -399,7 +400,7 @@ function filterBlockData(
     blockDef: ElementBlock,
 ): BlockSetting[] {
     const allowedList = type === 'style' ? BLOCK_STYLE_LIST : BLOCK_SETTING_LIST
-    const settings = type === 'style' ? blockDef.style : blockDef.setting
+    const settings: BlockSetting[] = type === 'style' ? cloneObject(blockDef.style) : cloneObject(blockDef.setting)
     const entries = Object.entries(data)
 
     for (const [key, value] of entries) {
