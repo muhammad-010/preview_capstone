@@ -80,4 +80,9 @@ export const TENANT_EVENT_SETTINGS = {
         desc: 'Allow attendees to retrieve their ticket/QR code via public link using registered contact, without sign-in',
         value: false,
     },
+    [TENANT_EVENT_SETTING_CERTIFICATE]: {
+        title: 'Certificate',
+        desc: 'Generate certificate for event participants',
+        value: false,
+    },
 }

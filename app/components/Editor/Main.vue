@@ -4,7 +4,6 @@ const props = defineProps<{
     eventId: number
     templateId?: number
 
-    editorMode: EditorMode
     customBlocks: ElementBlock[]
     staticBlocks: ElementBlock[]
     canvasSizeOptions: CanvasSize[]

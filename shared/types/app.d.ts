@@ -62,8 +62,6 @@ export interface ParticipantCheckInTarget {
     customAttributes: CustomAttribute[]
 }
 
-export type EditorMode = 'invitation-email' | 'check-in-page'
-
 export type Orientation = 'portrait' | 'landscape'
 
 export interface Coordinate {

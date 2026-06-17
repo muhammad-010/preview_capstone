@@ -1,18 +1,15 @@
-export const EDITOR_MODE_INVITATION_EMAIL = 'invitation-email'
-export const EDITOR_MODE_CHECK_IN_PAGE = 'check-in-page'
 export const EDITOR_CANVAS_WIDTH = 600
 export const EDITOR_CANVAS_HEIGHT = 1750
 export const EDITOR_CANVAS_SCALE = 0.80
 export const EDITOR_CANVAS_PORTRAIT = 'portrait'
 export const EDITOR_CANVAS_LANDSCAPE = 'landscape'
 
-export const EDITOR_MODE_TEMPLATE_NAME: Record<EditorMode, string> = {
-    [EDITOR_MODE_INVITATION_EMAIL]: TEMPLATE_INVITATION,
-    [EDITOR_MODE_CHECK_IN_PAGE]: TEMPLATE_SCANQR,
-}
-
 export const CANVAS_SIZE_PRESETS_INVITATION_EMAIL: CanvasSize[] = [
-    { id: BREAKPOINT_MD, width: 1360, height: 1360, label: 'Square', breakpoint: BREAKPOINT_MD, orientation: EDITOR_CANVAS_PORTRAIT },
+    { id: BREAKPOINT_MD, width: 1200, height: 1800, label: 'Rect', breakpoint: BREAKPOINT_MD, orientation: EDITOR_CANVAS_PORTRAIT },
+]
+
+export const CANVAS_SIZE_PRESETS_CERTIFICATE: CanvasSize[] = [
+    { id: BREAKPOINT_MD, width: 1600, height: 1131, label: 'Rect', breakpoint: BREAKPOINT_MD, orientation: EDITOR_CANVAS_LANDSCAPE },
 ]
 
 export const CANVAS_SIZE_PRESETS_CHECK_IN_PAGE: CanvasSize[] = [

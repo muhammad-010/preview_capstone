@@ -72,7 +72,6 @@ definePageMeta({
         :tenant-id="tenantId"
         :event-id="eventId"
         :template-id="template?.template_id"
-        :editor-mode="EDITOR_MODE_CHECK_IN_PAGE"
         :custom-blocks="customBlocks"
         :static-blocks="staticBlocks"
         :canvas-size-options="canvasSizeOptions"

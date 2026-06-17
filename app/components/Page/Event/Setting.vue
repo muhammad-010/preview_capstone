@@ -4,6 +4,7 @@ const props = defineProps<{
     eventId: number
 }>()
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
+const certificateActive = defineModel<boolean>('certificate-active', { default: false })
 
 const { $api } = useNuxtApp()
 const { successToast } = useSuccessToast()
@@ -15,12 +16,15 @@ const { data, refresh } = useApi(`/api/tenant/${props.tenantId}/event/${props.ev
 const settings = computed(() => {
     const res = cloneObject(TENANT_EVENT_SETTINGS)
     if (!data.value) return res
+    console.log(res, data.value)
 
     const dataval = data.value
     for (const key in dataval) {
         if (!Object.hasOwn(dataval, key)) continue
         const element = dataval[key as TenantEventSettingKeys]
         res[key as TenantEventSettingKeys]!.value = element.value
+
+        if (key === 'certificate') certificateActive.value = element.value
     }
     return res
 })
