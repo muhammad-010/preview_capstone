@@ -16,9 +16,11 @@ async function printQr() {
     const ids = props.selectedIds.length > 0 ? props.selectedIds : []
     try {
         printLoading.value = true
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/invitation/print`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/print`, {
             method: 'POST',
-            body: ids.length ? { participant_ids: ids } : {},
+            body: ids.length
+            ? { document_type: 'invitation', participant_ids: ids }
+            : {},
         })
         if (data.filepath) {
             const filename = data.filepath.split('/').pop()
