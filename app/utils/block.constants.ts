@@ -54,7 +54,7 @@ export const STATIC_BLOCK_TYPES: string[] = [
 
 export const BLOCK_STYLE_COLOR = STYLE_COLOR
 export const BLOCK_STYLE_TEXT_ALIGN = STYLE_TEXT_ALIGN
-// export const BLOCK_STYLE_FONT_FAMILY = STYLE_FONT_FAMILY
+export const BLOCK_STYLE_FONT_FAMILY = STYLE_FONT_FAMILY
 export const BLOCK_STYLE_FONT_SIZE = STYLE_FONT_SIZE
 export const BLOCK_STYLE_FONT_WEIGHT = STYLE_FONT_WEIGHT
 export const BLOCK_STYLE_FONT_STYLE = STYLE_FONT_STYLE
@@ -63,7 +63,7 @@ export const BLOCK_STYLE_HEIGHT = STYLE_HEIGHT
 export const BLOCK_STYLE_LIST: string[] = [
     BLOCK_STYLE_COLOR,
     BLOCK_STYLE_TEXT_ALIGN,
-    // BLOCK_STYLE_FONT_FAMILY,
+    BLOCK_STYLE_FONT_FAMILY,
     BLOCK_STYLE_FONT_SIZE,
     BLOCK_STYLE_FONT_WEIGHT,
     BLOCK_STYLE_FONT_STYLE,
@@ -105,7 +105,7 @@ export const BLOCK_SETTING_LIST: string[] = [
 export const BLOCK_TEXT_DEFAULT_STYLE: BlockSetting[] = [
     { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
     { key: BLOCK_STYLE_TEXT_ALIGN, label: 'Text Align', type: 'select', value: 'left', options: cloneObject(BLOCK_STYLE_TEXT_ALIGN_OPTIONS) },
-    // { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
+    { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'select', value: 'Arial', options: ['Arial', 'Times New Roman'] },
     { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'text', value: '1rem' },
     { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'select', value: '500', options: cloneObject(BLOCK_STYLE_FONT_WEIGHT_OPTIONS) },
     { key: BLOCK_STYLE_FONT_STYLE, label: 'Italic', type: 'checkbox', value: 'normal', trueValue: 'italic', falseValue: 'normal' },

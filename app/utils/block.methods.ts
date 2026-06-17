@@ -25,6 +25,7 @@ export function compilePreviewStyle(block: Block) {
         return `
             ${BLOCK_STYLE_COLOR}:${getBlockStyleValue(block.style, BLOCK_STYLE_COLOR)};
             ${BLOCK_STYLE_TEXT_ALIGN}:${getBlockStyleValue(block.style, BLOCK_STYLE_TEXT_ALIGN)};
+            ${BLOCK_STYLE_FONT_FAMILY}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_FAMILY)};
             ${BLOCK_STYLE_FONT_SIZE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_SIZE)};
             ${BLOCK_STYLE_FONT_WEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_WEIGHT)};
             ${BLOCK_STYLE_FONT_STYLE}:${getBlockStyleValue(block.style, BLOCK_STYLE_FONT_STYLE)};
@@ -343,6 +344,8 @@ export function getCheckInPageHtml(bgImage: BackgroundImage, width: number, heig
     <!DOCTYPE html>
     <html>
         <head>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <style>
                 .container {
                     position: relative;

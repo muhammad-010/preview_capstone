@@ -7,7 +7,7 @@ export type XPosCssVar = typeof STYLING_POS_XS[number]
 export type YPosCssVar = typeof STYLING_POS_YS[number]
 export type ColorCssVar = typeof STYLING_COLORS[number]
 export type TextAlignCssVar = typeof STYLING_TEXT_ALIGNS[number]
-// export type FontFamilyCssVar = typeof STYLING_FONT_FAMILIES[number]
+export type FontFamilyCssVar = typeof STYLING_FONT_FAMILIES[number]
 export type FontSizeCssVar = typeof STYLING_FONT_SIZES[number]
 export type FontWeightCssVar = typeof STYLING_FONT_WEIGHTS[number]
 export type FontStyleCssVar = typeof STYLING_FONT_STYLES[number]
@@ -19,7 +19,7 @@ export type ResponsiveCssVar = BackgroundCssVar
     | YPosCssVar
     | ColorCssVar
     | TextAlignCssVar
-    // | FontFamilyCssVar
+    | FontFamilyCssVar
     | FontSizeCssVar
     | FontWeightCssVar
     | FontStyleCssVar
