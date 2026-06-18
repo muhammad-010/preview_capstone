@@ -16,7 +16,6 @@ const { data, refresh } = useApi(`/api/tenant/${props.tenantId}/event/${props.ev
 const settings = computed(() => {
     const res = cloneObject(TENANT_EVENT_SETTINGS)
     if (!data.value) return res
-    console.log(res, data.value)
 
     const dataval = data.value
     for (const key in dataval) {

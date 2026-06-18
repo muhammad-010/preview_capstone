@@ -78,6 +78,7 @@ definePageMeta({
         :default-active-static-blocks="defaultActiveStaticBlocks"
         :default-background-images="defaultBackgroundImages"
         canvas-image-based
+        :html-preview-fn="getBackendRenderHtml"
         page-title="Digital Invitation Key Visual Editor"
         :default-scale="0.4"
         @refresh="refresh"

@@ -78,8 +78,9 @@ definePageMeta({
         :default-active-static-blocks="defaultActiveStaticBlocks"
         :default-background-images="defaultBackgroundImages"
         canvas-image-based
+        :html-preview-fn="getBackendRenderHtml"
         page-title="Digital Certificate Key Visual Editor"
-        :default-scale="0.4"
+        :default-scale="0.35"
         @refresh="refresh"
     />
 </template>

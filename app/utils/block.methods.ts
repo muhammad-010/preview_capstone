@@ -287,7 +287,7 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
     }, cloneObject(empty))
 }
 
-export function getInvitationEmailHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+export function getBackendRenderHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
     return `
     <!DOCTYPE html>
     <html>
