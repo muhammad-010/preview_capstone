@@ -164,12 +164,12 @@ export interface CustomAttributeForm {
 }
 
 // EVENT SETTINGS
-export type TenantEventSettingKeys = 'confirmation_attendance' | 'public_ticket_retrieval'
+export type TenantEventSettingKeys = 'confirmation_attendance' | 'public_ticket_retrieval' | 'certificate'
 
 export type TenantEventSetting = Record<TenantEventSettingKeys, Setting>
 
 // TEMPLATE
-export type TemplateType = 'invitation' | 'scanqr'
+export type TemplateType = 'invitation' | 'scanqr' | 'certificate'
 
 export interface TemplateElementDynamicVar {
     name: string

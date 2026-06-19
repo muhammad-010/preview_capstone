@@ -54,6 +54,8 @@ function onRefreshCustomAttributeList() {
     refreshParticipant()
 }
 
+const certificateActive = ref(false)
+
 useHead({
     title: computed(() => `Event - ${event.value ? event.value.name : 'Detail'}`),
 })
@@ -125,6 +127,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
                     <template #additional-features>
                         <PageEventSetting
+                            v-model:certificate-active="certificateActive"
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             @refresh="refreshDetail"
@@ -133,6 +136,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
                     <template #key-visuals>
                         <PageEventKeyVisual
+                            v-model:certificate-active="certificateActive"
                             :event-id="eventId"
                         />
                     </template>

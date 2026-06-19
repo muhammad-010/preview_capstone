@@ -7,20 +7,20 @@ const { data } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/te
     transform: res => res.data,
 })
 const templates = computed(() => data.value?.template || [])
-const invitationTemplate = computed(() => templates.value.find(item => item.type === TEMPLATE_INVITATION))
-const { data: templateData, refresh } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${invitationTemplate.value?.template_id}`, {
+const certificateTemplate = computed(() => templates.value.find(item => item.type === TEMPLATE_CERTIFICATE))
+const { data: templateData, refresh } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${certificateTemplate.value?.template_id}`, {
     transform: res => ({
         ...res.data,
     }),
 })
 const template = computed(() => templateData.value)
-const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${invitationTemplate.value?.template_id}/variable`, {
+const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${certificateTemplate.value?.template_id}/variable`, {
     transform: res => ({
         ...res.data,
     }),
 })
 const templateVariables = computed(() => variableData.value?.variables || [])
-const validBreakpoints = CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map(e => e.id) as Breakpoint[]
+const validBreakpoints = CANVAS_SIZE_PRESETS_CERTIFICATE.map(e => e.id) as Breakpoint[]
 const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 const {
     customBlocks: selectedCustomBlocks,
@@ -29,11 +29,11 @@ const {
     backgroundImages: selectedBackgroundImages,
 } = editorParseTemplateVariants(template.value?.variants || [], validBreakpoints, dynamicBlocks.value)
 const mappedSelectedBreakpoints = computed(() => Object.entries(selectedBreakpoints).map(([key]) => key as Breakpoint))
-const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_INVITATION_EMAIL.map(e => ({ ...e, variantId: selectedBreakpoints[e.id] })))
+const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_CERTIFICATE.map(e => ({ ...e, variantId: selectedBreakpoints[e.id] })))
 const defaultSelectedCanvasSizeIds = computed<Breakpoint[]>(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value : [BREAKPOINT_MD])
 const defaultActiveCanvasSizeId = computed(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value[0]! : BREAKPOINT_MD)
 const defaultOrientation = computed(() => {
-    const canvas = CANVAS_SIZE_PRESETS_INVITATION_EMAIL.find(e => e.id === defaultActiveCanvasSizeId.value)
+    const canvas = CANVAS_SIZE_PRESETS_CERTIFICATE.find(e => e.id === defaultActiveCanvasSizeId.value)
     return canvas ? canvas.orientation : EDITOR_CANVAS_PORTRAIT
 })
 const defaultSelectedBlocks = computed(() => [...selectedCustomBlocks, ...selectedStaticBlocks])
@@ -79,8 +79,8 @@ definePageMeta({
         :default-background-images="defaultBackgroundImages"
         canvas-image-based
         :html-preview-fn="getBackendRenderHtml"
-        page-title="Digital Invitation Key Visual Editor"
-        :default-scale="0.4"
+        page-title="Digital Certificate Key Visual Editor"
+        :default-scale="0.35"
         @refresh="refresh"
     />
 </template>

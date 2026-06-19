@@ -116,6 +116,16 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
                     lg:text-(--lg-color)
                     xl:text-(--xl-color)
 
+                    [text-align:var(--sm-text-align)]
+                    [text-align:var(--md-text-align)]
+                    [text-align:var(--lg-text-align)]
+                    [text-align:var(--xl-text-align)]
+
+                    sm:[text-align:var(--sm-text-align)]
+                    md:[text-align:var(--md-text-align)]
+                    lg:[text-align:var(--lg-text-align)]
+                    xl:[text-align:var(--xl-text-align)]
+
                     text-(length:--sm-font-size)
                     text-(length:--md-font-size)
                     text-(length:--lg-font-size)
@@ -136,15 +146,15 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
                     lg:font-(--lg-font-weight)
                     xl:font-(--xl-font-weight)
 
-                    [font-style:--sm-font-style]
-                    [font-style:--md-font-style]
-                    [font-style:--lg-font-style]
-                    [font-style:--xl-font-style]
+                    [font-style:var(--sm-font-style)]
+                    [font-style:var(--md-font-style)]
+                    [font-style:var(--lg-font-style)]
+                    [font-style:var(--xl-font-style)]
 
-                    sm:[font-style:--sm-font-style]
-                    md:[font-style:--md-font-style]
-                    lg:[font-style:--lg-font-style]
-                    xl:[font-style:--xl-font-style]
+                    sm:[font-style:var(--sm-font-style)]
+                    md:[font-style:var(--md-font-style)]
+                    lg:[font-style:var(--lg-font-style)]
+                    xl:[font-style:var(--xl-font-style)]
 
                     w-(--sm-weight)
                     w-(--md-weight)

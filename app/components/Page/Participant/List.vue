@@ -17,7 +17,11 @@ const filterCustomAttribute = ref<CustomAttribute[]>(cloneObject(unref(props.cus
 // const filterCheckedIn = ref<boolean | null>(null)
 const filterSessionStatus = ref<ParticipantSessionStatus | null>(null)
 
-const { data, pending, refresh } = useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
+const exposed = {
+    refresh: () => {},
+}
+defineExpose(exposed)
+const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
     transform: res => res.data,
     query: computed(() => {
         const cleanedFilterCustomAttribute = formatCleanCustomAttribute(filterCustomAttribute.value)
@@ -43,7 +47,7 @@ const { data, pending, refresh } = useApi(`/api/tenant/${props.tenantId}/event/$
     }),
     watch: false,
 })
-defineExpose({ refresh })
+exposed.refresh = refresh
 
 const participants = computed<Participant[]>(() => data.value?.participant ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
