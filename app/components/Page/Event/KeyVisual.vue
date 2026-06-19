@@ -73,7 +73,7 @@ const certificateActive = defineModel<boolean>('certificate-active', { default: 
             }"
         >
             <template #header>
-              <h4>Certificate</h4>
+                <h4>Certificate</h4>
             </template>
 
             Customize certificate for this event. Can be turned on via 'Additional Features' setting above.

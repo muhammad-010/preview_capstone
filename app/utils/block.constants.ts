@@ -81,10 +81,10 @@ export const BLOCK_STYLE_FONT_WEIGHT_OPTIONS = [
 ]
 
 export const BLOCK_STYLE_TEXT_ALIGN_OPTIONS = [
-  { label: 'Left', value: 'left' },
-  { label: 'Center', value: 'center' },
-  { label: 'Right', value: 'right' },
-  { label: 'Justify', value: 'justify' },
+    { label: 'Left', value: 'left' },
+    { label: 'Center', value: 'center' },
+    { label: 'Right', value: 'right' },
+    { label: 'Justify', value: 'justify' },
 ]
 
 export const BLOCK_SETTING_WIDTH = STYLE_WIDTH

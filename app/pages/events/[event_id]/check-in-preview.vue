@@ -58,23 +58,23 @@ const blocks = computed<{
 
 useHead({
     title: computed(() => `[PREVIEW] Check In - ${event.value ? event.value.name : 'Event'}`),
-  link: [
-    {
-      rel: 'preconnect',
-      href: 'https://fonts.googleapis.com',
-    },
-    {
-      rel: 'preconnect',
-      href: 'https://fonts.gstatic.com',
-      crossorigin: '',
-    },
+    link: [
+        {
+            rel: 'preconnect',
+            href: 'https://fonts.googleapis.com',
+        },
+        {
+            rel: 'preconnect',
+            href: 'https://fonts.gstatic.com',
+            crossorigin: '',
+        },
     /*
     {
       rel: 'stylesheet',
       href: 'https://fonts.googleapis.com/css2?family=Alien+Block&display=swap',
     },
     */
-  ],
+    ],
 })
 definePageMeta({
     layout: false,
