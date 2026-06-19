@@ -10,24 +10,26 @@ const { $api } = useNuxtApp()
 const { successToast } = useSuccessToast()
 const { errorToast } = useErrorToast()
 
-const { data, refresh } = useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/setting`, {
+const exposed = {
+    refresh: () => {},
+}
+defineExpose(exposed)
+const { data, refresh } = await useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/setting`, {
     transform: res => res.data,
 })
-const settings = computed(() => {
-    const res = cloneObject(TENANT_EVENT_SETTINGS)
-    if (!data.value) return res
+exposed.refresh = refresh
+const settings = ref(cloneObject(TENANT_EVENT_SETTINGS))
+watch(data, (dataval) => {
+    if (!dataval) return
 
-    const dataval = data.value
     for (const key in dataval) {
         if (!Object.hasOwn(dataval, key)) continue
         const element = dataval[key as TenantEventSettingKeys]
-        res[key as TenantEventSettingKeys]!.value = element.value
+        settings.value[key as TenantEventSettingKeys].value = element.value
 
         if (key === 'certificate') certificateActive.value = element.value
     }
-    return res
-})
-defineExpose({ refresh })
+}, { immediate: true, deep: true })
 
 const loading = ref(false)
 async function changeSetting(key: string, value: boolean) {
