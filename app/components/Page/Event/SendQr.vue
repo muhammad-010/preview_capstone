@@ -19,11 +19,11 @@ async function sendQr() {
     const ids = props.selectedIds.length > 0 ? props.selectedIds : []
     try {
         sendLoading.value = true
-        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/invitation/send`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/send`, {
             method: 'POST',
             body: ids.length
-                ? { channel: selectedSendChannel.value, participant_ids: ids }
-                : { channel: selectedSendChannel.value },
+                ? { document_type: 'invitation', channel: selectedSendChannel.value, participant_ids: ids }
+                : { document_type: 'invitation', channel: selectedSendChannel.value },
         })
         if (data.success) {
             successToast({ description: 'QR successfully sent' })
