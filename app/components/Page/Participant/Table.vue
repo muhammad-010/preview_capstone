@@ -303,6 +303,8 @@ function triggerRefresh(skipResetPage?: boolean) {
     emit(EMIT_TABLE_REFRESH)
 }
 
+defineExpose({ clearSelection })
+
 function useColumns() {
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
