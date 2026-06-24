@@ -112,8 +112,9 @@ function refreshData() {
     emit(EMIT_DETAIL_REFRESH)
 }
 
-const printConfirmation = ref(false)
-const sendConfirmation = ref(false)
+const printQrConfirmation = ref(false)
+const sendQrConfirmation = ref(false)
+const sendCertificateConfirmation = ref(false)
 const bulkDeleteConfirmation = ref(false)
 </script>
 
@@ -134,7 +135,7 @@ const bulkDeleteConfirmation = ref(false)
 
                     <div class="card-toolbar-actions">
                         <PageEventPrintQr
-                            v-model:open="printConfirmation"
+                            v-model:open="printQrConfirmation"
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             :selected-ids="selectedIds"
@@ -142,7 +143,15 @@ const bulkDeleteConfirmation = ref(false)
                             @refresh="refreshData"
                         />
                         <PageEventSendQr
-                            v-model:open="sendConfirmation"
+                            v-model:open="sendQrConfirmation"
+                            :tenant-id="tenantId"
+                            :event-id="eventId"
+                            :selected-ids="selectedIds"
+                            hide
+                            @refresh="refreshData"
+                        />
+                        <PageEventSendCertificate
+                            v-model:open="sendCertificateConfirmation"
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             :selected-ids="selectedIds"
@@ -189,8 +198,9 @@ const bulkDeleteConfirmation = ref(false)
                 with-pagination
                 @refresh="refreshData"
                 @export="exportData"
-                @print-qr="printConfirmation = true"
-                @send-qr="sendConfirmation = true"
+                @print-qr="printQrConfirmation = true"
+                @send-qr="sendQrConfirmation = true"
+                @send-certificate="sendCertificateConfirmation = true"
                 @bulk-delete="bulkDeleteConfirmation = true"
             />
         </UCard>

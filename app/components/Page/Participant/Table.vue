@@ -19,7 +19,7 @@ const selected = defineModel<number[]>('selected', { default: () => [] })
 const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attribute', { default: () => [] })
 // const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
 const filterSessionStatus = defineModel<ParticipantSessionStatus | null>('filter-session-status', { default: null })
-const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
+const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_SEND_CERTIFICATE, EMIT_TABLE_BULK_DELETE])
 const { successToast } = useSuccessToast()
 const { errorToast } = useErrorToast()
 
@@ -538,6 +538,7 @@ const { columns, tableRef } = useColumns()
                 @export="emit(EMIT_TABLE_EXPORT)"
                 @print-qr="emit(EMIT_TABLE_PRINT_QR)"
                 @send-qr="emit(EMIT_TABLE_SEND_QR)"
+                @send-certificate="emit(EMIT_TABLE_SEND_CERTIFICATE)"
                 @bulk-delete="emit(EMIT_TABLE_BULK_DELETE)"
             />
         </div>
