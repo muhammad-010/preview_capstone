@@ -23,13 +23,6 @@ const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRIN
 const { successToast } = useSuccessToast()
 const { errorToast } = useErrorToast()
 
-function triggerRefresh(skipResetPage?: boolean) {
-    if (!skipResetPage) {
-        page.value = 1
-    }
-    emit(EMIT_TABLE_REFRESH)
-}
-
 // FILTER CUSTOM ATTRIBUTE
 const filterCustomAttributeField = ref(cloneObject(unref(filterCustomAttribute)))
 const cleanedFilterCustomAttribute = computed(() => formatCleanCustomAttribute(filterCustomAttribute.value))
@@ -247,6 +240,7 @@ function openConfirmManualCheckIn(id: number, name: string) {
 // TABLE
 const rowSelection = ref<Record<string, boolean>>({})
 const selectAll = ref(false)
+const someColumnSelected = ref(false)
 const resetSelectionConfirmation = ref(false)
 const resetFunction = ref<ToggleAllPageRowsSelected>()
 
@@ -263,6 +257,7 @@ function toggle(pId: number | undefined) {
         data.push(pId)
     }
 
+    someColumnSelected.value = data.length > 0
     selected.value = data
 }
 
@@ -270,6 +265,7 @@ function toggle(pId: number | undefined) {
 function clearSelection(all: boolean) {
     selected.value = []
     selectAll.value = all
+    someColumnSelected.value = all
 }
 
 function askResetSelection(cb: ToggleAllPageRowsSelected) {
@@ -298,6 +294,16 @@ watch(
     },
     { immediate: true, deep: true },
 )
+
+function triggerRefresh(skipResetPage?: boolean) {
+    if (!skipResetPage) {
+        page.value = 1
+    }
+    clearSelection(false)
+    emit(EMIT_TABLE_REFRESH)
+}
+
+defineExpose({ clearSelection })
 
 function useColumns() {
     const UBadge = resolveComponent('UBadge')
@@ -528,9 +534,7 @@ const { columns, tableRef } = useColumns()
             </div>
 
             <PageParticipantBulkAction
-                :tenant-id="tenantId"
-                :event-id="eventId"
-                :selected-ids="selected"
+                :selected="someColumnSelected"
                 @export="emit(EMIT_TABLE_EXPORT)"
                 @print-qr="emit(EMIT_TABLE_PRINT_QR)"
                 @send-qr="emit(EMIT_TABLE_SEND_QR)"

@@ -210,6 +210,12 @@ export interface Template {
     variants: TemplateVariant[]
 }
 
+export interface TemplateFont {
+    name: string
+    url: string
+    variant?: TemplateFont[] | null
+}
+
 // PARTICIPANT
 export type ParticipantStatus = 'Pending' | 'Checked In'
 export type ParticipantSessionStatus = 'none' | 'partial' | 'completed'

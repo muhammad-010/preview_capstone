@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
+defineProps<{
+    selected: boolean
+}>()
 const emit = defineEmits([EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
 const bulkActionList: DropdownMenuItem[][] = [
     [
@@ -42,6 +45,7 @@ const bulkActionList: DropdownMenuItem[][] = [
 <template>
     <div>
         <UDropdownMenu
+            :disabled="!selected"
             :items="bulkActionList"
             :ui="{ content: 'min-w-48', item: 'cursor-pointer' }"
         >

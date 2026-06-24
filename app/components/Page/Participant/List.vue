@@ -48,6 +48,7 @@ const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/e
     watch: false,
 })
 exposed.refresh = refresh
+const tableRef = ref()
 
 const participants = computed<Participant[]>(() => data.value?.participant ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
@@ -107,6 +108,7 @@ function clearSearch() {
 
 function refreshData() {
     refresh()
+    tableRef.value.clearSelection(false)
     emit(EMIT_DETAIL_REFRESH)
 }
 
@@ -173,6 +175,7 @@ const bulkDeleteConfirmation = ref(false)
             </template>
 
             <PageParticipantTable
+                ref="tableRef"
                 v-model:limit="limit"
                 v-model:page="page"
                 v-model:selected="selectedIds"
