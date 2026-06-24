@@ -12,39 +12,39 @@ export function getBlockStyleValue(style: BlockSetting[], key: string): string |
 }
 
 export function getUsedFonts(blocks: ElementBlock[]): string[] {
-  if (!blocks.length) return []
+    if (!blocks.length) return []
 
-  const usedFonts: string[] = []
-  for (const block of blocks) {
-    if (!block.perBreakpoint) continue
+    const usedFonts: string[] = []
+    for (const block of blocks) {
+        if (!block.perBreakpoint) continue
 
-    for (const bpBlock of Object.values(block.perBreakpoint)) {
-      const blockFonts = getBlockStyleValue(bpBlock.style, BLOCK_STYLE_FONT_FAMILY)
-      if (blockFonts && typeof blockFonts === 'string') {
-        usedFonts.push(...blockFonts.split(',').map(v => v.trim()))
-      }
+        for (const bpBlock of Object.values(block.perBreakpoint)) {
+            const blockFonts = getBlockStyleValue(bpBlock.style, BLOCK_STYLE_FONT_FAMILY)
+            if (blockFonts && typeof blockFonts === 'string') {
+                usedFonts.push(...blockFonts.split(',').map(v => v.trim()))
+            }
+        }
     }
-  }
 
-  return [...new Set(usedFonts)]
+    return [...new Set(usedFonts)]
 }
 
 export function generateFontFaceRules(validFonts: TemplateFont[], usedFonts: string[]): string {
-  if (!usedFonts.length) return ''
+    if (!usedFonts.length) return ''
 
-  const fontFaces = usedFonts.map((used) => {
-    const normalized = used.replace(/^'(.*)'$/, '$1')
-    const url = validFonts.find(f => f.name === normalized)?.url
-    if (!url) return ''
-    return `
+    const fontFaces = usedFonts.map((used) => {
+        const normalized = used.replace(/^'(.*)'$/, '$1')
+        const url = validFonts.find(f => f.name === normalized)?.url
+        if (!url) return ''
+        return `
       @font-face {
         font-family: ${used};
         src: url('${url}') format('truetype');
       }
     `
-  })
+    })
 
-  return fontFaces.filter(Boolean).join('\n\n')
+    return fontFaces.filter(Boolean).join('\n\n')
 }
 
 export function getBlockValue(block: Block): string | boolean | number {
@@ -324,12 +324,12 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
 }
 
 export function getBackendRenderHtml(
-  bgImage: BackgroundImage,
-  width: number,
-  height: number,
-  content: string,
-  staticContent: string,
-  fontFaces: string,
+    bgImage: BackgroundImage,
+    width: number,
+    height: number,
+    content: string,
+    staticContent: string,
+    fontFaces: string,
 ) {
     return `
     <!DOCTYPE html>
@@ -384,12 +384,12 @@ export function getBackendRenderHtml(
 }
 
 export function getCheckInPageHtml(
-  bgImage: BackgroundImage,
-  width: number,
-  height: number,
-  content: string,
-  staticContent: string,
-  fontFaces: string,
+    bgImage: BackgroundImage,
+    width: number,
+    height: number,
+    content: string,
+    staticContent: string,
+    fontFaces: string,
 ) {
     return `
     <!DOCTYPE html>
@@ -448,12 +448,12 @@ export function getCheckInPageHtml(
 }
 
 export function getFallbackPreviewHtml(
-  bgImage: BackgroundImage,
-  width: number,
-  height: number,
-  content: string,
-  staticContent: string,
-  fontFaces: string,
+    bgImage: BackgroundImage,
+    width: number,
+    height: number,
+    content: string,
+    staticContent: string,
+    fontFaces: string,
 ) {
     return `
     <!DOCTYPE html>

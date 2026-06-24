@@ -18,12 +18,12 @@ const props = defineProps<{
 
     withPreview?: boolean
     htmlPreviewFn?: (
-      bgImage: BackgroundImage,
-      width: number,
-      height: number,
-      content: string,
-      staticContent: string,
-      fontFaces: string,
+        bgImage: BackgroundImage,
+        width: number,
+        height: number,
+        content: string,
+        staticContent: string,
+        fontFaces: string,
     ) => string
     previewPath?: string
     previewKey?: string
@@ -509,12 +509,12 @@ function renderBlock(block: Block, value: string | boolean | number) {
 }
 
 function getrenderPreviewHtml(
-  bgImage: BackgroundImage,
-  width: number,
-  height: number,
-  content: string,
-  staticContent: string,
-  fontFaces: string,
+    bgImage: BackgroundImage,
+    width: number,
+    height: number,
+    content: string,
+    staticContent: string,
+    fontFaces: string,
 ) {
     if (!props.htmlPreviewFn) return getFallbackPreviewHtml(bgImage, width, height, content, staticContent, fontFaces)
     return props.htmlPreviewFn(bgImage, width, height, content, staticContent, fontFaces)
@@ -526,13 +526,13 @@ function refreshGeneratedHtml() {
     const customParts: string[] = []
     for (const block of blockContainer.value) {
         if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) {
-          customParts.push('')
-          continue
+            customParts.push('')
+            continue
         }
         const bpBlock = block.perBreakpoint[activeCanvasSizeId.value]!
         const blockFonts = getBlockStyleValue(bpBlock.style, BLOCK_STYLE_FONT_FAMILY)
         if (blockFonts && typeof blockFonts === 'string') {
-          usedFonts.push(...blockFonts.split(',').map(v => v.trim()))
+            usedFonts.push(...blockFonts.split(',').map(v => v.trim()))
         }
         customParts.push(renderBlock(bpBlock, getBlockValue(block)))
     }
@@ -542,13 +542,13 @@ function refreshGeneratedHtml() {
     for (const id of activeStaticBlocks.value) {
         const block = findStaticBlock(id)
         if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) {
-          staticParts.push('')
-          continue
+            staticParts.push('')
+            continue
         }
         const bpBlock = block.perBreakpoint[activeCanvasSizeId.value]!
         const blockFonts = getBlockStyleValue(bpBlock.style, BLOCK_STYLE_FONT_FAMILY)
         if (blockFonts && typeof blockFonts === 'string') {
-          usedFonts.push(...blockFonts.split(',').map(v => v.trim()))
+            usedFonts.push(...blockFonts.split(',').map(v => v.trim()))
         }
         staticParts.push(renderBlock(bpBlock, block.value))
     }
@@ -560,12 +560,12 @@ function refreshGeneratedHtml() {
 
     const fontFaces = generateFontFaceRules(props.fontOptions, usedFonts)
     generatedHtml.value = getrenderPreviewHtml(
-      bgImg,
-      canvasWidth.value,
-      canvasHeight.value,
-      customContent,
-      staticContent,
-      fontFaces,
+        bgImg,
+        canvasWidth.value,
+        canvasHeight.value,
+        customContent,
+        staticContent,
+        fontFaces,
     )
     loadingPreview.value = false
 }

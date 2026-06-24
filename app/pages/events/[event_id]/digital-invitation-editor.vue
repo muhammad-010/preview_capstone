@@ -59,7 +59,6 @@ const { data: fontData } = await useApi(`/api/editor/font`, {
 })
 const fonts = computed(() => fontData.value?.font || [])
 
-
 const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
     ...dynamicBlocks.value,

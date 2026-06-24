@@ -24,23 +24,23 @@ const responsivePosition = computed(() =>
 )
 
 watch(
-  () => renderableBlocks.value,
-  () => {
-    const usedFonts = getUsedFonts(renderableBlocks.value)
+    () => renderableBlocks.value,
+    () => {
+        const usedFonts = getUsedFonts(renderableBlocks.value)
 
-    useHead({
-      style: [
-        {
-          key: 'dynamic-font-faces',
-          textContent: generateFontFaceRules(
-            props.validFonts || [],
-            usedFonts,
-          ),
-        },
-      ],
-    })
-  },
-  { deep: true, immediate: true },
+        useHead({
+            style: [
+                {
+                    key: 'dynamic-font-faces',
+                    textContent: generateFontFaceRules(
+                        props.validFonts || [],
+                        usedFonts,
+                    ),
+                },
+            ],
+        })
+    },
+    { deep: true, immediate: true },
 )
 </script>
 

@@ -6,12 +6,12 @@ const props = defineProps<{
 }>()
 const emit = defineEmits([EMIT_INPUT_UPDATE])
 const fontOptions = computed(() => {
-  const defFonts = ['serif', 'sans-serif']
-  const fonts = props.validFonts
-    ? props.validFonts.map(e => e.name.includes(' ') ? `'${e.name}'` : e.name).filter(Boolean)
-    : []
-  fonts.push(...defFonts)
-  return fonts
+    const defFonts = ['serif', 'sans-serif']
+    const fonts = props.validFonts
+        ? props.validFonts.map(e => e.name.includes(' ') ? `'${e.name}'` : e.name).filter(Boolean)
+        : []
+    fonts.push(...defFonts)
+    return fonts
 })
 
 function setValue(e: any) {
@@ -19,18 +19,18 @@ function setValue(e: any) {
 }
 
 function getMultiValue(value: string | boolean | number) {
-  return value && typeof value === 'string'
-    ? value.split(',').map(v => v.trim()).filter(Boolean)
-    : []
+    return value && typeof value === 'string'
+        ? value.split(',').map(v => v.trim()).filter(Boolean)
+        : []
 }
 
 function setMultiValue(e: any) {
-  if (e && Array.isArray(e) && e.every(item => typeof item === 'string')) {
-    emit(EMIT_INPUT_UPDATE, e.join(','))
-  }
-  else {
-    emit(EMIT_INPUT_UPDATE, e)
-  }
+    if (e && Array.isArray(e) && e.every(item => typeof item === 'string')) {
+        emit(EMIT_INPUT_UPDATE, e.join(','))
+    }
+    else {
+        emit(EMIT_INPUT_UPDATE, e)
+    }
 }
 </script>
 
