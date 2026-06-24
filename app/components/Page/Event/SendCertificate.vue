@@ -24,7 +24,7 @@ async function sendQr() {
         const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/send`, {
             method: 'POST',
             body: {
-                document_type: 'invitation',
+                document_type: 'certificate',
                 channel: [SEND_CHANNEL_EMAIL],
                 ...(props.query ? { query: props.query } : {}),
                 ...(ids.length ? { participant_ids: ids } : {}),
