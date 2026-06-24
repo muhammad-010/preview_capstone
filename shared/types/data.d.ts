@@ -212,6 +212,7 @@ export interface Template {
 
 export interface TemplateFont {
     name: string
+    value: string
     url: string
     variant?: TemplateFont[] | null
 }

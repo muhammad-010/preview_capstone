@@ -87,6 +87,11 @@ export const BLOCK_STYLE_TEXT_ALIGN_OPTIONS = [
     { label: 'Justify', value: 'justify' },
 ]
 
+export const BLOCK_STYLE_FONT_FAMILY_OPTIONS: TemplateFont[] = [
+    { name: 'sans-serif', value: 'sans-serif', url: '' },
+    { name: 'serif', value: 'serif', url: '' },
+]
+
 export const BLOCK_SETTING_WIDTH = STYLE_WIDTH
 export const BLOCK_SETTING_HEIGHT = STYLE_HEIGHT
 export const BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE = 'default-dynamic-value'

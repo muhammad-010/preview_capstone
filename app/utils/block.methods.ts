@@ -33,8 +33,7 @@ export function generateFontFaceRules(validFonts: TemplateFont[], usedFonts: str
     if (!usedFonts.length) return ''
 
     const fontFaces = usedFonts.map((used) => {
-        const normalized = used.replace(/^'(.*)'$/, '$1')
-        const url = validFonts.find(f => f.name === normalized)?.url
+        const url = validFonts.find(f => f.value === used)?.url
         if (!url) return ''
         return `
       @font-face {

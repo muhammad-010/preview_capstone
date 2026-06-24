@@ -1099,7 +1099,7 @@ function preview() {
                                 :key="style.key"
                                 class="mb-4"
                                 :field="style"
-                                :valid-fonts="fontOptions"
+                                :font-options="fontOptions"
                                 @update="(e) => selectedItem && updateBlock('style', style.key, e)"
                             />
                         </template>
