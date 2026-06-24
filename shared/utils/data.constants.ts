@@ -88,9 +88,9 @@ export const PARTICIPANT_SESSION_STATUS_COLORS: Record<ParticipantSessionStatus,
 } as const
 
 // PARTICIPANT_INVITATION_STATUS
-export const INVITATION_STATUS_ON_QUEUE = 'On Queue'
-export const INVITATION_STATUS_SUCCESS = 'Success'
-export const INVITATION_STATUS_FAILED = 'Failed'
+export const INVITATION_STATUS_ON_QUEUE = 'queue'
+export const INVITATION_STATUS_SUCCESS = 'success'
+export const INVITATION_STATUS_FAILED = 'failed'
 
 export const INVITATION_STATUS_COLORS: Record<InvitationStatus, 'warn' | 'success' | 'error'> = {
     [INVITATION_STATUS_ON_QUEUE]: 'warn',

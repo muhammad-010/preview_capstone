@@ -221,7 +221,7 @@ export type ParticipantStatus = 'Pending' | 'Checked In'
 export type ParticipantSessionStatus = 'none' | 'partial' | 'completed'
 export type ParticipantCategory = 'VIP' | 'Regular'
 export type SendChannel = 'email' | 'whatsapp'
-export type InvitationStatus = 'On Queue' | 'Success' | 'Failed'
+export type InvitationStatus = 'queue' | 'success' | 'failed'
 
 export type ParticipantPhone = Phone
 
@@ -250,6 +250,7 @@ export interface Participant {
     max_attendance: number
     custom_attribute: CustomAttribute[] | null
     latest_invitation_log?: ParticipantInvitationLog | null
+    latest_certificate_log?: ParticipantInvitationLog | null
     check_in_progress?: ParticipantCheckInProgress
 
     phone?: Phone

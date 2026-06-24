@@ -139,6 +139,9 @@ const bulkDeleteConfirmation = ref(false)
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             :selected-ids="selectedIds"
+                            :query="query"
+                            :filter-custom-attribute="filterCustomAttribute"
+                            :filter-session-status="filterSessionStatus"
                             hide
                             @refresh="refreshData"
                         />
@@ -147,6 +150,9 @@ const bulkDeleteConfirmation = ref(false)
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             :selected-ids="selectedIds"
+                            :query="query"
+                            :filter-custom-attribute="filterCustomAttribute"
+                            :filter-session-status="filterSessionStatus"
                             hide
                             @refresh="refreshData"
                         />
@@ -155,6 +161,9 @@ const bulkDeleteConfirmation = ref(false)
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             :selected-ids="selectedIds"
+                            :query="query"
+                            :filter-custom-attribute="filterCustomAttribute"
+                            :filter-session-status="filterSessionStatus"
                             hide
                             @refresh="refreshData"
                         />

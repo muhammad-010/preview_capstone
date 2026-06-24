@@ -3,6 +3,9 @@ const props = defineProps<{
     tenantId: number
     eventId: number
     selectedIds: number[]
+    query: string
+    filterCustomAttribute: CustomAttribute[]
+    filterSessionStatus: ParticipantSessionStatus | null
     hide?: boolean
 }>()
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
@@ -16,11 +19,25 @@ async function printQr() {
     const ids = props.selectedIds.length > 0 ? props.selectedIds : []
     try {
         printLoading.value = true
+        const cleanedFilterCustomAttribute = formatCleanCustomAttribute(props.filterCustomAttribute)
         const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/print`, {
             method: 'POST',
-            body: ids.length
-                ? { document_type: 'invitation', participant_ids: ids }
-                : { document_type: 'invitation' },
+            body: {
+                document_type: 'invitation',
+                ...(props.query ? { query: props.query } : {}),
+                ...(ids.length ? { participant_ids: ids } : {}),
+                ...(props.filterSessionStatus !== null
+                    ? { check_in_session: props.filterSessionStatus }
+                    : {}
+                ),
+                ...(cleanedFilterCustomAttribute.length
+                    ? {
+                            custom_attribute_ids: cleanedFilterCustomAttribute.map(attr => attr.custom_attribute_id).join(','),
+                            custom_attribute_values: cleanedFilterCustomAttribute.map(attr => attr.value).join(','),
+                        }
+                    : {}
+                ),
+            },
         })
         if (data.filepath) {
             const filename = data.filepath.split('/').pop()
