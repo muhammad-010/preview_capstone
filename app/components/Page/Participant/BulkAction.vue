@@ -4,7 +4,7 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 defineProps<{
     selected: boolean
 }>()
-const emit = defineEmits([EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
+const emit = defineEmits([EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_SEND_CERTIFICATE, EMIT_TABLE_BULK_DELETE])
 const bulkActionList: DropdownMenuItem[][] = [
     [
         {
@@ -14,6 +14,8 @@ const bulkActionList: DropdownMenuItem[][] = [
                 emit(EMIT_TABLE_EXPORT)
             },
         },
+    ],
+    [
         {
             label: 'Print QR',
             icon: 'lucide:qr-code',
@@ -26,6 +28,15 @@ const bulkActionList: DropdownMenuItem[][] = [
             icon: 'lucide:send',
             onSelect() {
                 emit(EMIT_TABLE_SEND_QR)
+            },
+        },
+    ],
+    [
+        {
+            label: 'Send Certificate',
+            icon: 'lucide:scroll-text',
+            onSelect() {
+                emit(EMIT_TABLE_SEND_CERTIFICATE)
             },
         },
     ],
