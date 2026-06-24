@@ -475,7 +475,7 @@ function updateBlock(
         let dataItem: BlockSetting | undefined
         switch (target) {
             case 'setting':
-                dataItem = selectedItem.value.setting.find(s => s.key === key)
+                dataItem = selectedItem.value.perBreakpoint[activeCanvasSizeId.value]!.setting.find(s => s.key === key)
                 break
             case 'style':
                 dataItem = selectedItem.value.perBreakpoint[activeCanvasSizeId.value]!.style.find(s => s.key === key)
