@@ -3,6 +3,7 @@
 const props = defineProps<{
     blockSettings: ElementBlock[]
     dynamicBlocks?: ElementBlock[]
+    validFonts?: TemplateFont[]
 }>()
 
 const availableBlocks = ref<ElementBlock[]>([
@@ -20,6 +21,26 @@ const renderableBlocks = computed(() => {
 })
 const responsivePosition = computed(() =>
     renderableBlocks.value.map(b => getResponsivePositionStyle(b)),
+)
+
+watch(
+  () => renderableBlocks.value,
+  () => {
+    const usedFonts = getUsedFonts(renderableBlocks.value)
+
+    useHead({
+      style: [
+        {
+          key: 'dynamic-font-faces',
+          textContent: generateFontFaceRules(
+            props.validFonts || [],
+            usedFonts,
+          ),
+        },
+      ],
+    })
+  },
+  { deep: true, immediate: true },
 )
 </script>
 

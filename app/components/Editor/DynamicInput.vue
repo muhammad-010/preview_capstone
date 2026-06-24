@@ -1,12 +1,36 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
     field: BlockSetting
+    validFonts?: TemplateFont[]
 }>()
 const emit = defineEmits([EMIT_INPUT_UPDATE])
+const fontOptions = computed(() => {
+  const defFonts = ['serif', 'sans-serif']
+  const fonts = props.validFonts
+    ? props.validFonts.map(e => e.name.includes(' ') ? `'${e.name}'` : e.name).filter(Boolean)
+    : []
+  fonts.push(...defFonts)
+  return fonts
+})
 
 function setValue(e: any) {
     emit(EMIT_INPUT_UPDATE, e)
+}
+
+function getMultiValue(value: string | boolean | number) {
+  return value && typeof value === 'string'
+    ? value.split(',').map(v => v.trim()).filter(Boolean)
+    : []
+}
+
+function setMultiValue(e: any) {
+  if (e && Array.isArray(e) && e.every(item => typeof item === 'string')) {
+    emit(EMIT_INPUT_UPDATE, e.join(','))
+  }
+  else {
+    emit(EMIT_INPUT_UPDATE, e)
+  }
 }
 </script>
 
@@ -34,6 +58,16 @@ function setValue(e: any) {
                 :items="field.options"
                 class="w-full"
                 @update:model-value="setValue"
+            />
+
+            <!-- Font Select -->
+            <USelect
+                v-else-if="field.type === 'font-select' && fontOptions"
+                multiple
+                :model-value="getMultiValue(field.value)"
+                :items="fontOptions"
+                class="w-full"
+                @update:model-value="setMultiValue"
             />
 
             <!-- Color -->

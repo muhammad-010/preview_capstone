@@ -10,6 +10,7 @@ const props = defineProps<{
     dynamicBlocks?: ElementBlock[]
     customBlockSettings?: ElementBlock[]
     staticBlockSettings?: ElementBlock[]
+    validFonts?: TemplateFont[]
 }>()
 const checkInSuccessDialog = defineModel<boolean>('open-success', { default: false })
 const checkInFailedDialog = defineModel<boolean>('open-failed', { default: false })
@@ -356,6 +357,7 @@ const inputCardResponsivePos = computed(() => {
         <MiscBlockLoader
             :block-settings="props.customBlockSettings || []"
             :dynamic-blocks="props.dynamicBlocks || []"
+            :valid-fonts="props.validFonts || []"
         />
 
         <div

@@ -52,6 +52,13 @@ const defaultBackgroundImages = computed(() => {
     }
     return backgroundImages
 })
+const { data: fontData } = await useApi(`/api/editor/font`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const fonts = computed(() => fontData.value?.font || [])
+
 
 const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
@@ -71,6 +78,7 @@ definePageMeta({
         :custom-blocks="customBlocks"
         :static-blocks="[]"
         :canvas-size-options="canvasSizeOptions"
+        :font-options="fonts"
         :default-selected-canvas-size-ids="defaultSelectedCanvasSizeIds"
         :default-active-canvas-size-id="defaultActiveCanvasSizeId"
         :default-orientation="defaultOrientation"

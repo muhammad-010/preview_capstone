@@ -126,6 +126,16 @@ const backgroundStyleClass = computed<ResponsiveElementSetting>(() => {
                     lg:[text-align:var(--lg-text-align)]
                     xl:[text-align:var(--xl-text-align)]
 
+                    font-(family-name:--sm-font-family)
+                    font-(family-name:--md-font-family)
+                    font-(family-name:--lg-font-family)
+                    font-(family-name:--xl-font-family)
+
+                    sm:font-(family-name:--sm-font-family)
+                    md:font-(family-name:--md-font-family)
+                    lg:font-(family-name:--lg-font-family)
+                    xl:font-(family-name:--xl-font-family)
+
                     text-(length:--sm-font-size)
                     text-(length:--md-font-size)
                     text-(length:--lg-font-size)

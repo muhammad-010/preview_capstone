@@ -41,7 +41,7 @@ const textAlignResponsiveStyleClass = createResponsiveStyleClass({
 })
 
 const fontFamilyResponsiveStyleClass = createResponsiveStyleClass({
-    buildClass: (twPfx, cssVar) => `${twPfx}font-[${cssVar}]`,
+    buildClass: (twPfx, cssVar) => `${twPfx}font-(family-name:${cssVar})`,
 })
 
 const fontSizeResponsiveStyleClass = createResponsiveStyleClass({

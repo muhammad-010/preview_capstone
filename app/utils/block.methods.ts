@@ -11,6 +11,42 @@ export function getBlockStyleValue(style: BlockSetting[], key: string): string |
     return style.find(s => s.key === key)?.value
 }
 
+export function getUsedFonts(blocks: ElementBlock[]): string[] {
+  if (!blocks.length) return []
+
+  const usedFonts: string[] = []
+  for (const block of blocks) {
+    if (!block.perBreakpoint) continue
+
+    for (const bpBlock of Object.values(block.perBreakpoint)) {
+      const blockFonts = getBlockStyleValue(bpBlock.style, BLOCK_STYLE_FONT_FAMILY)
+      if (blockFonts && typeof blockFonts === 'string') {
+        usedFonts.push(...blockFonts.split(',').map(v => v.trim()))
+      }
+    }
+  }
+
+  return [...new Set(usedFonts)]
+}
+
+export function generateFontFaceRules(validFonts: TemplateFont[], usedFonts: string[]): string {
+  if (!usedFonts.length) return ''
+
+  const fontFaces = usedFonts.map((used) => {
+    const normalized = used.replace(/^'(.*)'$/, '$1')
+    const url = validFonts.find(f => f.name === normalized)?.url
+    if (!url) return ''
+    return `
+      @font-face {
+        font-family: ${used};
+        src: url('${url}') format('truetype');
+      }
+    `
+  })
+
+  return fontFaces.filter(Boolean).join('\n\n')
+}
+
 export function getBlockValue(block: Block): string | boolean | number {
     if (DYNAMIC_BLOCK_TYPES.includes(block.type)) {
         return block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)?.value || block.value || ''
@@ -287,12 +323,20 @@ export function getResponsiveStyle(elBlock: ElementBlock | undefined): Responsiv
     }, cloneObject(empty))
 }
 
-export function getBackendRenderHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+export function getBackendRenderHtml(
+  bgImage: BackgroundImage,
+  width: number,
+  height: number,
+  content: string,
+  staticContent: string,
+  fontFaces: string,
+) {
     return `
     <!DOCTYPE html>
     <html>
     <head>
         <style>
+            ${fontFaces}
             @page {
                 size: ${width}px ${height}px;
                 margin: 0;
@@ -339,14 +383,20 @@ export function getBackendRenderHtml(bgImage: BackgroundImage, width: number, he
     `
 }
 
-export function getCheckInPageHtml(bgImage: BackgroundImage, width: number, height: number, content: string, staticContent: string) {
+export function getCheckInPageHtml(
+  bgImage: BackgroundImage,
+  width: number,
+  height: number,
+  content: string,
+  staticContent: string,
+  fontFaces: string,
+) {
     return `
     <!DOCTYPE html>
     <html>
         <head>
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <style>
+                ${fontFaces}
                 .container {
                     position: relative;
                     height: ${height}px;
@@ -393,6 +443,38 @@ export function getCheckInPageHtml(bgImage: BackgroundImage, width: number, heig
                 </div>
             </div>
         </body>
+    </html>
+    `
+}
+
+export function getFallbackPreviewHtml(
+  bgImage: BackgroundImage,
+  width: number,
+  height: number,
+  content: string,
+  staticContent: string,
+  fontFaces: string,
+) {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            ${fontFaces}
+            .container {
+                background-image: url(${bgImage.dataUrl});
+                background-size: contain;
+                background-position: center;
+                background-no-repeat: no-repeat;
+            }
+        </style>
+    </head>
+    <body style="margin:0;padding:0;">
+        <div class="container" style="position:relative;width:${width}px;height:${height}px;">
+            ${content}
+            ${staticContent}
+        </div>
+    </body>
     </html>
     `
 }
