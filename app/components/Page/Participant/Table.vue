@@ -325,7 +325,7 @@ function useColumns() {
                     class: 'w-max',
                     color: INVITATION_STATUS_COLORS[participant.latest_invitation_log.email.status],
                     variant: 'subtle',
-                    label: `Email: ${participant.latest_invitation_log.email.status}`,
+                    label: `Email: ${formatCapitalize(participant.latest_invitation_log.email.status)}`,
                 }),
             )
         }
@@ -335,11 +335,30 @@ function useColumns() {
                     class: 'w-max',
                     color: INVITATION_STATUS_COLORS[participant.latest_invitation_log.whatsapp.status],
                     variant: 'subtle',
-                    label: `Whatsapp: ${participant.latest_invitation_log.whatsapp.status}`,
+                    label: `Whatsapp: ${formatCapitalize(participant.latest_invitation_log.whatsapp.status)}`,
                 }),
             )
         }
         return qrSent
+    }
+
+    function certificateSent(participant: Participant) {
+        if (!participant.latest_certificate_log) {
+            return h('span', { class: 'text-dimmed' }, 'Not Sent')
+        }
+
+        const certificateSent = []
+        if (participant.latest_certificate_log.email) {
+            certificateSent.push(
+                h(UBadge, {
+                    class: 'w-max',
+                    color: INVITATION_STATUS_COLORS[participant.latest_certificate_log.email.status],
+                    variant: 'subtle',
+                    label: `Email: ${formatCapitalize(participant.latest_certificate_log.email.status)}`,
+                }),
+            )
+        }
+        return certificateSent
     }
 
     const columns = [
@@ -443,6 +462,11 @@ function useColumns() {
             accessorKey: 'latest_invitation_log',
             header: 'QR Sent',
             cell: ({ row }) => h('div', { class: 'flex flex-col gap-2' }, qrSent(row.original)),
+        },
+        {
+            accessorKey: 'latest_certificate_log',
+            header: 'Certificate Sent',
+            cell: ({ row }) => h('div', { class: 'flex flex-col gap-2' }, certificateSent(row.original)),
         },
         {
             accessorKey: 'participant_id',
