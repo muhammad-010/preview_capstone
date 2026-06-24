@@ -114,6 +114,7 @@ function refreshData() {
 
 const printQrConfirmation = ref(false)
 const sendQrConfirmation = ref(false)
+const printCertificateConfirmation = ref(false)
 const sendCertificateConfirmation = ref(false)
 const bulkDeleteConfirmation = ref(false)
 </script>
@@ -147,6 +148,17 @@ const bulkDeleteConfirmation = ref(false)
                         />
                         <PageEventSendQr
                             v-model:open="sendQrConfirmation"
+                            :tenant-id="tenantId"
+                            :event-id="eventId"
+                            :selected-ids="selectedIds"
+                            :query="query"
+                            :filter-custom-attribute="filterCustomAttribute"
+                            :filter-session-status="filterSessionStatus"
+                            hide
+                            @refresh="refreshData"
+                        />
+                        <PageEventPrintCertificate
+                            v-model:open="printCertificateConfirmation"
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             :selected-ids="selectedIds"
@@ -209,6 +221,7 @@ const bulkDeleteConfirmation = ref(false)
                 @export="exportData"
                 @print-qr="printQrConfirmation = true"
                 @send-qr="sendQrConfirmation = true"
+                @print-certificate="printCertificateConfirmation = true"
                 @send-certificate="sendCertificateConfirmation = true"
                 @bulk-delete="bulkDeleteConfirmation = true"
             />
