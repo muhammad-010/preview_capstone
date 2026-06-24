@@ -92,8 +92,8 @@ export const INVITATION_STATUS_ON_QUEUE = 'queue'
 export const INVITATION_STATUS_SUCCESS = 'success'
 export const INVITATION_STATUS_FAILED = 'failed'
 
-export const INVITATION_STATUS_COLORS: Record<InvitationStatus, 'warn' | 'success' | 'error'> = {
-    [INVITATION_STATUS_ON_QUEUE]: 'warn',
+export const INVITATION_STATUS_COLORS: Record<InvitationStatus, 'warning' | 'success' | 'error'> = {
+    [INVITATION_STATUS_ON_QUEUE]: 'warning',
     [INVITATION_STATUS_SUCCESS]: 'success',
     [INVITATION_STATUS_FAILED]: 'error',
 }
