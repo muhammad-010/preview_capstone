@@ -75,7 +75,7 @@ async function printQr() {
         class="cursor-pointer"
         @click="printConfirmation = true"
     >
-        {{ `Print QR ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
+        {{ `Print Certificate ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
     </UButton>
 
     <ModalConfirmNeutralAction
