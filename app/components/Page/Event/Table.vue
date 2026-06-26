@@ -12,7 +12,6 @@ const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
 
 function useColumns() {
-    const UProgress = resolveComponent('UProgress')
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
     const UTooltip = resolveComponent('UTooltip')
@@ -52,19 +51,6 @@ function useColumns() {
             },
             cell: ({ row }) => {
                 return h('div', { class: 'truncate' }, row.original.location)
-            },
-        },
-        {
-            accessorKey: 'capacity',
-            header: 'Capacity',
-            cell: ({ row }) => {
-                return h('div', {}, [
-                    h('span', {}, `${row.original.capacity?.used || 0}/${row.original.capacity?.total || 0}`),
-                    h(UProgress, {
-                        max: row.original.capacity?.total || 0,
-                        modelValue: row.original.capacity?.used || 0,
-                    }),
-                ])
             },
         },
         {

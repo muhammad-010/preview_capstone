@@ -30,7 +30,6 @@ const schema = z.object({
     location: zodStringRequired('Location is required'),
     start_time: zodISODatetime(),
     end_time: zodISODatetime(),
-    capacity: zodNumberRequired(),
     status: zodStringOptional(),
     assign_user_ids: zodArrayNumber(),
 })
@@ -46,7 +45,6 @@ const state = reactive<Partial<TenantEventForm>>(props.fields ?? {
     location: '',
     start_time: defaultStartTime.toISOString(),
     end_time: defaultEndTime.toISOString(),
-    capacity: 0,
     status: 'Active',
     assign_user_ids: [],
 })
@@ -176,20 +174,6 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                             class="w-full"
                         />
                     </UFormField>
-
-                    <div class="flex flex-col gap-2">
-                        <UFormField
-                            label="Total Capacity"
-                            name="capacity"
-                            :class="`${isModal ? '' : 'my-2'} w-full`"
-                        >
-                            <UInput
-                                v-model="state.capacity"
-                                type="number"
-                                class="w-full"
-                            />
-                        </UFormField>
-                    </div>
                 </div>
             </template>
 

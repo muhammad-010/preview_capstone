@@ -98,11 +98,6 @@ export interface TenantEventParticipantStatus {
     total_checked_in: number
 }
 
-export interface TenantEventRuleConfig {
-    capacity?: TenantEventCapacity
-    confirmation_attendance?: boolean
-}
-
 export interface TenantEvent {
     event_id?: number
     name: string
@@ -112,7 +107,6 @@ export interface TenantEvent {
 
     description?: string
     end_time?: ISOString
-    rule_config?: TenantEventRuleConfig
     capacity?: TenantEventCapacity
     assigned_users?: User[]
     assign_user_ids: number[]
@@ -128,7 +122,6 @@ export interface TenantEventForm {
     start_time: ISOString
     end_time: ISOString
     status: TenantEventStatus
-    capacity: number
     assign_user_ids: number[]
 }
 
