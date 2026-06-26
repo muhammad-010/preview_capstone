@@ -2,22 +2,19 @@
 <script setup lang="ts">
 const props = defineProps<{
     field: BlockSetting
-    validFonts?: TemplateFont[]
+    fontOptions?: TemplateFont[]
 }>()
 const emit = defineEmits([EMIT_INPUT_UPDATE])
-const fontOptions = computed(() => {
-    const defFonts = ['serif', 'sans-serif']
-    const fonts = props.validFonts
-        ? props.validFonts.map(e => e.name.includes(' ') ? `'${e.name}'` : e.name).filter(Boolean)
-        : []
-    fonts.push(...defFonts)
-    return fonts
-})
+const fontItems = computed(() => props.fontOptions
+    ? [...props.fontOptions, ...BLOCK_STYLE_FONT_FAMILY_OPTIONS]
+    : BLOCK_STYLE_FONT_FAMILY_OPTIONS,
+)
 
 function setValue(e: any) {
     emit(EMIT_INPUT_UPDATE, e)
 }
 
+/*
 function getMultiValue(value: string | boolean | number) {
     return value && typeof value === 'string'
         ? value.split(',').map(v => v.trim()).filter(Boolean)
@@ -32,6 +29,7 @@ function setMultiValue(e: any) {
         emit(EMIT_INPUT_UPDATE, e)
     }
 }
+*/
 </script>
 
 <template>
@@ -63,11 +61,11 @@ function setMultiValue(e: any) {
             <!-- Font Select -->
             <USelect
                 v-else-if="field.type === 'font-select' && fontOptions"
-                multiple
-                :model-value="getMultiValue(field.value)"
-                :items="fontOptions"
+                :model-value="String(field.value)"
+                :items="fontItems"
+                label-key="name"
                 class="w-full"
-                @update:model-value="setMultiValue"
+                @update:model-value="setValue"
             />
 
             <!-- Color -->

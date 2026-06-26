@@ -26,21 +26,19 @@ export const CHECK_IN_VALID_BREAKPOINTS: Breakpoint[] = [
     BREAKPOINT_XL,
 ]
 
-export const BLOCK_TEXT_TYPE = 'static-text'
-export const BLOCK_IMAGE_TYPE = 'image'
-/** With dynamic variable */
 export const BLOCK_DYNAMIC_TEXT_TYPE = 'text'
-/** With dynamic variable */
-export const BLOCK_QR_IMAGE_TYPE = 'qr-image'
+export const BLOCK_DYNAMIC_QR_IMAGE_TYPE = 'qr-image'
+export const DYNAMIC_BLOCK_TYPES: string[] = [
+    BLOCK_DYNAMIC_TEXT_TYPE,
+    BLOCK_DYNAMIC_QR_IMAGE_TYPE,
+]
+export const BLOCK_TEXT_TYPE = 'text'
+export const BLOCK_IMAGE_TYPE = 'image'
 export const BLOCK_TYPES: string[] = [
     BLOCK_TEXT_TYPE,
     BLOCK_IMAGE_TYPE,
     BLOCK_DYNAMIC_TEXT_TYPE,
-    BLOCK_QR_IMAGE_TYPE,
-]
-export const DYNAMIC_BLOCK_TYPES: string[] = [
-    BLOCK_DYNAMIC_TEXT_TYPE,
-    BLOCK_QR_IMAGE_TYPE,
+    BLOCK_DYNAMIC_QR_IMAGE_TYPE,
 ]
 export const STATIC_BLOCK_SCANNER_QR_TYPE = 'scanner-qr'
 export const STATIC_BLOCK_INPUT_CARD_TYPE = 'input-card'
@@ -85,6 +83,11 @@ export const BLOCK_STYLE_TEXT_ALIGN_OPTIONS = [
     { label: 'Center', value: 'center' },
     { label: 'Right', value: 'right' },
     { label: 'Justify', value: 'justify' },
+]
+
+export const BLOCK_STYLE_FONT_FAMILY_OPTIONS: TemplateFont[] = [
+    { name: 'sans-serif', value: 'sans-serif', url: '' },
+    { name: 'serif', value: 'serif', url: '' },
 ]
 
 export const BLOCK_SETTING_WIDTH = STYLE_WIDTH
