@@ -477,11 +477,18 @@ function useColumns() {
                 },
             },
             cell: ({ row }) => {
+                const checkInComplete = row.original.check_in_progress && row.original.check_in_progress.count === row.original.check_in_progress.total
+                const noSession = row.original.check_in_progress && !row.original.check_in_progress.total
                 const disabled = row.original.check_in_progress
-                    ? row.original.check_in_progress.count === row.original.check_in_progress.total
+                    ? checkInComplete || noSession
                     : true
+                const checkInTooltip = noSession
+                    ? 'Create session on \'Sessions\' tab first'
+                    : checkInComplete
+                      ? 'Already checked-in on all sessions'
+                      : 'Manual Check-In'
                 return h('div', { class: 'inline-flex gap-2' }, [
-                    h(UTooltip, { text: 'Manual Check-In', delayDuration: 0 }, () => [
+                    h(UTooltip, { text: checkInTooltip, delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'neutral',
                             variant: 'ghost',
