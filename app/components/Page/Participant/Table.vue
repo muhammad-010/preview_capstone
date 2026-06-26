@@ -485,8 +485,8 @@ function useColumns() {
                 const checkInTooltip = noSession
                     ? 'Create session on \'Sessions\' tab first'
                     : checkInComplete
-                      ? 'Already checked-in on all sessions'
-                      : 'Manual Check-In'
+                        ? 'Already checked-in on all sessions'
+                        : 'Manual Check-In'
                 return h('div', { class: 'inline-flex gap-2' }, [
                     h(UTooltip, { text: checkInTooltip, delayDuration: 0 }, () => [
                         h(UButton, {
