@@ -45,13 +45,19 @@ const blocks = computed<{
     staticBlocks: ElementBlock[]
 }>(() => {
     if (template.value) {
-        const variants = parseDynamicVariantsElement(template.value.variants)
-        return parseTemplateVariants(variants, CHECK_IN_VALID_BREAKPOINTS)
+        return parseTemplateVariants(template.value.variants, CHECK_IN_VALID_BREAKPOINTS)
     }
     else {
         return { customBlocks: [], staticBlocks: [] }
     }
 })
+
+const { data: fontData } = await useApi(`/api/editor/font`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const fonts = computed(() => fontData.value?.font || [])
 
 useHead({
     title: computed(() => `Check In - ${event.value ? event.value.name : 'Event'}`),
@@ -80,6 +86,7 @@ definePageMeta({
                 :session-id="sessionId"
                 :custom-block-settings="blocks.customBlocks"
                 :static-block-settings="blocks.staticBlocks"
+                :valid-fonts="fonts"
             />
 
             <ModalCheckInSuccess

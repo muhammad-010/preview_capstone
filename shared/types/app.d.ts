@@ -123,6 +123,7 @@ export interface Block {
     y: number
     /** whether display the value setting for this block */
     withValue?: boolean
+    isDynamic?: boolean
 }
 
 export interface ElementBlock extends Block {

@@ -47,12 +47,7 @@ export function generateFontFaceRules(validFonts: TemplateFont[], usedFonts: str
 }
 
 export function getBlockValue(block: Block): string | boolean | number {
-    if (DYNAMIC_BLOCK_TYPES.includes(block.type)) {
-        return block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)?.value || block.value || ''
-    }
-    else {
-        return block.value || ''
-    }
+    return block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)?.value || block.value || ''
 }
 
 export function compilePreviewStyle(block: Block) {
@@ -67,7 +62,7 @@ export function compilePreviewStyle(block: Block) {
         `
     }
 
-    if (block.type === BLOCK_IMAGE_TYPE || block.type === BLOCK_QR_IMAGE_TYPE) {
+    if (block.type === BLOCK_IMAGE_TYPE || block.type === BLOCK_DYNAMIC_QR_IMAGE_TYPE) {
         return `
             ${BLOCK_STYLE_WIDTH}:${getBlockStyleValue(block.style, BLOCK_STYLE_WIDTH)};
             ${BLOCK_STYLE_HEIGHT}:${getBlockStyleValue(block.style, BLOCK_STYLE_HEIGHT)};
@@ -84,45 +79,23 @@ export function renderHtmlBlock(block: ElementBlock) {
         .filter(([, value]) => value !== undefined && value !== '')
         .map(([key, value]) => `${key}: ${value};`)
         .join(' ')
+    const value = getBlockValue(block)
 
-    if (block.type === BLOCK_TEXT_TYPE) {
+    if (block.type === BLOCK_TEXT_TYPE || block.type === BLOCK_DYNAMIC_TEXT_TYPE) {
+
         return `
           <div class="${cssClass}" style="${cssStyle}">
-              <p>${block.value || ''}</p>
+              <p>${value || ''}</p>
           </div>
       `
     }
-    else if (block.type === BLOCK_IMAGE_TYPE) {
+    else if (block.type === BLOCK_IMAGE_TYPE || block.type === BLOCK_DYNAMIC_QR_IMAGE_TYPE) {
         const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
         const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
 
         return `
           <img
-              src="${block.value || ''}"
-              class="${cssClass}"
-              style="${cssStyle}"
-              ${settingWidth ? `width=${settingWidth.value}` : ''}
-              ${settingHeight ? `height=${settingHeight.value}` : ''}
-          />
-      `
-    }
-    else if (block.type === BLOCK_DYNAMIC_TEXT_TYPE) {
-        const defaultValue = block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)
-
-        return `
-          <div class="${cssClass}" style="${cssStyle}">
-              <p>${defaultValue?.value || block.value || ''}</p>
-          </div>
-      `
-    }
-    else if (block.type === BLOCK_QR_IMAGE_TYPE) {
-        const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
-        const settingHeight = block.setting.find(e => e.key === BLOCK_SETTING_HEIGHT)
-        const defaultValue = block.setting.find(e => e.key === BLOCK_SETTING_DEFAULT_DYNAMIC_VALUE)
-
-        return `
-          <img
-              src="${defaultValue?.value || block.value || ''}"
+              src="${value || ''}"
               class="${cssClass}"
               style="${cssStyle}"
               ${settingWidth ? `width=${settingWidth.value}` : ''}
@@ -148,7 +121,7 @@ export function renderPreviewHtml(block: Block, value: string | boolean | number
     }
     else if (
         block.type === BLOCK_IMAGE_TYPE
-        || block.type === BLOCK_QR_IMAGE_TYPE
+        || block.type === BLOCK_DYNAMIC_QR_IMAGE_TYPE
         || (block.type === STATIC_BLOCK_SCANNER_QR_TYPE)
     ) {
         const settingWidth = block.setting.find(e => e.key === BLOCK_SETTING_WIDTH)
@@ -194,7 +167,7 @@ export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): 
 
     for (let idx = 0; idx < elements.length; idx++) {
         const el = elements[idx]!
-        if (!DYNAMIC_BLOCK_TYPES.includes(el.type)) continue
+        if (!el.default_value) continue
 
         const style: BlockSetting[] = []
         const setting: BlockSetting[] = [
@@ -210,7 +183,7 @@ export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): 
         if (el.type === BLOCK_DYNAMIC_TEXT_TYPE) {
             style.push(...cloneObject(BLOCK_TEXT_DEFAULT_STYLE))
         }
-        else if (el.type === BLOCK_QR_IMAGE_TYPE) {
+        else if (el.type === BLOCK_DYNAMIC_QR_IMAGE_TYPE) {
             setting.push(
                 { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '200px' },
                 { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '200px' },
@@ -226,6 +199,7 @@ export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): 
             style,
             x: 0,
             y: 0,
+            isDynamic: true,
         })
     }
 
@@ -499,23 +473,6 @@ function filterBlockData(
     return settings
 }
 
-export function parseDynamicVariantsElement(variants: TemplateVariant[]): TemplateVariant[] {
-    const parsed: TemplateVariant[] = []
-    for (const variant of variants) {
-        for (const element of variant.elements) {
-            switch (element.type) {
-                case BLOCK_DYNAMIC_TEXT_TYPE:
-                    element.type = BLOCK_TEXT_TYPE
-                    break
-                default:
-                    break
-            }
-        }
-        parsed.push(variant)
-    }
-    return parsed
-}
-
 export function makeTemplateVariant(
     blocks: ElementBlock[],
     slug: string,
@@ -571,6 +528,8 @@ export function parseTemplateVariants(
     const defaultMap: Record<string, ElementBlock> = {}
     for (const b of STATIC_BLOCKS) defaultMap[b.id] = b
     for (const b of CUSTOM_BLOCKS) defaultMap[b.id] = b
+    // because somehow BE can't provide different type for each dynamic element
+    // use value as id if it's dynamic element
     if (dynamicBlocks) for (const b of dynamicBlocks) defaultMap[b.id] = b
 
     const breakpoints: Partial<Record<Breakpoint, number | undefined>> = {}
@@ -594,13 +553,13 @@ export function parseTemplateVariants(
             // do not accept undefined uid
             // as it's for grouping the element
             if (el.group === undefined) continue
-            const isDynamicBlock = DYNAMIC_BLOCK_TYPES.includes(el.type)
+            const isDynamicBlock = Object.hasOwn(defaultMap, el.value)
+            // because somehow BE can't provide different type for each dynamic element
+            // use value as id if it's dynamic element
             const id = isDynamicBlock ? el.value : `{{ ${el.type} }}`
 
             let block = blockMap[el.group]
             if (!block) {
-                // because somehow BE can't provide different type for each dynamic element
-                // use value as id if it's dynamic element
                 const base = defaultMap[id]
 
                 if (!base) continue
@@ -609,6 +568,7 @@ export function parseTemplateVariants(
                     uid: el.group,
                     value: el.value,
                     perBreakpoint: {},
+                    isDynamic: isDynamicBlock,
                 }
                 if (isDynamicBlock) block.withValue = false
 
@@ -623,9 +583,10 @@ export function parseTemplateVariants(
                 x: el.position_x,
                 y: el.position_y,
                 value: el.value,
-                withValue: block.withValue,
                 style: el.style && Object.entries(el.style).length > 0 ? filterBlockData('style', el.style, block) : cloneObject(block.style),
                 setting: el.setting && Object.entries(el.setting).length > 0 ? filterBlockData('setting', el.setting, block) : cloneObject(block.setting),
+                withValue: block.withValue,
+                isDynamic: isDynamicBlock,
             }
         }
     }
