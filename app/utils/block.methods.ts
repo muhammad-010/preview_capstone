@@ -82,7 +82,6 @@ export function renderHtmlBlock(block: ElementBlock) {
     const value = getBlockValue(block)
 
     if (block.type === BLOCK_TEXT_TYPE || block.type === BLOCK_DYNAMIC_TEXT_TYPE) {
-
         return `
           <div class="${cssClass}" style="${cssStyle}">
               <p>${value || ''}</p>
