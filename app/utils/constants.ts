@@ -18,6 +18,8 @@ export const EMIT_TABLE_FILTER_CLEAR = 'clear'
 export const EMIT_TABLE_EXPORT = 'export'
 export const EMIT_TABLE_PRINT_QR = 'print-qr'
 export const EMIT_TABLE_SEND_QR = 'send-qr'
+export const EMIT_TABLE_PRINT_CERTIFICATE = 'print-certificate'
+export const EMIT_TABLE_SEND_CERTIFICATE = 'send-certificate'
 export const EMIT_TABLE_BULK_DELETE = 'bulk-delete'
 export const EMIT_TABLE_OPEN_EDIT = 'open-edit'
 export const EMIT_CHECK_IN_SUCCESS = 'success'
@@ -78,6 +80,11 @@ export const TENANT_EVENT_SETTINGS = {
     [TENANT_EVENT_SETTING_PUBLIC_TICKET_RETRIEVAL]: {
         title: 'Public Ticket Retrieval',
         desc: 'Allow attendees to retrieve their ticket/QR code via public link using registered contact, without sign-in',
+        value: false,
+    },
+    [TENANT_EVENT_SETTING_CERTIFICATE]: {
+        title: 'Certificate',
+        desc: 'Generate certificate for event participants',
         value: false,
     },
 }

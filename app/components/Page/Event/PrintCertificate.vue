@@ -23,7 +23,7 @@ async function printQr() {
         const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/print`, {
             method: 'POST',
             body: {
-                document_type: 'invitation',
+                document_type: 'certificate',
                 ...(props.query ? { query: props.query } : {}),
                 ...(ids.length ? { participant_ids: ids } : {}),
                 ...(props.filterSessionStatus !== null
@@ -71,18 +71,18 @@ async function printQr() {
         v-if="!hide"
         color="neutral"
         variant="outline"
-        icon="lucide:qr-code"
+        icon="lucide:scroll-text"
         class="cursor-pointer"
         @click="printConfirmation = true"
     >
-        {{ `Print QR ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
+        {{ `Print Certificate ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
     </UButton>
 
     <ModalConfirmNeutralAction
         v-model:open="printConfirmation"
-        title="Print QR Confirmation"
-        :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
-        confirm-label="Yes, Print The QR"
+        title="Print Certificate Confirmation"
+        :body="`You will print ${selectedIds.length || 'All'} certificate of participants, Continue?`"
+        confirm-label="Yes, Print Certificate"
         :loading="printLoading"
         @confirm="printQr"
     />

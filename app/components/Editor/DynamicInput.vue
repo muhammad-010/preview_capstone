@@ -1,13 +1,35 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
     field: BlockSetting
+    fontOptions?: TemplateFont[]
 }>()
 const emit = defineEmits([EMIT_INPUT_UPDATE])
+const fontItems = computed(() => props.fontOptions
+    ? [...props.fontOptions, ...BLOCK_STYLE_FONT_FAMILY_OPTIONS]
+    : BLOCK_STYLE_FONT_FAMILY_OPTIONS,
+)
 
 function setValue(e: any) {
     emit(EMIT_INPUT_UPDATE, e)
 }
+
+/*
+function getMultiValue(value: string | boolean | number) {
+    return value && typeof value === 'string'
+        ? value.split(',').map(v => v.trim()).filter(Boolean)
+        : []
+}
+
+function setMultiValue(e: any) {
+    if (e && Array.isArray(e) && e.every(item => typeof item === 'string')) {
+        emit(EMIT_INPUT_UPDATE, e.join(','))
+    }
+    else {
+        emit(EMIT_INPUT_UPDATE, e)
+    }
+}
+*/
 </script>
 
 <template>
@@ -32,6 +54,16 @@ function setValue(e: any) {
                 v-if="field.type === 'select' && field.options"
                 :model-value="String(field.value)"
                 :items="field.options"
+                class="w-full"
+                @update:model-value="setValue"
+            />
+
+            <!-- Font Select -->
+            <USelect
+                v-else-if="field.type === 'font-select' && fontOptions"
+                :model-value="String(field.value)"
+                :items="fontItems"
+                label-key="name"
                 class="w-full"
                 @update:model-value="setValue"
             />

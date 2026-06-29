@@ -62,8 +62,6 @@ export interface ParticipantCheckInTarget {
     customAttributes: CustomAttribute[]
 }
 
-export type EditorMode = 'invitation-email' | 'check-in-page'
-
 export type Orientation = 'portrait' | 'landscape'
 
 export interface Coordinate {
@@ -104,7 +102,7 @@ export interface BlockSetting {
     value: string | boolean | number
     label?: string
     type?: string
-    options?: string[]
+    options?: Record<'value' | 'label' | 'description', string>[]
     trueValue?: string
     falseValue?: string
     /** whether hide this setting */
@@ -125,6 +123,7 @@ export interface Block {
     y: number
     /** whether display the value setting for this block */
     withValue?: boolean
+    isDynamic?: boolean
 }
 
 export interface ElementBlock extends Block {

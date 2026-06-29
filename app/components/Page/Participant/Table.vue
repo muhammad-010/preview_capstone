@@ -19,16 +19,9 @@ const selected = defineModel<number[]>('selected', { default: () => [] })
 const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attribute', { default: () => [] })
 // const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
 const filterSessionStatus = defineModel<ParticipantSessionStatus | null>('filter-session-status', { default: null })
-const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_BULK_DELETE])
+const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_PRINT_CERTIFICATE, EMIT_TABLE_SEND_CERTIFICATE, EMIT_TABLE_BULK_DELETE])
 const { successToast } = useSuccessToast()
 const { errorToast } = useErrorToast()
-
-function triggerRefresh(skipResetPage?: boolean) {
-    if (!skipResetPage) {
-        page.value = 1
-    }
-    emit(EMIT_TABLE_REFRESH)
-}
 
 // FILTER CUSTOM ATTRIBUTE
 const filterCustomAttributeField = ref(cloneObject(unref(filterCustomAttribute)))
@@ -247,6 +240,7 @@ function openConfirmManualCheckIn(id: number, name: string) {
 // TABLE
 const rowSelection = ref<Record<string, boolean>>({})
 const selectAll = ref(false)
+const someColumnSelected = ref(false)
 const resetSelectionConfirmation = ref(false)
 const resetFunction = ref<ToggleAllPageRowsSelected>()
 
@@ -263,6 +257,7 @@ function toggle(pId: number | undefined) {
         data.push(pId)
     }
 
+    someColumnSelected.value = data.length > 0
     selected.value = data
 }
 
@@ -270,6 +265,7 @@ function toggle(pId: number | undefined) {
 function clearSelection(all: boolean) {
     selected.value = []
     selectAll.value = all
+    someColumnSelected.value = all
 }
 
 function askResetSelection(cb: ToggleAllPageRowsSelected) {
@@ -299,6 +295,16 @@ watch(
     { immediate: true, deep: true },
 )
 
+function triggerRefresh(skipResetPage?: boolean) {
+    if (!skipResetPage) {
+        page.value = 1
+    }
+    clearSelection(false)
+    emit(EMIT_TABLE_REFRESH)
+}
+
+defineExpose({ clearSelection })
+
 function useColumns() {
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
@@ -319,7 +325,7 @@ function useColumns() {
                     class: 'w-max',
                     color: INVITATION_STATUS_COLORS[participant.latest_invitation_log.email.status],
                     variant: 'subtle',
-                    label: `Email: ${participant.latest_invitation_log.email.status}`,
+                    label: `Email: ${formatCapitalize(participant.latest_invitation_log.email.status)}`,
                 }),
             )
         }
@@ -329,11 +335,30 @@ function useColumns() {
                     class: 'w-max',
                     color: INVITATION_STATUS_COLORS[participant.latest_invitation_log.whatsapp.status],
                     variant: 'subtle',
-                    label: `Whatsapp: ${participant.latest_invitation_log.whatsapp.status}`,
+                    label: `Whatsapp: ${formatCapitalize(participant.latest_invitation_log.whatsapp.status)}`,
                 }),
             )
         }
         return qrSent
+    }
+
+    function certificateSent(participant: Participant) {
+        if (!participant.latest_certificate_log) {
+            return h('span', { class: 'text-dimmed' }, 'Not Sent')
+        }
+
+        const certificateSent = []
+        if (participant.latest_certificate_log.email) {
+            certificateSent.push(
+                h(UBadge, {
+                    class: 'w-max',
+                    color: INVITATION_STATUS_COLORS[participant.latest_certificate_log.email.status],
+                    variant: 'subtle',
+                    label: `Email: ${formatCapitalize(participant.latest_certificate_log.email.status)}`,
+                }),
+            )
+        }
+        return certificateSent
     }
 
     const columns = [
@@ -439,6 +464,11 @@ function useColumns() {
             cell: ({ row }) => h('div', { class: 'flex flex-col gap-2' }, qrSent(row.original)),
         },
         {
+            accessorKey: 'latest_certificate_log',
+            header: 'Certificate Sent',
+            cell: ({ row }) => h('div', { class: 'flex flex-col gap-2' }, certificateSent(row.original)),
+        },
+        {
             accessorKey: 'participant_id',
             header: 'Action',
             meta: {
@@ -447,11 +477,18 @@ function useColumns() {
                 },
             },
             cell: ({ row }) => {
+                const checkInComplete = row.original.check_in_progress && row.original.check_in_progress.count === row.original.check_in_progress.total
+                const noSession = row.original.check_in_progress && !row.original.check_in_progress.total
                 const disabled = row.original.check_in_progress
-                    ? row.original.check_in_progress.count === row.original.check_in_progress.total
+                    ? checkInComplete || noSession
                     : true
+                const checkInTooltip = noSession
+                    ? 'Create session on \'Sessions\' tab first'
+                    : checkInComplete
+                        ? 'Already checked-in on all sessions'
+                        : 'Manual Check-In'
                 return h('div', { class: 'inline-flex gap-2' }, [
-                    h(UTooltip, { text: 'Manual Check-In', delayDuration: 0 }, () => [
+                    h(UTooltip, { text: checkInTooltip, delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'neutral',
                             variant: 'ghost',
@@ -528,12 +565,12 @@ const { columns, tableRef } = useColumns()
             </div>
 
             <PageParticipantBulkAction
-                :tenant-id="tenantId"
-                :event-id="eventId"
-                :selected-ids="selected"
+                :selected="someColumnSelected"
                 @export="emit(EMIT_TABLE_EXPORT)"
                 @print-qr="emit(EMIT_TABLE_PRINT_QR)"
                 @send-qr="emit(EMIT_TABLE_SEND_QR)"
+                @print-certificate="emit(EMIT_TABLE_PRINT_CERTIFICATE)"
+                @send-certificate="emit(EMIT_TABLE_SEND_CERTIFICATE)"
                 @bulk-delete="emit(EMIT_TABLE_BULK_DELETE)"
             />
         </div>

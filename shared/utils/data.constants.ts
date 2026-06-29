@@ -7,6 +7,7 @@ import type {
     InvitationStatus,
     ParticipantSessionStatus,
     TenantEventSettingKeys,
+    TemplateType,
 } from '../types/data'
 
 // STATUS
@@ -48,9 +49,11 @@ export const TENANT_EVENT_STATUS_COLORS: Record<
 // TENANT_EVENT_SETTINGS
 export const TENANT_EVENT_SETTING_CONFIRMATION_ATTENDANCE: TenantEventSettingKeys = 'confirmation_attendance'
 export const TENANT_EVENT_SETTING_PUBLIC_TICKET_RETRIEVAL: TenantEventSettingKeys = 'public_ticket_retrieval'
+export const TENANT_EVENT_SETTING_CERTIFICATE: TenantEventSettingKeys = 'certificate'
 export const TENANT_EVENT_SETTING_DROPDOWN: TenantEventSettingKeys[] = [
     TENANT_EVENT_SETTING_CONFIRMATION_ATTENDANCE,
     TENANT_EVENT_SETTING_PUBLIC_TICKET_RETRIEVAL,
+    TENANT_EVENT_SETTING_CERTIFICATE,
 ]
 
 // PARTICIPANT_STATUS
@@ -85,12 +88,12 @@ export const PARTICIPANT_SESSION_STATUS_COLORS: Record<ParticipantSessionStatus,
 } as const
 
 // PARTICIPANT_INVITATION_STATUS
-export const INVITATION_STATUS_ON_QUEUE = 'On Queue'
-export const INVITATION_STATUS_SUCCESS = 'Success'
-export const INVITATION_STATUS_FAILED = 'Failed'
+export const INVITATION_STATUS_ON_QUEUE = 'queue'
+export const INVITATION_STATUS_SUCCESS = 'success'
+export const INVITATION_STATUS_FAILED = 'failed'
 
-export const INVITATION_STATUS_COLORS: Record<InvitationStatus, 'warn' | 'success' | 'error'> = {
-    [INVITATION_STATUS_ON_QUEUE]: 'warn',
+export const INVITATION_STATUS_COLORS: Record<InvitationStatus, 'warning' | 'success' | 'error'> = {
+    [INVITATION_STATUS_ON_QUEUE]: 'warning',
     [INVITATION_STATUS_SUCCESS]: 'success',
     [INVITATION_STATUS_FAILED]: 'error',
 }
@@ -124,5 +127,6 @@ export const SEND_CHANNEL_COLORS: Record<SendChannel, 'neutral' | 'success'> = {
 } as const
 
 // EVENT TEMPLATE
-export const TEMPLATE_INVITATION = 'invitation'
-export const TEMPLATE_SCANQR = 'scanqr'
+export const TEMPLATE_INVITATION: TemplateType = 'invitation'
+export const TEMPLATE_SCANQR: TemplateType = 'scanqr'
+export const TEMPLATE_CERTIFICATE: TemplateType = 'certificate'

@@ -45,11 +45,6 @@ export function tenantEventFormToTenantEvent(data: TenantEventForm): TenantEvent
         location: data.location,
         start_time: data.start_time,
         end_time: data.end_time,
-        rule_config: {
-            capacity: {
-                total: data.capacity,
-            },
-        },
         assign_user_ids: data.assign_user_ids,
     } as TenantEvent
 }
@@ -62,8 +57,6 @@ export function tenantEventToTenantEventForm(data: TenantEvent): TenantEventForm
         location: data.location,
         start_time: data.start_time,
         end_time: data.end_time,
-        confirmation_attendance: data.rule_config?.confirmation_attendance,
-        capacity: data.rule_config?.capacity?.total,
         assign_user_ids: data.assigned_users ? data.assigned_users!.map(u => u.user_id) : [],
     } as TenantEventForm
 }

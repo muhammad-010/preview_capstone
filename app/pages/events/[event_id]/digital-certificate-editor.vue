@@ -7,20 +7,20 @@ const { data } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/te
     transform: res => res.data,
 })
 const templates = computed(() => data.value?.template || [])
-const checkInTemplate = computed(() => templates.value.find(item => item.type === TEMPLATE_SCANQR))
-const { data: templateData, refresh } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${checkInTemplate.value?.template_id}`, {
+const certificateTemplate = computed(() => templates.value.find(item => item.type === TEMPLATE_CERTIFICATE))
+const { data: templateData, refresh } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${certificateTemplate.value?.template_id}`, {
     transform: res => ({
         ...res.data,
     }),
 })
 const template = computed(() => templateData.value)
-const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${checkInTemplate.value?.template_id}/variable`, {
+const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event/${eventId}/template/${certificateTemplate.value?.template_id}/variable`, {
     transform: res => ({
         ...res.data,
     }),
 })
 const templateVariables = computed(() => variableData.value?.variables || [])
-const validBreakpoints = CANVAS_SIZE_PRESETS_CHECK_IN_PAGE.map(e => e.id) as Breakpoint[]
+const validBreakpoints = CANVAS_SIZE_PRESETS_CERTIFICATE.map(e => e.id) as Breakpoint[]
 const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 const {
     customBlocks: selectedCustomBlocks,
@@ -29,11 +29,11 @@ const {
     backgroundImages: selectedBackgroundImages,
 } = editorParseTemplateVariants(template.value?.variants || [], validBreakpoints, dynamicBlocks.value)
 const mappedSelectedBreakpoints = computed(() => Object.entries(selectedBreakpoints).map(([key]) => key as Breakpoint))
-const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_CHECK_IN_PAGE.map(e => ({ ...e, variantId: selectedBreakpoints[e.id] })))
+const canvasSizeOptions = computed(() => CANVAS_SIZE_PRESETS_CERTIFICATE.map(e => ({ ...e, variantId: selectedBreakpoints[e.id] })))
 const defaultSelectedCanvasSizeIds = computed<Breakpoint[]>(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value : [BREAKPOINT_MD])
 const defaultActiveCanvasSizeId = computed(() => mappedSelectedBreakpoints.value.length ? mappedSelectedBreakpoints.value[0]! : BREAKPOINT_MD)
 const defaultOrientation = computed(() => {
-    const canvas = CANVAS_SIZE_PRESETS_CHECK_IN_PAGE.find(e => e.id === defaultActiveCanvasSizeId.value)
+    const canvas = CANVAS_SIZE_PRESETS_CERTIFICATE.find(e => e.id === defaultActiveCanvasSizeId.value)
     return canvas ? canvas.orientation : EDITOR_CANVAS_PORTRAIT
 })
 const defaultSelectedBlocks = computed(() => [...selectedCustomBlocks, ...selectedStaticBlocks])
@@ -63,10 +63,6 @@ const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
     ...dynamicBlocks.value,
 ])
-const staticBlocks = ref([
-    STATIC_BLOCK_SCANNER_QR,
-    STATIC_BLOCK_INPUT_CARD,
-])
 
 definePageMeta({
     layout: 'clean',
@@ -79,7 +75,7 @@ definePageMeta({
         :event-id="eventId"
         :template-id="template?.template_id"
         :custom-blocks="customBlocks"
-        :static-blocks="staticBlocks"
+        :static-blocks="[]"
         :canvas-size-options="canvasSizeOptions"
         :font-options="fonts"
         :default-selected-canvas-size-ids="defaultSelectedCanvasSizeIds"
@@ -88,11 +84,10 @@ definePageMeta({
         :default-selected-blocks="defaultSelectedBlocks"
         :default-active-static-blocks="defaultActiveStaticBlocks"
         :default-background-images="defaultBackgroundImages"
-        with-preview
-        :html-preview-fn="getCheckInPageHtml"
-        :preview-path="`/events/${eventId}/check-in-preview`"
-        :preview-key="LOCALSTORAGE_CHECK_IN_PREVIEW"
-        page-title="Check In Page Key Visual Editor"
+        canvas-image-based
+        :html-preview-fn="getBackendRenderHtml"
+        page-title="Digital Certificate Key Visual Editor"
+        :default-scale="0.35"
         @refresh="refresh"
     />
 </template>

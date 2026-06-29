@@ -98,11 +98,6 @@ export interface TenantEventParticipantStatus {
     total_checked_in: number
 }
 
-export interface TenantEventRuleConfig {
-    capacity?: TenantEventCapacity
-    confirmation_attendance?: boolean
-}
-
 export interface TenantEvent {
     event_id?: number
     name: string
@@ -113,7 +108,6 @@ export interface TenantEvent {
 
     description?: string
     end_time?: ISOString
-    rule_config?: TenantEventRuleConfig
     capacity?: TenantEventCapacity
     assigned_users?: User[]
     assign_user_ids: number[]
@@ -129,7 +123,6 @@ export interface TenantEventForm {
     start_time: ISOString
     end_time: ISOString
     status: TenantEventStatus
-    capacity: number
     assign_user_ids: number[]
 }
 
@@ -186,12 +179,12 @@ export interface CustomAttributeForm {
 }
 
 // EVENT SETTINGS
-export type TenantEventSettingKeys = 'confirmation_attendance' | 'public_ticket_retrieval'
+export type TenantEventSettingKeys = 'confirmation_attendance' | 'public_ticket_retrieval' | 'certificate'
 
 export type TenantEventSetting = Record<TenantEventSettingKeys, Setting>
 
 // TEMPLATE
-export type TemplateType = 'invitation' | 'scanqr'
+export type TemplateType = 'invitation' | 'scanqr' | 'certificate'
 
 export interface TemplateElementDynamicVar {
     name: string
@@ -232,12 +225,19 @@ export interface Template {
     variants: TemplateVariant[]
 }
 
+export interface TemplateFont {
+    name: string
+    value: string
+    url: string
+    variant?: TemplateFont[] | null
+}
+
 // PARTICIPANT
 export type ParticipantStatus = 'Pending' | 'Checked In'
 export type ParticipantSessionStatus = 'none' | 'partial' | 'completed'
 export type ParticipantCategory = 'VIP' | 'Regular'
 export type SendChannel = 'email' | 'whatsapp'
-export type InvitationStatus = 'On Queue' | 'Success' | 'Failed'
+export type InvitationStatus = 'queue' | 'success' | 'failed'
 
 export type ParticipantPhone = Phone
 
@@ -266,6 +266,7 @@ export interface Participant {
     max_attendance: number
     custom_attribute: CustomAttribute[] | null
     latest_invitation_log?: ParticipantInvitationLog | null
+    latest_certificate_log?: ParticipantInvitationLog | null
     check_in_progress?: ParticipantCheckInProgress
 
     phone?: Phone

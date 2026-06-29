@@ -6,14 +6,19 @@ const props = defineProps<{
     eventId: number
 }>()
 const storeId = defineModel<number | null>('store-id', { default: null })
-const { data, refresh } = useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/detail`, {
+
+const exposed = {
+    refresh: () => {},
+}
+defineExpose(exposed)
+const { data, refresh } = await useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/detail`, {
     transform: res => ({
         ...res.data,
         start_time: formatLongDate(res.data.start_time || ''),
         end_time: formatLongDate(res.data.end_time || ''),
     }),
 })
-defineExpose({ refresh })
+exposed.refresh = refresh
 
 const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
 watch(data, (value) => { if (value) storeId.value = value.store_id }, { immediate: true })

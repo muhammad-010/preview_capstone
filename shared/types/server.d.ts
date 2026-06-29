@@ -127,6 +127,11 @@ export type UploadMediaResult = Result<{
     upload_key: string
 }>
 
+export type TemplateFontResult = Result<{
+    font: TemplateFont[]
+    version: string
+}>
+
 // PARTICIPANTS
 export type ParticipantListResult = Result<
     PaginatedData<Participant, 'participant'>

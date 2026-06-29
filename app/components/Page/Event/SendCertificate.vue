@@ -9,21 +9,23 @@ const props = defineProps<{
     hide?: boolean
 }>()
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
-const printConfirmation = defineModel<boolean>('open', { default: false })
+const sendConfirmation = defineModel<boolean>('open', { default: false })
 
 const { $api } = useNuxtApp()
+const { successToast } = useSuccessToast()
 const { errorToast } = useErrorToast()
-const printLoading = ref(false)
+const sendLoading = ref(false)
 
-async function printQr() {
+async function sendQr() {
     const ids = props.selectedIds.length > 0 ? props.selectedIds : []
     try {
-        printLoading.value = true
+        sendLoading.value = true
         const cleanedFilterCustomAttribute = formatCleanCustomAttribute(props.filterCustomAttribute)
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/print`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/send`, {
             method: 'POST',
             body: {
-                document_type: 'invitation',
+                document_type: 'certificate',
+                channel: [SEND_CHANNEL_EMAIL],
                 ...(props.query ? { query: props.query } : {}),
                 ...(ids.length ? { participant_ids: ids } : {}),
                 ...(props.filterSessionStatus !== null
@@ -39,28 +41,19 @@ async function printQr() {
                 ),
             },
         })
-        if (data.filepath) {
-            const filename = data.filepath.split('/').pop()
-            if (!filename) {
-                errorToast({ description: 'Cannot read filename from filepath' })
-                return
-            }
-            await useDownload(
-                `/api/files/${data.filepath}`,
-                filename,
-            )
+        if (data.success) {
+            successToast({ description: 'Certificate successfully sent' })
         }
         else {
-            errorToast({ description: 'Cannot read filepath' })
-            return
+            errorToast({ description: data.message })
         }
     }
     catch (error) {
-        errorToast({ error, description: 'Failed to print QR' })
+        errorToast({ error, description: 'Failed to send QR' })
     }
     finally {
-        printConfirmation.value = false
-        printLoading.value = false
+        sendConfirmation.value = false
+        sendLoading.value = false
         emit(EMIT_DETAIL_REFRESH)
     }
 }
@@ -71,19 +64,22 @@ async function printQr() {
         v-if="!hide"
         color="neutral"
         variant="outline"
-        icon="lucide:qr-code"
+        icon="lucide:send"
         class="cursor-pointer"
-        @click="printConfirmation = true"
+        @click="sendConfirmation = true"
     >
-        {{ `Print QR ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
+        {{ `Send Certificate ${selectedIds.length ? `(${selectedIds.length})` : ''}` }}
     </UButton>
 
     <ModalConfirmNeutralAction
-        v-model:open="printConfirmation"
-        title="Print QR Confirmation"
-        :body="`You will print ${selectedIds.length || 'All'} QR code of participants, Continue?`"
-        confirm-label="Yes, Print The QR"
-        :loading="printLoading"
-        @confirm="printQr"
-    />
+        v-model:open="sendConfirmation"
+        title="Send Certificate Confirmation"
+        confirm-label="Yes, Send Certificate"
+        :loading="sendLoading"
+        @confirm="sendQr"
+    >
+        <div>
+            {{ `You will send ${selectedIds.length || 'All'} certificate of participants, Continue?` }}
+        </div>
+    </ModalConfirmNeutralAction>
 </template>

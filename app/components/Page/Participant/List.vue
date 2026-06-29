@@ -17,7 +17,11 @@ const filterCustomAttribute = ref<CustomAttribute[]>(cloneObject(unref(props.cus
 // const filterCheckedIn = ref<boolean | null>(null)
 const filterSessionStatus = ref<ParticipantSessionStatus | null>(null)
 
-const { data, pending, refresh } = useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
+const exposed = {
+    refresh: () => {},
+}
+defineExpose(exposed)
+const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
     transform: res => res.data,
     query: computed(() => {
         const cleanedFilterCustomAttribute = formatCleanCustomAttribute(filterCustomAttribute.value)
@@ -43,7 +47,8 @@ const { data, pending, refresh } = useApi(`/api/tenant/${props.tenantId}/event/$
     }),
     watch: false,
 })
-defineExpose({ refresh })
+exposed.refresh = refresh
+const tableRef = ref()
 
 const participants = computed<Participant[]>(() => data.value?.participant ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
@@ -103,11 +108,14 @@ function clearSearch() {
 
 function refreshData() {
     refresh()
+    tableRef.value.clearSelection(false)
     emit(EMIT_DETAIL_REFRESH)
 }
 
-const printConfirmation = ref(false)
-const sendConfirmation = ref(false)
+const printQrConfirmation = ref(false)
+const sendQrConfirmation = ref(false)
+const printCertificateConfirmation = ref(false)
+const sendCertificateConfirmation = ref(false)
 const bulkDeleteConfirmation = ref(false)
 </script>
 
@@ -128,18 +136,46 @@ const bulkDeleteConfirmation = ref(false)
 
                     <div class="card-toolbar-actions">
                         <PageEventPrintQr
-                            v-model:open="printConfirmation"
+                            v-model:open="printQrConfirmation"
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             :selected-ids="selectedIds"
+                            :query="query"
+                            :filter-custom-attribute="filterCustomAttribute"
+                            :filter-session-status="filterSessionStatus"
                             hide
                             @refresh="refreshData"
                         />
                         <PageEventSendQr
-                            v-model:open="sendConfirmation"
+                            v-model:open="sendQrConfirmation"
                             :tenant-id="tenantId"
                             :event-id="eventId"
                             :selected-ids="selectedIds"
+                            :query="query"
+                            :filter-custom-attribute="filterCustomAttribute"
+                            :filter-session-status="filterSessionStatus"
+                            hide
+                            @refresh="refreshData"
+                        />
+                        <PageEventPrintCertificate
+                            v-model:open="printCertificateConfirmation"
+                            :tenant-id="tenantId"
+                            :event-id="eventId"
+                            :selected-ids="selectedIds"
+                            :query="query"
+                            :filter-custom-attribute="filterCustomAttribute"
+                            :filter-session-status="filterSessionStatus"
+                            hide
+                            @refresh="refreshData"
+                        />
+                        <PageEventSendCertificate
+                            v-model:open="sendCertificateConfirmation"
+                            :tenant-id="tenantId"
+                            :event-id="eventId"
+                            :selected-ids="selectedIds"
+                            :query="query"
+                            :filter-custom-attribute="filterCustomAttribute"
+                            :filter-session-status="filterSessionStatus"
                             hide
                             @refresh="refreshData"
                         />
@@ -169,6 +205,7 @@ const bulkDeleteConfirmation = ref(false)
             </template>
 
             <PageParticipantTable
+                ref="tableRef"
                 v-model:limit="limit"
                 v-model:page="page"
                 v-model:selected="selectedIds"
@@ -182,8 +219,10 @@ const bulkDeleteConfirmation = ref(false)
                 with-pagination
                 @refresh="refreshData"
                 @export="exportData"
-                @print-qr="printConfirmation = true"
-                @send-qr="sendConfirmation = true"
+                @print-qr="printQrConfirmation = true"
+                @send-qr="sendQrConfirmation = true"
+                @print-certificate="printCertificateConfirmation = true"
+                @send-certificate="sendCertificateConfirmation = true"
                 @bulk-delete="bulkDeleteConfirmation = true"
             />
         </UCard>

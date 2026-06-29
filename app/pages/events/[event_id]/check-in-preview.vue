@@ -22,6 +22,13 @@ const { data: variableData } = await useApi(`/api/tenant/${tenantId.value}/event
 const templateVariables = computed(() => variableData.value?.variables || [])
 const dynamicBlocks = computed(() => makeDynamicElementBlock(templateVariables.value))
 
+const { data: fontData } = await useApi(`/api/editor/font`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const fonts = computed(() => fontData.value?.font || [])
+
 const settings = ref<TemplateVariant[]>([])
 
 function getLocalStorage<T>(key: string): T | null {
@@ -79,6 +86,7 @@ definePageMeta({
                 :dynamic-blocks="dynamicBlocks"
                 :custom-block-settings="blocks.customBlocks"
                 :static-block-settings="blocks.staticBlocks"
+                :valid-fonts="fonts"
                 is-preview
             />
         </NuxtLayout>

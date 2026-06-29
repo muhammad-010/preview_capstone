@@ -52,6 +52,12 @@ const defaultBackgroundImages = computed(() => {
     }
     return backgroundImages
 })
+const { data: fontData } = await useApi(`/api/editor/font`, {
+    transform: res => ({
+        ...res.data,
+    }),
+})
+const fonts = computed(() => fontData.value?.font || [])
 
 const customBlocks = ref([
     BLOCK_TEXT_DEFAULT,
@@ -68,10 +74,10 @@ definePageMeta({
         :tenant-id="tenantId"
         :event-id="eventId"
         :template-id="template?.template_id"
-        :editor-mode="EDITOR_MODE_INVITATION_EMAIL"
         :custom-blocks="customBlocks"
         :static-blocks="[]"
         :canvas-size-options="canvasSizeOptions"
+        :font-options="fonts"
         :default-selected-canvas-size-ids="defaultSelectedCanvasSizeIds"
         :default-active-canvas-size-id="defaultActiveCanvasSizeId"
         :default-orientation="defaultOrientation"
@@ -79,6 +85,7 @@ definePageMeta({
         :default-active-static-blocks="defaultActiveStaticBlocks"
         :default-background-images="defaultBackgroundImages"
         canvas-image-based
+        :html-preview-fn="getBackendRenderHtml"
         page-title="Digital Invitation Key Visual Editor"
         :default-scale="0.4"
         @refresh="refresh"
