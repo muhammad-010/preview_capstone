@@ -2,6 +2,7 @@
 const props = defineProps<{
     tenantId: number
     eventId: number
+    eventTitle?: string
 }>()
 const storeId = defineModel<number | null>('store-id', { default: null })
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
@@ -40,7 +41,6 @@ function openAddForm() {
     formDialog.value = true
 }
 
-/*
 function openEditForm(id: number) {
     if (!store.value) return
 
@@ -53,7 +53,6 @@ function openEditForm(id: number) {
     }
     formDialog.value = true
 }
-*/
 </script>
 
 <template>
@@ -72,14 +71,45 @@ function openEditForm(id: number) {
                 </h3>
                 <UButton
                     size="xl"
-                    icon="lucide:hammer"
+                    icon="lucide:plus"
                     label="Create Store"
                     @click="openAddForm"
                 />
             </div>
         </template>
+
         <template v-else>
-          {{ store }}
+          <UPageCard
+            orientation="horizontal"
+            :ui="{ container: 'p-0 sm:p-0', wrapper: 'py-4 px-6 sm:p-6' }"
+          >
+            <template #title>
+              <UBadge
+                v-if="eventTitle"
+                size="lg"
+                color="neutral"
+                variant="outline"
+                :label="eventTitle"
+                class="rounded-full mb-4"
+              />
+              <h1 class="mb-8 text-6xl">
+                {{ store.title }}
+              </h1>
+            </template>
+
+            <template #description>
+              <p class="mb-2">{{ store.subtitle }}</p>
+              <UButton
+                  v-if="store && store.store_id"
+                  size="xl"
+                  icon="lucide:pencil"
+                  label="Edit Store"
+                  @click="() => openEditForm(store!.store_id)"
+              />
+            </template>
+
+            <img :src="store.image_url" class="w-screen" />
+          </UPageCard>
         </template>
 
         <PageStoreModalForm
