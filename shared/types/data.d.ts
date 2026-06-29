@@ -140,7 +140,7 @@ export interface TenantEventStore {
 export interface TenantEventStoreForm {
     title: string
     subtitle: string
-    slug: string
+    slug?: string
     image_upload_key?: string
     is_open: boolean
 

@@ -27,7 +27,7 @@ const tabs = [
 const activeTab = useState(STATE_EVENT_DETAIL_ACTIVE_TAB, () => '0')
 const { customAttributes, refreshCustomAttributes } = await useFindCustomAttribute(tenantId.value, eventId)
 const { event } = await useEventInfo(tenantId.value, eventId)
-const eventName = computed(() => event.value.name ?? '' )
+const eventName = computed(() => event.value.name ?? '')
 const storeId = ref<number | null>(null)
 
 const settings = [
@@ -93,10 +93,10 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
 
             <template #store>
                 <PageStoreDetail
+                    v-model:store-id="storeId"
                     :tenant-id="tenantId"
                     :event-id="eventId"
                     :event-title="eventName"
-                    v-model:store-id="storeId"
                     @refresh="refreshDetail"
                 />
             </template>

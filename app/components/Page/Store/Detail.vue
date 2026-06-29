@@ -12,23 +12,24 @@ const exposed = {
 }
 defineExpose(exposed)
 const { data, refresh } = await useApi(
-() => `/api/tenant/${props.tenantId}/event/${props.eventId}/store/${storeId.value}/detail`,
-{
-    transform: res => ({
-        ...res.data,
-    }),
-    immediate: false,
-})
+    () => `/api/tenant/${props.tenantId}/event/${props.eventId}/store/${storeId.value}/detail`,
+    {
+        transform: res => ({
+            ...res.data,
+        }),
+        immediate: false,
+    })
 watch(() => storeId.value, (value) => {
-  if (value !== null) refresh()
+    if (value !== null) refresh()
 }, { immediate: true })
 exposed.refresh = refresh
 const store = computed(() => data.value ?? null)
 
 function refreshData() {
-    // no need to call refresh() since already handled by watch(() => storeId.value)
-    // refresh()
     emit(EMIT_DETAIL_REFRESH)
+    if (store.value?.store_id) {
+        refresh()
+    }
 }
 
 const formDialog = ref(false)
@@ -79,37 +80,42 @@ function openEditForm(id: number) {
         </template>
 
         <template v-else>
-          <UPageCard
-            orientation="horizontal"
-            :ui="{ container: 'p-0 sm:p-0', wrapper: 'py-4 px-6 sm:p-6' }"
-          >
-            <template #title>
-              <UBadge
-                v-if="eventTitle"
-                size="lg"
-                color="neutral"
-                variant="outline"
-                :label="eventTitle"
-                class="rounded-full mb-4"
-              />
-              <h1 class="mb-8 text-6xl">
-                {{ store.title }}
-              </h1>
-            </template>
+            <UPageCard
+                orientation="horizontal"
+                :ui="{ container: 'p-0 sm:p-0', wrapper: 'py-4 px-6 sm:p-6' }"
+            >
+                <template #title>
+                    <UBadge
+                        v-if="eventTitle"
+                        size="lg"
+                        color="neutral"
+                        variant="outline"
+                        :label="eventTitle"
+                        class="rounded-full mb-4"
+                    />
+                    <h1 class="mb-6 text-6xl">
+                        {{ store.title }}
+                    </h1>
+                </template>
 
-            <template #description>
-              <p class="mb-2">{{ store.subtitle }}</p>
-              <UButton
-                  v-if="store && store.store_id"
-                  size="xl"
-                  icon="lucide:pencil"
-                  label="Edit Store"
-                  @click="() => openEditForm(store!.store_id)"
-              />
-            </template>
+                <template #description>
+                    <p class="mb-4">
+                        {{ store.subtitle }}
+                    </p>
+                    <UButton
+                        v-if="store && store.store_id"
+                        size="xl"
+                        icon="lucide:pencil"
+                        label="Edit Store"
+                        @click="() => openEditForm(store!.store_id)"
+                    />
+                </template>
 
-            <img :src="store.image_url" class="w-screen" />
-          </UPageCard>
+                <img
+                    :src="store.image_url"
+                    class="w-screen"
+                >
+            </UPageCard>
         </template>
 
         <PageStoreModalForm

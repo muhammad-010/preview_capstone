@@ -32,44 +32,44 @@ const schema = z.object({
     banner_image: isCreate ? bannerSchema : bannerSchema.optional(),
     slug: zodStringRequired('Store slug is required').min(3),
 }).superRefine(async ({ slug }, ctx) => {
-  if (props.fields) {
-    if (slug === props.fields.slug) return
-  }
+    if (props.fields) {
+        if (slug === props.fields.slug) return
+    }
 
-  try {
-    const data = await $api(`/api/store/validate/slug`, {
-      method: 'POST',
-      body: { slug },
-    })
-    if (!data.success) {
-      ctx.addIssue({
-        code: 'custom',
-        message: data.message || 'Error on field slug',
-        path: ['slug'],
-      })
+    try {
+        const data = await $api(`/api/store/validate/slug`, {
+            method: 'POST',
+            body: { slug },
+        })
+        if (!data.success) {
+            ctx.addIssue({
+                code: 'custom',
+                message: data.message || 'Error on field slug',
+                path: ['slug'],
+            })
+        }
     }
-  }
-  catch (error) {
-    if (isFetchError(error) && error.response && error.response._data) {
-      ctx.addIssue({
-        code: 'custom',
-        message: error.response._data.data.message || 'Error on field slug',
-        path: ['slug'],
-      })
+    catch (error) {
+        if (isFetchError(error) && error.response && error.response._data) {
+            ctx.addIssue({
+                code: 'custom',
+                message: error.response._data.data.message || 'Error on field slug',
+                path: ['slug'],
+            })
+        }
     }
-  }
 })
 type Schema = z.output<typeof schema>
 
 function createState(): TenantEventStoreForm {
-  if (props.fields) return cloneObject(props.fields)
-  return {
-    title: '',
-    subtitle: '',
-    slug: '',
-    is_open: false,
-    banner_image: undefined,
-  }
+    if (props.fields) return cloneObject(props.fields)
+    return {
+        title: '',
+        subtitle: '',
+        slug: '',
+        is_open: false,
+        banner_image: undefined,
+    }
 }
 const state = reactive<Partial<TenantEventStoreForm>>(createState())
 
@@ -133,10 +133,12 @@ async function editData(payload: FormSubmitEvent<Schema>, storeId: number) {
         const body: TenantEventStoreForm = {
             title: payload.data.title,
             subtitle: payload.data.subtitle,
-            slug: payload.data.slug,
             is_open: payload.data.is_open,
         }
 
+        if (props.fields && props.fields.slug && props.fields.slug !== payload.data.slug) {
+            body.slug = payload.data.slug
+        }
         if (payload.data.banner_image) {
             await uploadImage(payload.data.banner_image!)
             if (!uploadKey.value) return
