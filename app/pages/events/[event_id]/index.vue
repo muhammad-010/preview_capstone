@@ -95,6 +95,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                     :tenant-id="tenantId"
                     :event-id="eventId"
                     v-model:store-id="storeId"
+                    @refresh="refreshDetail"
                 />
             </template>
 

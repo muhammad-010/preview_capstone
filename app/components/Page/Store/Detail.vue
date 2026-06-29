@@ -6,7 +6,11 @@ const props = defineProps<{
 const storeId = defineModel<number | null>('store-id', { default: null })
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
 
-const { data, refresh } = useApi(
+const exposed = {
+    refresh: () => {},
+}
+defineExpose(exposed)
+const { data, refresh } = await useApi(
 () => `/api/tenant/${props.tenantId}/event/${props.eventId}/store/${storeId.value}/detail`,
 {
     transform: res => ({
@@ -14,14 +18,15 @@ const { data, refresh } = useApi(
     }),
     immediate: false,
 })
-watch(() => storeId, (storeId) => {
-  if (storeId) refresh()
+watch(() => storeId.value, (value) => {
+  if (value !== null) refresh()
 }, { immediate: true })
-defineExpose({ refresh })
+exposed.refresh = refresh
 const store = computed(() => data.value ?? null)
 
 function refreshData() {
-    refresh()
+    // no need to call refresh() since already handled by watch(() => storeId.value)
+    // refresh()
     emit(EMIT_DETAIL_REFRESH)
 }
 
