@@ -259,6 +259,7 @@ function syncStaticBlock(block: ElementBlock) {
 
 // DRAG BLOCKS
 const selectedIdx = ref<number | null>(null)
+const hoveredIdx = ref<number | null>(null)
 const draggingCanvasBlock = ref<number | null>(null)
 const draggingBlock = ref<string | null>(null)
 const offset = ref<Coordinate>({ x: 0, y: 0 })
@@ -892,11 +893,10 @@ function preview() {
                 <!-- </DevOnly> -->
             </div>
 
-            <!-- CENTER: Canvas and iframe -->
+            <!-- CENTER: Merged canvas (rendered preview + interactive layer) -->
             <div class="col-span-5 overflow-auto p-4 scrollbar">
-                <div :class="canvasOrientation === 'portrait' ? 'flex gap-4 justify-evenly items-center min-h-full min-w-full' : 'flex flex-col gap-4 justify-evenly items-center min-h-full min-w-full'">
-                    <!-- CANVAS -->
-                    <div class="relative">
+                <div class="flex justify-center items-center min-h-full min-w-full">
+                    <MiscLoadingOverlay :loading="loadingPreview">
                         <EditorCanvasContainer
                             class="bg-neutral-100 dark:bg-neutral-900"
                             :width="`${canvasWidth * canvasScale}px`"
@@ -904,64 +904,80 @@ function preview() {
                             @dragover="dragToCanvas"
                             @drop="dropCanvas"
                         >
-                            <div :style="canvasStyle">
-                                <template
-                                    v-for="block, bidx in blockContainer"
-                                    :key="`${block.id}-${bidx}`"
+                            <div class="relative w-full h-full">
+                                <!-- BASE LAYER: rendered design -->
+                                <iframe
+                                    class="absolute top-0 left-0"
+                                    :style="{ ...canvasStyle, border: 'none', pointerEvents: 'none' }"
+                                    :srcdoc="generatedHtml"
+                                />
+
+                                <!-- OVERLAY LAYER: interactive elements -->
+                                <div
+                                    class="absolute top-0 left-0"
+                                    :style="canvasStyle"
                                 >
-                                    <div
-                                        v-if="block.perBreakpoint && block.perBreakpoint[activeCanvasSizeId]"
-                                        class="absolute cursor-move"
-                                        :style="{
-                                            left: itemPosition(bidx, block.perBreakpoint[activeCanvasSizeId]!).x + '%',
-                                            top: itemPosition(bidx, block.perBreakpoint[activeCanvasSizeId]!).y + '%',
-                                        }"
-                                        @mousedown.prevent="dragCanvasBlock($event, bidx, block.perBreakpoint[activeCanvasSizeId]!)"
-                                        @click.stop="selectedIdx = bidx"
+                                    <template
+                                        v-for="block, bidx in blockContainer"
+                                        :key="`${block.id}-${bidx}`"
                                     >
-                                        <UChip position="top-left">
-                                            <EditorBlock
-                                                class="flex items-center justify-between"
-                                                :class="[
-                                                    selectedIdx === bidx ? 'border-neutral-500 dark:border-neutral-400' : '',
-                                                ]"
+                                        <div
+                                            v-if="block.perBreakpoint && block.perBreakpoint[activeCanvasSizeId]"
+                                            class="absolute cursor-move"
+                                            :style="{
+                                                left: itemPosition(bidx, block.perBreakpoint[activeCanvasSizeId]!).x + '%',
+                                                top: itemPosition(bidx, block.perBreakpoint[activeCanvasSizeId]!).y + '%',
+                                            }"
+                                            @mouseenter="hoveredIdx = bidx"
+                                            @mouseleave="hoveredIdx = null"
+                                            @mousedown.prevent="dragCanvasBlock($event, bidx, block.perBreakpoint[activeCanvasSizeId]!)"
+                                            @click.stop="selectedIdx = bidx"
+                                        >
+                                            <!-- Persistent marker: shows where an editable element is -->
+                                            <div
+                                                v-show="selectedIdx !== bidx && hoveredIdx !== bidx"
+                                                class="absolute top-0 left-0 flex items-center justify-center w-5 h-5 rounded-full bg-neutral-900/80 dark:bg-neutral-100/80 ring-2 ring-white dark:ring-neutral-900 shadow"
                                             >
-                                                {{ findCustomBlock(block.id)?.label || findStaticBlock(block.id)?.label }}
+                                                <UIcon
+                                                    name="lucide:move"
+                                                    class="w-3 h-3 text-white dark:text-neutral-900"
+                                                />
+                                            </div>
 
-                                                <div
-                                                    v-if="checkCustomBlock(block.id)"
-                                                    class="flex gap-2"
-                                                >
-                                                    <UButton
-                                                        size="xs"
-                                                        label="Dup"
-                                                        @click.stop="duplicateBlock(block)"
-                                                    />
-                                                    <UButton
-                                                        size="xs"
-                                                        color="error"
-                                                        label="Del"
-                                                        @click.stop="removeBlock(bidx)"
-                                                    />
-                                                </div>
-                                            </EditorBlock>
-                                        </UChip>
-                                    </div>
-                                </template>
+                                            <!-- Full handle: revealed on hover or selection -->
+                                            <div v-show="selectedIdx === bidx || hoveredIdx === bidx">
+                                                <UChip position="top-left">
+                                                    <EditorBlock
+                                                        class="flex items-center justify-between"
+                                                        :class="[
+                                                            selectedIdx === bidx ? 'border-neutral-500 dark:border-neutral-400' : '',
+                                                        ]"
+                                                    >
+                                                        {{ findCustomBlock(block.id)?.label || findStaticBlock(block.id)?.label }}
+
+                                                        <div
+                                                            v-if="checkCustomBlock(block.id)"
+                                                            class="flex gap-2"
+                                                        >
+                                                            <UButton
+                                                                size="xs"
+                                                                label="Dup"
+                                                                @click.stop="duplicateBlock(block)"
+                                                            />
+                                                            <UButton
+                                                                size="xs"
+                                                                color="error"
+                                                                label="Del"
+                                                                @click.stop="removeBlock(bidx)"
+                                                            />
+                                                        </div>
+                                                    </EditorBlock>
+                                                </UChip>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
-                        </EditorCanvasContainer>
-                    </div>
-
-                    <!-- PREVIEW -->
-                    <MiscLoadingOverlay :loading="loadingPreview">
-                        <EditorCanvasContainer
-                            :width="`${canvasWidth * canvasScale}px`"
-                            :height="`${canvasHeight * canvasScale}px`"
-                        >
-                            <iframe
-                                :style="{ ...canvasStyle, border: 'none' }"
-                                :srcdoc="generatedHtml"
-                            />
                         </EditorCanvasContainer>
                     </MiscLoadingOverlay>
                 </div>

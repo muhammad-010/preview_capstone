@@ -51,13 +51,13 @@ export function tenantEventFormToTenantEvent(data: TenantEventForm): TenantEvent
 
 export function tenantEventToTenantEventForm(data: TenantEvent): TenantEventForm {
     return {
-        name: data.name,
-        description: data.description,
-        status: data.status,
-        location: data.location,
-        start_time: data.start_time,
-        end_time: data.end_time,
-        assign_user_ids: data.assigned_users ? data.assigned_users!.map(u => u.user_id) : [],
+        name: data?.name,
+        description: data?.description,
+        status: data?.status,
+        location: data?.location,
+        start_time: data?.start_time,
+        end_time: data?.end_time,
+        assign_user_ids: data?.assigned_users ? data.assigned_users.map(u => u.user_id) : [],
     } as TenantEventForm
 }
 
