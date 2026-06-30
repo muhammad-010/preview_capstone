@@ -265,7 +265,37 @@ const draggingBlock = ref<string | null>(null)
 const offset = ref<Coordinate>({ x: 0, y: 0 })
 const tempPosition = ref<Coordinate>({ x: 0, y: 0 })
 
+// SELECTION CHROME / MEASUREMENT
+const SELECTION_BORDER_PX = 1.5
+const HANDLE_SIZE_PX = 10
+const FLOAT_BTN_GAP_PX = 8
+const MIN_BLOCK_PX = 12
+const MIN_FONT_PX = 6
+const MAX_FONT_PX = 400
+const FALLBACK_BOX_PX = 48
+
+type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
+const CORNER_HANDLES: ResizeHandle[] = ['nw', 'ne', 'se', 'sw']
+const ALL_HANDLES: ResizeHandle[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
+
+const iframeRef = ref<HTMLIFrameElement | null>(null)
+// measured real size (canvas px) and computed font-size (px) per block index
+const blockBounds = ref<Record<number, { w: number, h: number }>>({})
+const blockFontPx = ref<Record<number, number>>({})
+
+const resizing = ref<number | null>(null)
+const resizeHandle = ref<ResizeHandle | null>(null)
+const resizeStart = ref({ mx: 0, my: 0, w: 0, h: 0, cx: 0, cy: 0, fontPx: 16 })
+const tempBounds = ref<{ w: number, h: number } | null>(null)
+const tempCenter = ref<Coordinate | null>(null)
+const tempFontPx = ref<number | null>(null)
+let resizeFallbackTimer: ReturnType<typeof setTimeout> | undefined
+// re-measures element bounds when iframe content settles (async images, reflow)
+let iframeResizeObserver: ResizeObserver | undefined
+
 function dragCanvasBlock(e: MouseEvent, idx: number, item: Block) {
+    // drop any held post-resize preview so the box follows the drag immediately
+    if (resizing.value !== null) clearResizeTemp()
     draggingCanvasBlock.value = idx
     selectedIdx.value = idx
 
@@ -494,16 +524,285 @@ function updateBlock(
     }
 }
 
+// SELECTION CHROME HELPERS
+function isTextBlock(type: string) {
+    return type === BLOCK_TEXT_TYPE || type === BLOCK_DYNAMIC_TEXT_TYPE
+}
+function isImageBlock(type: string) {
+    return type === BLOCK_IMAGE_TYPE
+}
+function isQrBlock(type: string) {
+    return type === BLOCK_DYNAMIC_QR_IMAGE_TYPE
+}
+function handlesFor(block: Block): ResizeHandle[] {
+    if (isImageBlock(block.type) || isQrBlock(block.type)) return ALL_HANDLES
+    if (isTextBlock(block.type)) return CORNER_HANDLES
+    return []
+}
+function cursorFor(dir: ResizeHandle) {
+    if (dir === 'nw' || dir === 'se') return 'nwse-resize'
+    if (dir === 'ne' || dir === 'sw') return 'nesw-resize'
+    if (dir === 'n' || dir === 's') return 'ns-resize'
+    return 'ew-resize'
+}
+function handleOffset(dir: ResizeHandle): Record<string, string> {
+    const half = `${-HANDLE_SIZE_PX / 2}px`
+    const mid = `calc(50% - ${HANDLE_SIZE_PX / 2}px)`
+    const map: Record<ResizeHandle, Record<string, string>> = {
+        nw: { left: half, top: half },
+        n: { left: mid, top: half },
+        ne: { right: half, top: half },
+        e: { right: half, top: mid },
+        se: { right: half, bottom: half },
+        s: { left: mid, bottom: half },
+        sw: { left: half, bottom: half },
+        w: { left: half, top: mid },
+    }
+    return map[dir]
+}
+
+// Measure each rendered element's real size from inside the iframe (scale-agnostic:
+// normalize by the rendered .page/.container rect so it works for both the
+// internally-scaled getBackendRenderHtml layout and the plain getCheckInPageHtml one).
+function measureBlocks() {
+    if (!import.meta.client) return
+    const doc = iframeRef.value?.contentDocument
+    if (!doc) return
+    const pageEl = doc.querySelector('.page, .container') as HTMLElement | null
+    const pageRect = pageEl?.getBoundingClientRect()
+    const sx = pageRect && canvasWidth.value ? pageRect.width / canvasWidth.value : 1
+    const sy = pageRect && canvasHeight.value ? pageRect.height / canvasHeight.value : 1
+    const bounds: Record<number, { w: number, h: number }> = {}
+    const fonts: Record<number, number> = {}
+    doc.querySelectorAll('[data-block-idx]').forEach((el) => {
+        const idx = Number((el as HTMLElement).dataset.blockIdx)
+        if (Number.isNaN(idx)) return
+        const r = (el as HTMLElement).getBoundingClientRect()
+        bounds[idx] = { w: r.width / (sx || 1), h: r.height / (sy || 1) }
+        const textEl = (el.querySelector('p') as HTMLElement | null) ?? (el as HTMLElement)
+        fonts[idx] = Number.parseFloat(getComputedStyle(textEl).fontSize) || 16
+    })
+    blockBounds.value = bounds
+    blockFontPx.value = fonts
+}
+
+function clearResizeTemp() {
+    resizing.value = null
+    resizeHandle.value = null
+    tempBounds.value = null
+    tempCenter.value = null
+    tempFontPx.value = null
+    if (resizeFallbackTimer) {
+        clearTimeout(resizeFallbackTimer)
+        resizeFallbackTimer = undefined
+    }
+}
+
+function observeIframeBlocks() {
+    iframeResizeObserver?.disconnect()
+    iframeResizeObserver = undefined
+    const doc = iframeRef.value?.contentDocument
+    const win = iframeRef.value?.contentWindow as (Window & typeof globalThis) | null
+    const RO = win?.ResizeObserver
+    if (!doc || !RO) return
+    // re-measure whenever an element's box settles (async image load, font swap, reflow)
+    iframeResizeObserver = new RO(() => requestAnimationFrame(() => measureBlocks()))
+    doc.querySelectorAll('[data-block-idx]').forEach(el => iframeResizeObserver!.observe(el))
+}
+
+function onIframeLoad() {
+    requestAnimationFrame(() => {
+        measureBlocks()
+        const doc = iframeRef.value?.contentDocument
+        const fontSet = doc?.fonts as FontFaceSet | undefined
+        if (fontSet?.ready) fontSet.ready.then(() => measureBlocks()).catch(() => {})
+        // late <img> decode safety net
+        setTimeout(() => measureBlocks(), 150)
+        // keep bounds in sync as content settles (e.g. the external QR image loading)
+        observeIframeBlocks()
+        // fresh measurements available -> drop any held resize preview
+        clearResizeTemp()
+    })
+}
+
+function effectiveBounds(idx: number) {
+    if (resizing.value === idx && tempBounds.value) return tempBounds.value
+    return blockBounds.value[idx] ?? null
+}
+
+// Selection box in SCREEN px (overlay is NOT transform-scaled, so chrome stays constant-size).
+function chromeBox(idx: number, bpBlock: Block) {
+    const pos = (resizing.value === idx && tempCenter.value)
+        ? tempCenter.value
+        : itemPosition.value(idx, bpBlock)
+    const scale = canvasScale.value
+    const cxScreen = percentToPx(pos.x, canvasWidth.value) * scale
+    const cyScreen = percentToPx(pos.y, canvasHeight.value) * scale
+    const b = effectiveBounds(idx)
+    let w = (b?.w ?? 0) * scale
+    let h = (b?.h ?? 0) * scale
+    if (!b || (w === 0 && h === 0)) {
+        w = FALLBACK_BOX_PX
+        h = FALLBACK_BOX_PX
+    }
+    return { left: cxScreen - w / 2, top: cyScreen - h / 2, w, h }
+}
+function chromeBoxStyle(idx: number, bpBlock: Block): Record<string, string | number> {
+    const box = chromeBox(idx, bpBlock)
+    return {
+        left: `${box.left}px`,
+        top: `${box.top}px`,
+        width: `${box.w}px`,
+        height: `${box.h}px`,
+        zIndex: selectedIdx.value === idx ? 30 : hoveredIdx.value === idx ? 20 : 10,
+    }
+}
+function floatBarStyle(idx: number, bpBlock: Block): Record<string, string> {
+    const box = chromeBox(idx, bpBlock)
+    const flipBelow = box.top < 32
+    return {
+        position: 'absolute',
+        left: '100%',
+        top: flipBelow ? '100%' : `${-FLOAT_BTN_GAP_PX}px`,
+        transform: flipBelow ? `translate(-100%, ${FLOAT_BTN_GAP_PX}px)` : 'translate(-100%, -100%)',
+        pointerEvents: 'auto',
+    }
+}
+
+// RESIZE (opposite-edge-fixed; commit on release, mirroring the drag pattern)
+function startResize(e: MouseEvent, idx: number, dir: ResizeHandle) {
+    const block = blockContainer.value[idx]
+    const bp = block?.perBreakpoint?.[activeCanvasSizeId.value]
+    const b = blockBounds.value[idx]
+    if (!bp || !b) return
+
+    selectedIdx.value = idx
+    resizing.value = idx
+    resizeHandle.value = dir
+    resizeStart.value = {
+        mx: e.clientX,
+        my: e.clientY,
+        w: b.w,
+        h: b.h,
+        cx: percentToPx(bp.x, canvasWidth.value),
+        cy: percentToPx(bp.y, canvasHeight.value),
+        fontPx: blockFontPx.value[idx] ?? 16,
+    }
+    tempBounds.value = { w: b.w, h: b.h }
+    tempCenter.value = { x: bp.x, y: bp.y }
+    tempFontPx.value = resizeStart.value.fontPx
+
+    window.addEventListener(EVENT_MOUSEMOVE, onResizeMove)
+    window.addEventListener(EVENT_MOUSEUP, onResizeUp)
+}
+
+function onResizeMove(e: MouseEvent) {
+    if (resizing.value === null || !resizeHandle.value) return
+    const block = blockContainer.value[resizing.value]
+    if (!block) return
+    const dir = resizeHandle.value
+    const s = resizeStart.value
+    const dx = (e.clientX - s.mx) / canvasScale.value
+    const dy = (e.clientY - s.my) / canvasScale.value
+
+    const signX = dir.includes('e') ? 1 : dir.includes('w') ? -1 : 0
+    const signY = dir.includes('s') ? 1 : dir.includes('n') ? -1 : 0
+    const isCorner = signX !== 0 && signY !== 0
+
+    let newW = s.w
+    let newH = s.h
+    let newFontPx = s.fontPx
+
+    if (isTextBlock(block.type)) {
+        // corners only -> scale font-size along the box diagonal
+        const diag = Math.hypot(s.w, s.h) || 1
+        const proj = (signX * dx * s.w + signY * dy * s.h) / diag
+        let scale = (diag + proj) / diag
+        newFontPx = Math.min(MAX_FONT_PX, Math.max(MIN_FONT_PX, s.fontPx * scale))
+        scale = newFontPx / s.fontPx
+        newW = s.w * scale
+        newH = s.h * scale
+    }
+    else if (isCorner) {
+        // image/qr corner -> lock aspect along the diagonal
+        const diag = Math.hypot(s.w, s.h) || 1
+        const proj = (signX * dx * s.w + signY * dy * s.h) / diag
+        const scale = Math.max((diag + proj) / diag, MIN_BLOCK_PX / s.w, MIN_BLOCK_PX / s.h)
+        newW = s.w * scale
+        newH = s.h * scale
+    }
+    else {
+        // image/qr edge -> single axis
+        newW = Math.max(MIN_BLOCK_PX, s.w + signX * dx)
+        newH = Math.max(MIN_BLOCK_PX, s.h + signY * dy)
+    }
+
+    const dcx = signX * (newW - s.w) / 2
+    const dcy = signY * (newH - s.h) / 2
+    tempBounds.value = { w: newW, h: newH }
+    tempFontPx.value = newFontPx
+    tempCenter.value = {
+        x: pxToPercent(s.cx + dcx, canvasWidth.value),
+        y: pxToPercent(s.cy + dcy, canvasHeight.value),
+    }
+}
+
+function onResizeUp() {
+    window.removeEventListener(EVENT_MOUSEMOVE, onResizeMove)
+    window.removeEventListener(EVENT_MOUSEUP, onResizeUp)
+    if (resizing.value === null) return
+
+    const idx = resizing.value
+    const block = blockContainer.value[idx]
+    const bp = block?.perBreakpoint?.[activeCanvasSizeId.value]
+    if (!block || !bp || !tempBounds.value || !tempCenter.value) {
+        clearResizeTemp()
+        return
+    }
+    selectedIdx.value = idx
+
+    if (isTextBlock(block.type)) {
+        const current = String(getBlockStyleValue(bp.style, BLOCK_STYLE_FONT_SIZE) || '')
+        const useRem = current.trim().endsWith('rem')
+        const px = tempFontPx.value ?? resizeStart.value.fontPx
+        updateBlock('style', BLOCK_STYLE_FONT_SIZE, useRem ? `${Number((px / 16).toFixed(3))}rem` : `${Math.round(px)}px`)
+    }
+    else if (isImageBlock(block.type)) {
+        updateBlock('style', BLOCK_STYLE_WIDTH, `${Math.round(tempBounds.value.w)}px`)
+        updateBlock('style', BLOCK_STYLE_HEIGHT, `${Math.round(tempBounds.value.h)}px`)
+    }
+    else if (isQrBlock(block.type)) {
+        updateBlock('setting', BLOCK_SETTING_WIDTH, `${Math.round(tempBounds.value.w)}px`)
+        updateBlock('setting', BLOCK_SETTING_HEIGHT, `${Math.round(tempBounds.value.h)}px`)
+    }
+
+    updateBlock('position', 'x', Number(tempCenter.value.x.toFixed(2)))
+    updateBlock('position', 'y', Number(tempCenter.value.y.toFixed(2)))
+
+    // keep the preview box until the iframe reloads & re-measures (avoids snap-back);
+    // fallback clear in case the commit produced no measurable change.
+    resizeHandle.value = null
+    if (resizeFallbackTimer) clearTimeout(resizeFallbackTimer)
+    resizeFallbackTimer = setTimeout(() => clearResizeTemp(), 800)
+}
+
+onBeforeUnmount(() => {
+    window.removeEventListener(EVENT_MOUSEMOVE, onResizeMove)
+    window.removeEventListener(EVENT_MOUSEUP, onResizeUp)
+    if (resizeFallbackTimer) clearTimeout(resizeFallbackTimer)
+    iframeResizeObserver?.disconnect()
+})
+
 // HTML GENERATION
 const generatedHtml = ref('')
 const loadingPreview = ref(false)
 let previewTimeout: ReturnType<typeof setTimeout>
 
-function renderBlock(block: Block, value: string | boolean | number) {
+function renderBlock(block: Block, value: string | boolean | number, idx?: number) {
     if (!block) return ''
     const absoluteStyle = getPositionStyle(block)
     return `
-    <div style="${absoluteStyle}">
+    <div style="${absoluteStyle}"${idx !== undefined ? ` data-block-idx="${idx}"` : ''}>
         ${renderPreviewHtml(block, value, compilePreviewStyle(block))}
     </div>
     `
@@ -525,7 +824,8 @@ function refreshGeneratedHtml() {
     const usedFonts: string[] = []
 
     const customParts: string[] = []
-    for (const block of blockContainer.value) {
+    for (let i = 0; i < blockContainer.value.length; i++) {
+        const block = blockContainer.value[i]
         if (!block || !block.perBreakpoint || !block.perBreakpoint[activeCanvasSizeId.value]) {
             customParts.push('')
             continue
@@ -535,7 +835,7 @@ function refreshGeneratedHtml() {
         if (blockFonts && typeof blockFonts === 'string') {
             usedFonts.push(...blockFonts.split(',').map(v => v.trim()))
         }
-        customParts.push(renderBlock(bpBlock, getBlockValue(block)))
+        customParts.push(renderBlock(bpBlock, getBlockValue(block), i))
     }
     const customContent = customParts.join('\n')
 
@@ -897,88 +1197,107 @@ function preview() {
             <div class="col-span-5 overflow-auto p-4 scrollbar">
                 <div class="flex justify-center items-center min-h-full min-w-full">
                     <MiscLoadingOverlay :loading="loadingPreview">
-                        <EditorCanvasContainer
-                            class="bg-neutral-100 dark:bg-neutral-900"
-                            :width="`${canvasWidth * canvasScale}px`"
-                            :height="`${canvasHeight * canvasScale}px`"
+                        <div
+                            class="relative"
+                            :style="{ width: `${canvasWidth * canvasScale}px`, height: `${canvasHeight * canvasScale}px`, overflow: 'visible' }"
                             @dragover="dragToCanvas"
                             @drop="dropCanvas"
                         >
-                            <div class="relative w-full h-full">
-                                <!-- BASE LAYER: rendered design -->
+                            <!-- (A) Clipped rendered design (kept in normal flow so the iframe
+                                 positions against the outer wrapper, aligning with overlay B) -->
+                            <EditorCanvasContainer
+                                class="bg-neutral-100 dark:bg-neutral-900"
+                                :width="`${canvasWidth * canvasScale}px`"
+                                :height="`${canvasHeight * canvasScale}px`"
+                            >
                                 <iframe
+                                    ref="iframeRef"
                                     class="absolute top-0 left-0"
                                     :style="{ ...canvasStyle, border: 'none', pointerEvents: 'none' }"
                                     :srcdoc="generatedHtml"
+                                    @load="onIframeLoad"
                                 />
+                            </EditorCanvasContainer>
 
-                                <!-- OVERLAY LAYER: interactive elements -->
-                                <div
-                                    class="absolute top-0 left-0"
-                                    :style="canvasStyle"
+                            <!-- (B) Non-scaled selection chrome (constant size, overflow visible) -->
+                            <div
+                                class="absolute inset-0"
+                                style="overflow: visible; pointer-events: none;"
+                            >
+                                <template
+                                    v-for="block, bidx in blockContainer"
+                                    :key="`${block.id}-${bidx}`"
                                 >
-                                    <template
-                                        v-for="block, bidx in blockContainer"
-                                        :key="`${block.id}-${bidx}`"
+                                    <div
+                                        v-if="block.perBreakpoint && block.perBreakpoint[activeCanvasSizeId]"
+                                        class="absolute"
+                                        :style="chromeBoxStyle(bidx, block.perBreakpoint[activeCanvasSizeId]!)"
                                     >
+                                        <!-- whole-element drag/select hit area -->
                                         <div
-                                            v-if="block.perBreakpoint && block.perBreakpoint[activeCanvasSizeId]"
-                                            class="absolute cursor-move"
-                                            :style="{
-                                                left: itemPosition(bidx, block.perBreakpoint[activeCanvasSizeId]!).x + '%',
-                                                top: itemPosition(bidx, block.perBreakpoint[activeCanvasSizeId]!).y + '%',
-                                            }"
+                                            class="absolute inset-0 cursor-move"
+                                            style="pointer-events: auto;"
                                             @mouseenter="hoveredIdx = bidx"
                                             @mouseleave="hoveredIdx = null"
                                             @mousedown.prevent="dragCanvasBlock($event, bidx, block.perBreakpoint[activeCanvasSizeId]!)"
                                             @click.stop="selectedIdx = bidx"
-                                        >
-                                            <!-- Persistent marker: shows where an editable element is -->
+                                        />
+
+                                        <!-- selection / hover bounding box -->
+                                        <div
+                                            v-if="selectedIdx === bidx || hoveredIdx === bidx"
+                                            class="absolute inset-0 rounded-[3px]"
+                                            :style="{
+                                                border: `${SELECTION_BORDER_PX}px solid ${selectedIdx === bidx ? 'rgba(59,130,246,0.9)' : 'rgba(59,130,246,0.45)'}`,
+                                                boxShadow: selectedIdx === bidx ? '0 0 0 1px rgba(255,255,255,0.55)' : 'none',
+                                                pointerEvents: 'none',
+                                            }"
+                                        />
+
+                                        <!-- resize handles -->
+                                        <template v-if="selectedIdx === bidx">
                                             <div
-                                                v-show="selectedIdx !== bidx && hoveredIdx !== bidx"
-                                                class="absolute top-0 left-0 flex items-center justify-center w-5 h-5 rounded-full bg-neutral-900/80 dark:bg-neutral-100/80 ring-2 ring-white dark:ring-neutral-900 shadow"
-                                            >
-                                                <UIcon
-                                                    name="lucide:move"
-                                                    class="w-3 h-3 text-white dark:text-neutral-900"
-                                                />
-                                            </div>
+                                                v-for="dir in handlesFor(block.perBreakpoint[activeCanvasSizeId]!)"
+                                                :key="dir"
+                                                class="absolute rounded-[2px] shadow-sm"
+                                                :style="{
+                                                    width: `${HANDLE_SIZE_PX}px`,
+                                                    height: `${HANDLE_SIZE_PX}px`,
+                                                    background: '#ffffff',
+                                                    border: '1px solid rgba(59,130,246,0.9)',
+                                                    ...handleOffset(dir),
+                                                    cursor: cursorFor(dir),
+                                                    pointerEvents: 'auto',
+                                                }"
+                                                @mousedown.stop.prevent="startResize($event, bidx, dir)"
+                                            />
+                                        </template>
 
-                                            <!-- Full handle: revealed on hover or selection -->
-                                            <div v-show="selectedIdx === bidx || hoveredIdx === bidx">
-                                                <UChip position="top-left">
-                                                    <EditorBlock
-                                                        class="flex items-center justify-between"
-                                                        :class="[
-                                                            selectedIdx === bidx ? 'border-neutral-500 dark:border-neutral-400' : '',
-                                                        ]"
-                                                    >
-                                                        {{ findCustomBlock(block.id)?.label || findStaticBlock(block.id)?.label }}
-
-                                                        <div
-                                                            v-if="checkCustomBlock(block.id)"
-                                                            class="flex gap-2"
-                                                        >
-                                                            <UButton
-                                                                size="xs"
-                                                                label="Dup"
-                                                                @click.stop="duplicateBlock(block)"
-                                                            />
-                                                            <UButton
-                                                                size="xs"
-                                                                color="error"
-                                                                label="Del"
-                                                                @click.stop="removeBlock(bidx)"
-                                                            />
-                                                        </div>
-                                                    </EditorBlock>
-                                                </UChip>
-                                            </div>
+                                        <!-- floating Duplicate / Delete, outside the box (above top-right) -->
+                                        <div
+                                            v-if="selectedIdx === bidx && checkCustomBlock(block.id)"
+                                            class="flex gap-1"
+                                            :style="floatBarStyle(bidx, block.perBreakpoint[activeCanvasSizeId]!)"
+                                        >
+                                            <UButton
+                                                size="xs"
+                                                color="neutral"
+                                                variant="solid"
+                                                icon="lucide:copy"
+                                                @click.stop="duplicateBlock(block)"
+                                            />
+                                            <UButton
+                                                size="xs"
+                                                color="error"
+                                                variant="solid"
+                                                icon="lucide:trash-2"
+                                                @click.stop="removeBlock(bidx)"
+                                            />
                                         </div>
-                                    </template>
-                                </div>
+                                    </div>
+                                </template>
                             </div>
-                        </EditorCanvasContainer>
+                        </div>
                     </MiscLoadingOverlay>
                 </div>
             </div>
