@@ -85,14 +85,24 @@ function openEditForm(id: number) {
                 :ui="{ container: 'p-0 sm:p-0', wrapper: 'py-4 px-6 sm:p-6' }"
             >
                 <template #title>
-                    <UBadge
-                        v-if="eventTitle"
-                        size="lg"
-                        color="neutral"
-                        variant="outline"
-                        :label="eventTitle"
-                        class="rounded-full mb-4"
-                    />
+                    <div class="mb-4 flex gap-2">
+                        <UBadge
+                            v-if="!store.is_open"
+                            size="lg"
+                            color="error"
+                            variant="outline"
+                            label="Closed"
+                            class="rounded-full"
+                        />
+                        <UBadge
+                            v-if="eventTitle"
+                            size="lg"
+                            color="neutral"
+                            variant="outline"
+                            :label="eventTitle"
+                            class="rounded-full"
+                        />
+                    </div>
                     <h1 class="mb-6 text-6xl">
                         {{ store.title }}
                     </h1>
@@ -111,10 +121,16 @@ function openEditForm(id: number) {
                     />
                 </template>
 
-                <img
-                    :src="store.image_url"
-                    class="w-screen"
-                >
+                <div class="relative w-full h-full overflow-hidden rounded-r-lg">
+                    <div
+                        class="absolute inset-0 bg-cover bg-center blur scale-150"
+                        :style="{ backgroundImage: `url('${store.image_url}')` }"
+                    />
+                    <div
+                        class="absolute inset-0 bg-contain bg-center bg-no-repeat"
+                        :style="{ backgroundImage: `url('${store.image_url}')` }"
+                    />
+                </div>
             </UPageCard>
         </template>
 

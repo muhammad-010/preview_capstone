@@ -34,7 +34,7 @@ async function _api<T>(
                 logId: response.headers.get('x-log-id'),
                 status: response.status,
                 statusText: response.statusText,
-                data: response._data,
+                data: JSON.stringify(response._data),
             })
             throw createError({
                 statusCode: response.status,
