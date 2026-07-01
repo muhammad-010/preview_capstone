@@ -18,11 +18,6 @@ function onPos(axis: 'x' | 'y', value: number) {
     ctx.setPosition(idx.value, axis === 'x' ? value : bp.value.x, axis === 'y' ? value : bp.value.y)
     ctx.commit()
 }
-function onRotate(value: number) {
-    if (idx.value === null) return
-    ctx.setRotation(idx.value, Number(value))
-    ctx.commit()
-}
 function onStyle(key: string, value: string | boolean | number) {
     if (idx.value === null) return
     ctx.setStyle(idx.value, key, value)
@@ -49,7 +44,7 @@ function onValue(value: string) {
                     <h5>Transform</h5>
                 </template>
 
-                <div class="grid grid-cols-2 gap-2 mb-3">
+                <div class="grid grid-cols-2 gap-2">
                     <UFormField label="X (%)">
                         <UInputNumber
                             :model-value="bp.x"
@@ -69,17 +64,6 @@ function onValue(value: string) {
                         />
                     </UFormField>
                 </div>
-
-                <UFormField
-                    label="Rotation (°)"
-                    help="Editor-only preview — not saved until the backend supports rotation."
-                >
-                    <UInputNumber
-                        :model-value="bp.rotate || 0"
-                        :step="1"
-                        @update:model-value="(v: number) => onRotate(Number(v))"
-                    />
-                </UFormField>
             </UCard>
 
             <!-- VALUE + SETTINGS -->

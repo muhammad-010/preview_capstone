@@ -46,6 +46,33 @@ function selectCanvasPreset(key: string) {
 
 <template>
     <div class="flex flex-col gap-4 overflow-y-auto scrollbar pr-1">
+        <!-- BACKGROUND -->
+        <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
+            <template #header>
+                <h5>Background (Max 1MB)</h5>
+            </template>
+            <UFileUpload
+                v-slot="{ open, removeFile }"
+                v-model="bgFile"
+                accept="image/*"
+            >
+                <UFieldGroup>
+                    <UInput
+                        readonly
+                        :model-value="ctx.activeBgImage.value?.name || 'Choose Image'"
+                        :ui="{ base: 'cursor-pointer' }"
+                        @click="open()"
+                    />
+                    <UButton
+                        :disabled="!ctx.activeBgImage.value?.dataUrl && !bgFile"
+                        icon="lucide:trash"
+                        :color="!ctx.activeBgImage.value?.dataUrl && !bgFile ? 'neutral' : 'error'"
+                        @click="clearBg(removeFile)"
+                    />
+                </UFieldGroup>
+            </UFileUpload>
+        </UCard>
+
         <!-- CANVAS SETTINGS -->
         <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
             <template #header>
@@ -78,7 +105,7 @@ function selectCanvasPreset(key: string) {
 
         <!-- CANVAS SIZE (image-based editors: invitation / certificate) -->
         <UCard
-            v-if="ctx.canvasImageBased"
+            v-if="ctx.canvasImageBased && EDITOR_CANVAS_SIZE_PRESETS_ENABLED"
             :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }"
         >
             <template #header>
@@ -257,33 +284,6 @@ function selectCanvasPreset(key: string) {
                     />
                 </div>
             </div>
-        </UCard>
-
-        <!-- BACKGROUND -->
-        <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
-            <template #header>
-                <h5>Background (Max 1MB)</h5>
-            </template>
-            <UFileUpload
-                v-slot="{ open, removeFile }"
-                v-model="bgFile"
-                accept="image/*"
-            >
-                <UFieldGroup>
-                    <UInput
-                        readonly
-                        :model-value="ctx.activeBgImage.value?.name || 'Choose Image'"
-                        :ui="{ base: 'cursor-pointer' }"
-                        @click="open()"
-                    />
-                    <UButton
-                        :disabled="!ctx.activeBgImage.value?.dataUrl && !bgFile"
-                        icon="lucide:trash"
-                        :color="!ctx.activeBgImage.value?.dataUrl && !bgFile ? 'neutral' : 'error'"
-                        @click="clearBg(removeFile)"
-                    />
-                </UFieldGroup>
-            </UFileUpload>
         </UCard>
     </div>
 </template>

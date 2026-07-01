@@ -26,6 +26,11 @@ export const CHECK_IN_VALID_BREAKPOINTS: Breakpoint[] = [
     BREAKPOINT_XL,
 ]
 
+// Feature flag: when false (current), the canvas-size picker is hidden and the
+// image-based editors (invitation / certificate) size the canvas from the
+// uploaded background image. Flip to true to re-enable the preset picker.
+export const EDITOR_CANVAS_SIZE_PRESETS_ENABLED: boolean = false
+
 // EditorV2 canvas-size presets for the image-based editors (invitation /
 // certificate), grouped by orientation. The chosen preset only drives the canvas
 // width/height; the saved variant keeps its single breakpoint slug.
@@ -115,6 +120,11 @@ export const BLOCK_SETTING_LIST: string[] = [
     BLOCK_SETTING_TITLE,
     BLOCK_SETTING_INPUT_PLACEHOLDER,
     BLOCK_SETTING_BUTTON_TEXT,
+    // QR-image width/height live in `setting`; they must be in the allowlist so
+    // filterBlockData restores the saved size on load (otherwise it falls back to
+    // the 200px default from makeDynamicElementBlock).
+    BLOCK_SETTING_WIDTH,
+    BLOCK_SETTING_HEIGHT,
 ]
 
 export const BLOCK_TEXT_DEFAULT_STYLE: BlockSetting[] = [

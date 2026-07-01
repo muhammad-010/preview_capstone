@@ -165,11 +165,5 @@ function onValue(value: string) {
                 @click="idx !== null && ctx.removeBlock(idx)"
             />
         </template>
-
-        <!-- nothing selected -->
-        <span
-            v-else
-            class="text-sm text-muted"
-        >Select an element to edit it, or drag a block onto the canvas.</span>
     </div>
 </template>

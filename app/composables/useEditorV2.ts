@@ -73,6 +73,11 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
     const { successToast } = useSuccessToast()
     const { errorToast } = useErrorToast()
 
+    // Canvas-size presets are hidden for now: image-based editors size the canvas
+    // from the uploaded background image again. Flip EDITOR_CANVAS_SIZE_PRESETS_ENABLED
+    // (block.constants.ts) to bring the picker back.
+    const usePresetCanvas = props.canvasImageBased && EDITOR_CANVAS_SIZE_PRESETS_ENABLED
+
     // ---- CANVAS SIZE / VARIANTS ----
     const selectedCanvasSizeIds = ref<Breakpoint[]>([...props.defaultSelectedCanvasSizeIds])
     const activeCanvasSizeId = ref<Breakpoint>(props.defaultActiveCanvasSizeId)
@@ -147,9 +152,9 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
             img.onload = () => {
                 slot.width = img.width
                 slot.height = img.height
-                // canvas-image-based editors are now preset-driven; the image is
-                // simply contained, so don't auto-flip the canvas to the image.
-                if (!props.canvasImageBased && props.canvasSizeOptions) {
+                // when the preset picker is off, image-based editors follow the
+                // uploaded image, so orient the canvas to it.
+                if (!usePresetCanvas && props.canvasSizeOptions) {
                     canvasOrientation.value = img.width > img.height ? EDITOR_CANVAS_LANDSCAPE : EDITOR_CANVAS_PORTRAIT
                 }
             }
@@ -244,19 +249,21 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         clearSelection()
     }
 
-    // keep orientation in sync with the active preset (image-based editors only)
+    // keep orientation in sync with the active preset (only when the picker is on)
     watch(activeCanvasPreset, (preset) => {
-        if (props.canvasImageBased) canvasOrientation.value = preset.orientation
+        if (usePresetCanvas) canvasOrientation.value = preset.orientation
     }, { immediate: true })
 
     // ---- CANVAS DIMENSIONS ----
     const canvasWidth = computed(() => {
-        if (props.canvasImageBased) return activeCanvasPreset.value.width
+        if (usePresetCanvas) return activeCanvasPreset.value.width
+        if (props.canvasImageBased && activeBgImage.value?.width) return activeBgImage.value.width
         const cs = activeCanvasSize.value
         return shouldFlipCanvas(canvasOrientation.value, cs.orientation) ? cs.height : cs.width
     })
     const canvasHeight = computed(() => {
-        if (props.canvasImageBased) return activeCanvasPreset.value.height
+        if (usePresetCanvas) return activeCanvasPreset.value.height
+        if (props.canvasImageBased && activeBgImage.value?.height) return activeBgImage.value.height
         const cs = activeCanvasSize.value
         return shouldFlipCanvas(canvasOrientation.value, cs.orientation) ? cs.width : cs.height
     })
@@ -611,6 +618,17 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         return out
     }
 
+    // the canvas dimensions saved into each variant's `setting`
+    function variantSetting(): Record<string, string> {
+        if (usePresetCanvas) {
+            return { width: `${activeCanvasPreset.value.width}px`, height: `${activeCanvasPreset.value.height}px` }
+        }
+        if (props.canvasImageBased) {
+            return { width: `${activeBgImage.value?.width || 0}px`, height: `${activeBgImage.value?.height || 0}px` }
+        }
+        return { width: `${activeCanvasSize.value.width}px`, height: `${activeCanvasSize.value.height}px` }
+    }
+
     function makeVariants(preview = false): TemplateVariant[] {
         return selectedCanvasSizes.value.map((size) => {
             const slug = size.id
@@ -620,10 +638,7 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
                 preview ? bgImage.value?.[slug]?.dataUrl || '' : '',
                 bgImage.value?.[slug]?.uploadKey || '',
                 size.variantId,
-                {
-                    width: `${props.canvasImageBased ? activeCanvasPreset.value.width : activeCanvasSize.value.width}px`,
-                    height: `${props.canvasImageBased ? activeCanvasPreset.value.height : activeCanvasSize.value.height}px`,
-                },
+                variantSetting(),
             )
         })
     }

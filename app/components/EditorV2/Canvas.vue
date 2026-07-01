@@ -26,7 +26,7 @@ const ch = computed(() => ctx.canvasHeight.value)
 const scale = computed(() => ctx.canvasScale.value)
 const bgUrl = computed(() => ctx.activeBgImage.value?.dataUrl || '')
 
-type Mode = 'idle' | 'drag' | 'resize' | 'rotate' | 'marquee'
+type Mode = 'idle' | 'drag' | 'resize' | 'marquee'
 let mode: Mode = 'idle'
 // whether the pointer actually moved during the gesture (so a plain click that
 // only (re)selects an element doesn't push a no-op history entry)
@@ -51,14 +51,6 @@ let resizeData: null | {
     isText: boolean
     fontPx: number
     fontUnit: 'rem' | 'px'
-} = null
-
-let rotateData: null | {
-    idx: number
-    cx: number
-    cy: number
-    startAngle: number
-    startRot: number
 } = null
 
 let marqueeStart = { x: 0, y: 0 }
@@ -202,35 +194,6 @@ function onResizeMove(e: PointerEvent) {
     }
 }
 
-// ---- ROTATE ----
-function onRotateDown(idx: number, e: PointerEvent) {
-    e.preventDefault()
-    ctx.select(idx)
-    const bp = ctx.bpOf(idx)
-    if (!bp) return
-    const rect = canvasEl.value!.getBoundingClientRect()
-    const cx = rect.left + percentToPx(bp.x, cw.value) * scale.value
-    const cy = rect.top + percentToPx(bp.y, ch.value) * scale.value
-    rotateData = {
-        idx,
-        cx,
-        cy,
-        startAngle: Math.atan2(e.clientY - cy, e.clientX - cx),
-        startRot: bp.rotate || 0,
-    }
-    mode = 'rotate'
-    moved = false
-    addListeners()
-}
-
-function onRotateMove(e: PointerEvent) {
-    if (!rotateData) return
-    const ang = Math.atan2(e.clientY - rotateData.cy, e.clientX - rotateData.cx)
-    let deg = rotateData.startRot + ((ang - rotateData.startAngle) * 180) / Math.PI
-    if (e.shiftKey) deg = Math.round(deg / 15) * 15
-    ctx.setRotation(rotateData.idx, Math.round(deg))
-}
-
 // ---- MARQUEE ----
 function onCanvasDown(e: PointerEvent) {
     if ((e.target as HTMLElement).closest('[data-block-idx]')) return
@@ -273,16 +236,14 @@ function onPointerMove(e: PointerEvent) {
     moved = true
     if (mode === 'drag') onDragMove(e)
     else if (mode === 'resize') onResizeMove(e)
-    else if (mode === 'rotate') onRotateMove(e)
     else if (mode === 'marquee') onMarqueeMove(e)
 }
 function onPointerUp() {
-    const wasInteractive = mode === 'drag' || mode === 'resize' || mode === 'rotate'
+    const wasInteractive = mode === 'drag' || mode === 'resize'
     if (mode === 'marquee') commitMarquee()
     guides.value = []
     dragData = null
     resizeData = null
-    rotateData = null
     // only snapshot history when the gesture actually changed something
     if (wasInteractive && moved) ctx.commit()
     mode = 'idle'
@@ -342,7 +303,6 @@ onBeforeUnmount(removeListeners)
                 :idx="idx"
                 @bodydown="onBodyDown"
                 @resizedown="onResizeDown"
-                @rotatedown="onRotateDown"
             />
 
             <!-- alignment guides -->
