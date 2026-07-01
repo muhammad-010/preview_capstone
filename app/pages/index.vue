@@ -28,12 +28,9 @@ else {
     transform: translate(-50%, -50%);
     width: 18px;
     height: 18px;
-    border-top-color: '#111';
-    border-left-color: '#111';
-    border-bottom-color: '#eee';
-    border-right-color: '#eee';
+    border: solid 2px;
+    border-color: #111 #eee #eee #111;
     box-sizing: border-box;
-    border: solid 2px transparent;
     border-radius: 50%;
     -webkit-animation: loader 400ms linear infinite;
     animation: loader 400ms linear infinite;

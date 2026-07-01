@@ -1,4 +1,4 @@
-export type FetchOptions = RequetInit & {
+export type FetchOptions = RequestInit & {
     query?: QueryObject
 }
 
