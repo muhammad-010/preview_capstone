@@ -97,6 +97,19 @@ export interface CanvasSize {
     orientation: Orientation
 }
 
+/**
+ * EditorV2 canvas-size preset for the image-based editors (invitation /
+ * certificate). Decoupled from the breakpoint slug: only its width/height feed
+ * the canvas dimensions and the saved variant `setting`.
+ */
+export interface CanvasSizePreset {
+    key: string
+    label: string
+    width: number
+    height: number
+    orientation: Orientation
+}
+
 export interface BlockSetting {
     key: string
     value: string | boolean | number
@@ -124,6 +137,13 @@ export interface Block {
     /** whether display the value setting for this block */
     withValue?: boolean
     isDynamic?: boolean
+    /**
+     * EDITOR-ONLY rotation in degrees, used by EditorV2's rotate handle.
+     * Transient: it is not serialized by makeTemplateVariant() nor restored by
+     * parseTemplateVariants(), so it never reaches the backend. Persist it only
+     * once the backend renderer supports a rotation field (see the EditorV2 plan).
+     */
+    rotate?: number
 }
 
 export interface ElementBlock extends Block {

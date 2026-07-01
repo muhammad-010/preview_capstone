@@ -27,6 +27,11 @@ export default defineNuxtConfig({
             ],
         },
     },
+    runtimeConfig: {
+        public: {
+            editorV2Enabled: process.env.NUXT_PUBLIC_EDITOR_V2_ENABLED === 'true',
+        },
+    },
     compatibilityDate: '2025-07-15',
     nitro: {
         imports: {

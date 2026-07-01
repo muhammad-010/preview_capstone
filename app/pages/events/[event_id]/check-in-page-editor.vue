@@ -74,7 +74,7 @@ definePageMeta({
 </script>
 
 <template>
-    <EditorMain
+    <EditorSwitch
         :tenant-id="tenantId"
         :event-id="eventId"
         :template-id="template?.template_id"
