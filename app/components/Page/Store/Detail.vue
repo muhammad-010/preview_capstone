@@ -83,8 +83,11 @@ function openEditForm(id: number) {
             <PageStoreCard
                 :store="store"
                 :event-title="eventTitle"
+                class="mb-12"
                 @open-edit="(id) => openEditForm(id)"
             />
+
+            <PageProductList />
         </template>
 
         <PageStoreModalForm
