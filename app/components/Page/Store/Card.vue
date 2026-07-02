@@ -1,11 +1,12 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
     store: TenantEventStore
     eventTitle?: string
     bgContain?: boolean
 }>()
 const emit = defineEmits([EMIT_OPEN_EDIT])
 </script>
+
 <template>
     <UCard
         variant="subtle"
@@ -50,12 +51,12 @@ const emit = defineEmits([EMIT_OPEN_EDIT])
                     </div>
 
                     <div class="max-h-120 overflow-auto mb-8">
-                      <h1 class="mb-6 text-6xl font-bold">
-                          {{ store.title }}
-                      </h1>
-                      <p class="text-base/relaxed">
-                          {{ store.subtitle }}
-                      </p>
+                        <h1 class="mb-6 text-6xl font-bold">
+                            {{ store.title }}
+                        </h1>
+                        <p class="text-base/relaxed">
+                            {{ store.subtitle }}
+                        </p>
                     </div>
 
                     <UButton
