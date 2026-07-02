@@ -1,4 +1,4 @@
-export type FetchOptions = RequetInit & {
+export type FetchOptions = RequestInit & {
     query?: QueryObject
 }
 
@@ -69,6 +69,15 @@ export type TenantEventAddResult = Result<
 export type TenantEventUserFound = Result<{
     users: User[]
 }>
+
+// EVENT STORE
+export type TenantEventStoreDetailResult = Result<TenantEventStore>
+
+export type TenantEventStoreFormResult = Result<TenantEventStoreForm>
+
+export type TenantEventStoreAddResult = Result<
+    AddedData<number, 'store_id'>
+>
 
 // EVENT SESSION
 export type TenantEventSessionListResult = Result<

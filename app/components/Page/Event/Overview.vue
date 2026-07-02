@@ -5,6 +5,7 @@ const props = defineProps<{
     tenantId: number
     eventId: number
 }>()
+const storeId = defineModel<number | null>('store-id', { default: null })
 
 const exposed = {
     refresh: () => {},
@@ -20,6 +21,11 @@ const { data, refresh } = await useApi(`/api/tenant/${props.tenantId}/event/${pr
 exposed.refresh = refresh
 
 const event = computed<TenantEvent>(() => data.value ?? {} as TenantEvent)
+watch(data, (value) => {
+    if (value && value.store_id) {
+        storeId.value = value.store_id
+    }
+}, { immediate: true })
 
 const totalCheckedIn = computed(() => event.value.participant_status?.total_checked_in || 0)
 const totalRegistered = computed(() => event.value.participant_status?.total_registered || 0)

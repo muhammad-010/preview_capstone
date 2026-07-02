@@ -104,6 +104,7 @@ export interface TenantEvent {
     start_time: ISOString
     location: string
     status: TenantEventStatus
+    store_id: number | null
 
     description?: string
     end_time?: ISOString
@@ -123,6 +124,27 @@ export interface TenantEventForm {
     end_time: ISOString
     status: TenantEventStatus
     assign_user_ids: number[]
+}
+
+// EVENT STORE
+
+export interface TenantEventStore {
+    store_id: number
+    title: string
+    subtitle: string
+    slug: string
+    image_url: string
+    is_open: boolean
+}
+
+export interface TenantEventStoreForm {
+    title: string
+    subtitle: string
+    slug?: string
+    image_upload_key?: string
+    is_open: boolean
+
+    banner_image?: File
 }
 
 // EVENT SESSIONS

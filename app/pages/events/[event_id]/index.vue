@@ -8,6 +8,10 @@ const tabs = [
         slot: 'overview',
     },
     {
+        label: 'Store',
+        slot: 'store',
+    },
+    {
         label: 'Sessions',
         slot: 'sessions',
     },
@@ -23,6 +27,8 @@ const tabs = [
 const activeTab = useState(STATE_EVENT_DETAIL_ACTIVE_TAB, () => '0')
 const { customAttributes, refreshCustomAttributes } = await useFindCustomAttribute(tenantId.value, eventId)
 const { event } = await useEventInfo(tenantId.value, eventId)
+const eventName = computed(() => event.value.name ?? '')
+const storeId = ref<number | null>(null)
 
 const settings = [
     {
@@ -62,7 +68,7 @@ useHead({
 setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
     [':event_id']: {
         param: route.params.event_id as string,
-        label: event.value.name,
+        label: eventName.value,
     },
 }))
 </script>
@@ -79,8 +85,19 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
             <template #overview>
                 <PageEventOverview
                     ref="overviewRef"
+                    v-model:store-id="storeId"
                     :tenant-id="tenantId"
                     :event-id="eventId"
+                />
+            </template>
+
+            <template #store>
+                <PageStoreDetail
+                    v-model:store-id="storeId"
+                    :tenant-id="tenantId"
+                    :event-id="eventId"
+                    :event-title="eventName"
+                    @refresh="refreshDetail"
                 />
             </template>
 

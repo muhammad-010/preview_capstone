@@ -29,6 +29,7 @@ export function useErrorToast() {
     }
 
     return {
+        isFetchError,
         errorMessage,
         errorToast,
     }
