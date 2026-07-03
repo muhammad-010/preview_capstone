@@ -195,4 +195,3 @@ export interface EditorV2Props {
     // restores this image; the origin is derived from the loaded background URL.
     defaultBackgroundPath?: string
 }
-
