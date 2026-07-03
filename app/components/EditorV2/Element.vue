@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ContextMenuItem } from '@nuxt/ui'
+
 /**
  * A single design block rendered as real DOM (Canva-style direct manipulation).
  * The inner content is produced by the SAME render helpers the current editor
@@ -125,6 +127,12 @@ function onEditKeydown(e: KeyboardEvent) {
     }
 }
 
+// ---- right-click actions ----
+const menuItems = computed<ContextMenuItem[][]>(() => [[
+    { label: 'Duplicate', icon: 'lucide:copy', onSelect: () => ctx.duplicateBlock(props.idx) },
+    { label: 'Delete', icon: 'lucide:trash-2', color: 'error', onSelect: () => ctx.removeBlock(props.idx) },
+]])
+
 function cursorFor(dir: ResizeHandle) {
     if (dir === 'nw' || dir === 'se') return 'nwse-resize'
     if (dir === 'ne' || dir === 'sw') return 'nesw-resize'
@@ -150,71 +158,78 @@ function handleOffset(dir: ResizeHandle): Record<string, string> {
 
 <template>
     <!-- eslint-disable vue/no-v-html -- HTML comes from our own trusted render helpers, same as the current editor's iframe srcdoc -->
-    <div
+    <!-- UContextMenu uses Reka's as-child, so it merges onto the positioned div
+         below (no extra wrapper); v-if is here so the trigger has one root child. -->
+    <UContextMenu
         v-if="bpBlock"
-        :data-block-idx="idx"
-        :style="wrapperStyle"
-        @pointerdown="emit('bodydown', idx, $event)"
-        @pointerenter="ctx.hoveredId.value = idx"
-        @pointerleave="ctx.hoveredId.value = null"
-        @dblclick="onDblClick"
+        :items="menuItems"
     >
-        <!-- rendered block content (matches the current editor output). HTML comes
-             from our own trusted render helpers, same as the current editor's iframe srcdoc. -->
         <div
-            v-show="!editing"
-            class="ev2-content"
-            style="pointer-events: none;"
-            v-html="innerHtml"
-        />
+            :data-block-idx="idx"
+            :style="wrapperStyle"
+            @pointerdown="emit('bodydown', idx, $event)"
+            @pointerenter="ctx.hoveredId.value = idx"
+            @pointerleave="ctx.hoveredId.value = null"
+            @dblclick="onDblClick"
+            @contextmenu="ctx.select(idx)"
+        >
+            <!-- rendered block content (matches the current editor output). HTML comes
+             from our own trusted render helpers, same as the current editor's iframe srcdoc. -->
+            <div
+                v-show="!editing"
+                class="ev2-content"
+                style="pointer-events: none;"
+                v-html="innerHtml"
+            />
 
-        <!-- inline text editor (free text only): mirrors the static structure
+            <!-- inline text editor (free text only): mirrors the static structure
              (styled container + <p>), seeded imperatively so reactivity never
              resets the caret. -->
-        <div
-            v-if="editing"
-            class="ev2-content"
-            :style="editStyle"
-        >
-            <p
-                ref="editEl"
-                contenteditable="plaintext-only"
-                style="margin: 0; outline: none; cursor: text; user-select: text; white-space: pre-wrap; min-width: 4px;"
-                @pointerdown.stop
-                @dblclick.stop
-                @keydown="onEditKeydown"
-                @blur="finishEdit"
-            />
-        </div>
-
-        <!-- selection / hover bounding box -->
-        <div
-            v-if="selected || hovered"
-            class="absolute inset-0 rounded-[3px]"
-            :style="{
-                border: `${BORDER_PX * inv}px solid ${selected ? 'rgba(59,130,246,0.9)' : 'rgba(59,130,246,0.45)'}`,
-                boxShadow: selected ? `0 0 0 ${inv}px rgba(255,255,255,0.55)` : 'none',
-                pointerEvents: 'none',
-            }"
-        />
-
-        <!-- resize handles -->
-        <template v-if="selected && resizable && !editing">
             <div
-                v-for="dir in handles"
-                :key="dir"
-                class="absolute rounded-[2px] shadow-sm"
+                v-if="editing"
+                class="ev2-content"
+                :style="editStyle"
+            >
+                <p
+                    ref="editEl"
+                    contenteditable="plaintext-only"
+                    style="margin: 0; outline: none; cursor: text; user-select: text; white-space: pre-wrap; min-width: 4px;"
+                    @pointerdown.stop
+                    @dblclick.stop
+                    @keydown="onEditKeydown"
+                    @blur="finishEdit"
+                />
+            </div>
+
+            <!-- selection / hover bounding box -->
+            <div
+                v-if="selected || hovered"
+                class="absolute inset-0 rounded-[3px]"
                 :style="{
-                    width: `${HANDLE_PX * inv}px`,
-                    height: `${HANDLE_PX * inv}px`,
-                    background: '#ffffff',
-                    border: `${inv}px solid rgba(59,130,246,0.9)`,
-                    ...handleOffset(dir),
-                    cursor: cursorFor(dir),
-                    pointerEvents: 'auto',
+                    border: `${BORDER_PX * inv}px solid ${selected ? 'rgba(59,130,246,0.9)' : 'rgba(59,130,246,0.45)'}`,
+                    boxShadow: selected ? `0 0 0 ${inv}px rgba(255,255,255,0.55)` : 'none',
+                    pointerEvents: 'none',
                 }"
-                @pointerdown.stop="emit('resizedown', idx, dir, $event)"
             />
-        </template>
-    </div>
+
+            <!-- resize handles -->
+            <template v-if="selected && resizable && !editing">
+                <div
+                    v-for="dir in handles"
+                    :key="dir"
+                    class="absolute rounded-[2px] shadow-sm"
+                    :style="{
+                        width: `${HANDLE_PX * inv}px`,
+                        height: `${HANDLE_PX * inv}px`,
+                        background: '#ffffff',
+                        border: `${inv}px solid rgba(59,130,246,0.9)`,
+                        ...handleOffset(dir),
+                        cursor: cursorFor(dir),
+                        pointerEvents: 'auto',
+                    }"
+                    @pointerdown.stop="emit('resizedown', idx, dir, $event)"
+                />
+            </template>
+        </div>
+    </UContextMenu>
 </template>

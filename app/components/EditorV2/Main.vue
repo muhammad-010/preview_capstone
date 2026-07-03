@@ -4,7 +4,7 @@
  * props and emits the same `refresh` event as the current editor
  * (app/components/Editor/Main.vue), reusing the same backend API + template
  * format via useEditorV2(). Only the UI/UX differs (DOM canvas, direct
- * manipulation, snapping, undo/redo, layers, multi-select, contextual toolbar).
+ * manipulation, snapping, undo/redo, layers, multi-select, right-click actions).
  */
 const props = defineProps<EditorV2Props>()
 const emit = defineEmits([EMIT_EDITOR_REFRESH])
@@ -98,11 +98,6 @@ useHead({ style: [{ innerHTML: fontFaceRules, key: 'editor-v2-fonts' }] })
                 :disabled="ctx.loading.value"
                 @click="() => ctx.save()"
             />
-        </div>
-
-        <!-- CONTEXTUAL TOOLBAR -->
-        <div class="rounded-lg border border-default bg-elevated/40 px-3 py-1.5">
-            <EditorV2Toolbar />
         </div>
 
         <!-- WORKSPACE -->
