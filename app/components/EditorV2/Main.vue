@@ -21,6 +21,27 @@ const fontFaceRules = computed(() =>
     generateFontFaceRules(props.fontOptions, props.fontOptions.map(f => f.value)),
 )
 useHead({ style: [{ innerHTML: fontFaceRules, key: 'editor-v2-fonts' }] })
+
+// Fit the canvas to the viewport on first open so the whole design is visible
+// without manual zoom. One-shot (fitted guard): later manual zoom / Page-Size
+// switches are respected. The watch retries in case canvas dims resolve async.
+const VIEWPORT_PAD = 64 // the inner p-8 (32px on each side)
+const viewportEl = ref<HTMLElement | null>(null)
+const fitted = ref(false)
+function tryAutoFit() {
+    if (fitted.value || !viewportEl.value) return
+    const availW = viewportEl.value.clientWidth - VIEWPORT_PAD
+    const availH = viewportEl.value.clientHeight - VIEWPORT_PAD
+    if (ctx.fitCanvasToViewport(availW, availH)) fitted.value = true
+}
+// On first open, if the design still uses the default background, prompt the
+// user to upload their own. One-shot (only evaluated on mount).
+const showBgPrompt = ref(false)
+onMounted(() => nextTick(() => {
+    tryAutoFit()
+    if (ctx.usingDefaultBackground.value) showBgPrompt.value = true
+}))
+watch([ctx.canvasWidth, ctx.canvasHeight], () => nextTick(tryAutoFit))
 </script>
 
 <template>
@@ -108,7 +129,10 @@ useHead({ style: [{ innerHTML: fontFaceRules, key: 'editor-v2-fonts' }] })
             </div>
 
             <!-- CANVAS -->
-            <div class="grow min-w-0 rounded-lg border border-default bg-muted/30 overflow-auto scrollbar">
+            <div
+                ref="viewportEl"
+                class="grow min-w-0 rounded-lg border border-default bg-muted/30 overflow-auto scrollbar"
+            >
                 <MiscLoadingOverlay :loading="ctx.loading.value">
                     <div class="flex justify-center items-center min-h-full min-w-full p-8">
                         <EditorV2Canvas />
@@ -122,5 +146,7 @@ useHead({ style: [{ innerHTML: fontFaceRules, key: 'editor-v2-fonts' }] })
                 <EditorV2LayersPanel />
             </div>
         </div>
+
+        <EditorV2BackgroundPromptModal v-model:open="showBgPrompt" />
     </div>
 </template>

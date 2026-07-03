@@ -41,6 +41,11 @@ export interface EditorV2Props {
 
     pageTitle?: string
     defaultScale?: number
+
+    // Path (no origin) of the backend factory default background for this editor,
+    // e.g. '/storage/file/static/image/default_certificate.png'. The Reset button
+    // restores this image; the origin is derived from the loaded background URL.
+    defaultBackgroundPath?: string
 }
 
 const MAX_FILE_SIZE = 1024 * 1024 // 1MB
@@ -134,9 +139,96 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         canvasScalePercentage.value = Math.max(10, Math.min(200, canvasScalePercentage.value + deltaPercent))
     }
 
+    // Fit the canvas to the given available viewport (unscaled canvas px vs px):
+    // scale so the whole canvas is visible, clamped to the zoom bounds. Returns
+    // false when dimensions aren't measurable yet (so the caller can retry).
+    function fitCanvasToViewport(availW: number, availH: number): boolean {
+        const cw = canvasWidth.value
+        const ch = canvasHeight.value
+        if (cw <= 0 || ch <= 0 || availW <= 0 || availH <= 0) return false
+        const pct = Math.floor(Math.min(availW / cw, availH / ch) * 100)
+        canvasScalePercentage.value = Math.max(10, Math.min(200, pct))
+        return true
+    }
+
     // ---- BACKGROUND IMAGE ----
     const bgImage = ref<Partial<Record<Breakpoint, BackgroundImage>>>(cloneObject(props.defaultBackgroundImages))
     const activeBgImage = computed<BackgroundImage | undefined>(() => bgImage.value?.[activeCanvasSizeId.value])
+
+    // Snapshot of the background loaded when the editor opened. Deep-cloned so it
+    // stays fixed even as bgImage is mutated; also used to derive the backend origin.
+    const initialBackgroundImages = cloneObject(props.defaultBackgroundImages)
+
+    // Backend base URL isn't exposed to the client, but stored background URLs are
+    // absolute (they contain the browser-reachable backend origin), so derive it
+    // from whichever background the template loaded with.
+    const backendOrigin = (() => {
+        for (const bp of Object.keys(initialBackgroundImages) as Breakpoint[]) {
+            const url = initialBackgroundImages[bp]?.dataUrl
+            if (!url) continue
+            try {
+                return new URL(url).origin
+            }
+            catch {
+                // relative/invalid URL — keep looking
+            }
+        }
+        return ''
+    })()
+
+    // The factory default background URL (origin + the editor's default path).
+    const defaultBackgroundUrl = computed(() =>
+        props.defaultBackgroundPath && backendOrigin ? `${backendOrigin}${props.defaultBackgroundPath}` : '',
+    )
+    // Reset is only meaningful where a factory default exists (invitation /
+    // certificate); check-in has no default path.
+    const canResetBackground = computed(() => !!defaultBackgroundUrl.value)
+
+    // Restore the active canvas's background to the backend factory default image.
+    // The backend only changes a background via an upload_key, so re-upload the
+    // default image (server-side, no CORS) to get a key, then save like a normal upload.
+    async function resetBackground() {
+        const url = defaultBackgroundUrl.value
+        const path = props.defaultBackgroundPath
+        if (!url || !path) return
+        const bp = activeCanvasSizeId.value
+        const cs = activeCanvasSize.value
+        try {
+            const res = await $api(`/api/editor/reset-background`, { method: 'POST', body: { path } })
+            if (!res?.success) {
+                errorToast({ description: res?.message || 'Failed to reset background' })
+                return
+            }
+            bgImage.value[bp] = {
+                dataUrl: url, // static default URL — used for the canvas preview
+                uploadKey: res.data.upload_key, // attaches the default image on save
+                width: cs?.width || 0,
+                height: cs?.height || 0,
+                name: path.split('/').pop(),
+            }
+            commit()
+            await save()
+        }
+        catch (error) {
+            errorToast({ error, description: 'Failed to reset background' })
+        }
+    }
+
+    // A slot is still "default" when it has no image yet, or still points at a
+    // backend default_* static image (invitation/certificate). The BE base URL
+    // varies by environment, so match the static-image path suffix.
+    const DEFAULT_BG_PATH = '/storage/file/static/image/default_'
+    function isDefaultBg(slot?: BackgroundImage): boolean {
+        if (!slot?.dataUrl) return true
+        return slot.dataUrl.includes(DEFAULT_BG_PATH)
+    }
+    // image-based editors check the single active background; check-in is "default"
+    // only when none of its device backgrounds have been set.
+    const usingDefaultBackground = computed(() =>
+        props.canvasImageBased
+            ? isDefaultBg(activeBgImage.value)
+            : selectedCanvasSizes.value.every(cs => isDefaultBg(bgImage.value[cs.id])),
+    )
 
     async function uploadBackground(file: File) {
         const slot = bgImage.value?.[activeCanvasSizeId.value]
@@ -311,6 +403,21 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         def.x = block.x
         def.y = block.y
         def.perBreakpoint = cloneObject(block.perBreakpoint)
+    }
+
+    // Materialize any active static block that isn't already placed on the canvas
+    // (e.g. a fresh template that enables a static block by default, like the
+    // check-in scanner QR) so it actually renders instead of just being "checked".
+    for (const id of activeStaticBlocks.value) {
+        if (blockContainer.value.some(b => b.id === id)) continue
+        const def = findStaticDef(id)
+        if (!def) continue
+        blockContainer.value.push({
+            ...def,
+            setting: cloneObject(def.setting),
+            style: cloneObject(def.style),
+            perBreakpoint: cloneObject(def.perBreakpoint),
+        })
     }
 
     // ---- SELECTION ----
@@ -632,6 +739,9 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
     function makeVariants(preview = false): TemplateVariant[] {
         return selectedCanvasSizes.value.map((size) => {
             const slug = size.id
+            // The backend changes a variant's background only via background_url_upload_key
+            // (it ignores background_image_url on save), so we only send the upload key on a
+            // real save; the dataUrl is used for the in-app preview only.
             return makeTemplateVariant(
                 flattenBlocksForBp(slug),
                 size.id,
@@ -737,6 +847,7 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         canvasScalePercentage,
         canvasScale,
         zoomBy,
+        fitCanvasToViewport,
 
         // canvas size presets (image-based editors)
         canvasPresetKey,
@@ -750,6 +861,9 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         activeBgImage,
         uploadBackground,
         clearBackground,
+        usingDefaultBackground,
+        canResetBackground,
+        resetBackground,
 
         // dimensions
         canvasWidth,

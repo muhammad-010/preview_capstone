@@ -38,6 +38,13 @@ function clearBg(removeFile: (index?: number) => void) {
     ctx.clearBackground()
 }
 
+// reset background to the default (loaded) image
+const resetBgModal = ref(false)
+function doResetBg() {
+    ctx.resetBackground()
+    resetBgModal.value = false
+}
+
 function selectCanvasPreset(key: string) {
     ctx.setCanvasPreset(key)
     canvasPresetPopover.value = false
@@ -64,6 +71,14 @@ function selectCanvasPreset(key: string) {
                         @click="open()"
                     />
                     <UButton
+                        v-if="ctx.canResetBackground.value"
+                        icon="lucide:rotate-ccw"
+                        color="neutral"
+                        variant="outline"
+                        title="Reset to default background"
+                        @click="resetBgModal = true"
+                    />
+                    <UButton
                         :disabled="!ctx.activeBgImage.value?.dataUrl && !bgFile"
                         icon="lucide:trash"
                         :color="!ctx.activeBgImage.value?.dataUrl && !bgFile ? 'neutral' : 'error'"
@@ -72,6 +87,13 @@ function selectCanvasPreset(key: string) {
                 </UFieldGroup>
             </UFileUpload>
         </UCard>
+
+        <ModalConfirmNegativeAction
+            v-model:open="resetBgModal"
+            title="Reset Background"
+            body="Reset the background to the default image? Your current background image will be replaced."
+            @confirm="doResetBg"
+        />
 
         <!-- CANVAS SETTINGS -->
         <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">

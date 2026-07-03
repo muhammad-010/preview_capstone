@@ -88,6 +88,7 @@ definePageMeta({
         :html-preview-fn="getBackendRenderHtml"
         page-title="Digital Invitation Key Visual Editor"
         :default-scale="0.4"
+        default-background-path="/storage/file/static/image/default_invitation.png"
         @refresh="refresh"
     />
 </template>
