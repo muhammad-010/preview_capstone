@@ -2,10 +2,11 @@
 defineProps<{
     tenantId: number
     eventId: number
+    storeId: number
 }>()
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
 const formDialog = defineModel<boolean>('open', { default: false })
-const fields = defineModel<TenantEventStoreForm | undefined>('fields', { default: undefined })
+//const fields = defineModel<TenantEventStoreForm | undefined>('fields', { default: undefined })
 const id = defineModel<number | undefined>('id', { default: undefined })
 const formRef = ref()
 const formLoading = ref(false)
@@ -13,7 +14,7 @@ const formSuccess = ref(false)
 
 function closeForm(close: () => void) {
     close()
-    fields.value = undefined
+    //fields.value = undefined
     id.value = undefined
 }
 
@@ -35,11 +36,12 @@ async function saveForm(close: () => void) {
     <UModal
         v-model:open="formDialog"
         :dismissible="false"
-        :ui="{ body: 'p-0 sm:p-0' }"
+        :ui="{ content: 'sm:max-w-4xl', body: 'p-0 sm:p-0' }"
     >
         <template #header="{ close }">
             <div class="flex justify-between items-center w-full">
-                <h5>{{ fields ? 'Edit' : 'Add' }} Store</h5>
+                <!-- <h5>{{ fields ? 'Edit' : 'Add' }} Product</h5> -->
+                <h5>{{ 'Form' }} Product</h5>
 
                 <UButton
                     color="neutral"
@@ -53,14 +55,14 @@ async function saveForm(close: () => void) {
         <template #body>
             <MiscLoadingOverlay :loading="formLoading">
                 <div class=" p-4 sm:p-6">
-                    <PageStoreForm
+                    <PageProductForm
                         ref="formRef"
                         v-model:loading="formLoading"
                         v-model:success="formSuccess"
                         :tenant-id="tenantId"
                         :event-id="eventId"
-                        :store-id="id"
-                        :fields="fields"
+                        :store-id="storeId"
+                        :product-id="id"
                         is-modal
                     />
                 </div>

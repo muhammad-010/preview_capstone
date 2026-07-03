@@ -1,4 +1,11 @@
 <script setup lang="ts">
+const props = defineProps<{
+    tenantId: number
+    eventId: number
+    storeId: number
+}>()
+const emit = defineEmits([EMIT_DETAIL_REFRESH])
+
 const search = ref('')
 const query = ref('')
 const page = ref(1)
@@ -17,6 +24,29 @@ function clearSearch() {
     query.value = search.value
     // refresh()
 }
+
+function refreshData() {
+    //refresh()
+    emit(EMIT_DETAIL_REFRESH)
+}
+
+const formDialog = ref(false)
+const targetId = ref<number | undefined>()
+//const target = ref<CustomAttributeForm | undefined>()
+
+function openAddForm() {
+    targetId.value = undefined
+    //target.value = undefined
+    formDialog.value = true
+}
+
+/*
+function openEditForm(fields: CustomAttributeForm, id: number) {
+    targetId.value = id
+    target.value = fields
+    formDialog.value = true
+}
+*/
 </script>
 
 <template>
@@ -38,6 +68,7 @@ function clearSearch() {
                         color="primary"
                         icon="lucide:plus"
                         class="cursor-pointer"
+                        @click="openAddForm"
                     >
                         Add Product
                     </UButton>
@@ -50,6 +81,15 @@ function clearSearch() {
             v-model:page="page"
             :total="total"
             :with-pagination="true"
+        />
+
+        <PageProductModalForm
+            v-model:open="formDialog"
+            v-model:id="targetId"
+            :tenant-id="tenantId"
+            :event-id="eventId"
+            :store-id="storeId"
+            @refresh="refreshData"
         />
     </div>
 </template>

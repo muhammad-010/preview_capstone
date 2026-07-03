@@ -13,7 +13,12 @@ const page = defineModel<number>('page', { default: 0 })
             <UCard
                 v-for="n in limit"
                 :key="n"
-                :ui="{ root: 'h-full flex flex-col', header: 'relative h-36', body: 'flex-1', footer: 'mt-auto' }"
+                :ui="{
+                  root: 'h-full flex flex-col',
+                  header: 'relative h-36',
+                  body: 'flex-1 sm:px-4',
+                  footer: 'mt-auto sm:px-4',
+                }"
             >
                 <template #header>
                     <div
@@ -23,9 +28,9 @@ const page = defineModel<number>('page', { default: 0 })
                     <UBadge
                         v-if="n < 3"
                         class="absolute right-2 top-2"
-                        size="lg"
+                        size="xl"
                         color="warning"
-                        label="20% Off"
+                        label="50% Off"
                     />
                 </template>
 
@@ -36,10 +41,13 @@ const page = defineModel<number>('page', { default: 0 })
                         </h3>
 
                         <div class="mt-auto">
-                            <h3 class="font-normal text-muted line-through">
+                            <h3
+                              v-if="n < 3"
+                              class="font-normal text-muted line-through decoration-2"
+                            >
                                 Rp {{ n+1 }}.000.000
                             </h3>
-                            <h2 class="mb-2">
+                            <h2 class="font-bold mb-2">
                                 Rp {{ n }}.000.000
                             </h2>
 
