@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { EditorV2Props } from '@@/shared/types/app'
 /**
  * EditorV2 root — a Canva-like key-visual editor. It accepts the EXACT same
  * props and emits the same `refresh` event as the current editor

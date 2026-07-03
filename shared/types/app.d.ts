@@ -155,3 +155,44 @@ export interface ElementBlock extends Block {
 }
 
 export type BackgroundPerBreakpoint = Record<Breakpoint, string | undefined>
+
+export interface EditorV2Props {
+    tenantId: number
+    eventId: number
+    templateId?: number
+
+    customBlocks: ElementBlock[]
+    staticBlocks: ElementBlock[]
+    canvasSizeOptions: CanvasSize[]
+    fontOptions: TemplateFont[]
+
+    defaultSelectedCanvasSizeIds: Breakpoint[]
+    defaultActiveCanvasSizeId: Breakpoint
+    defaultOrientation: Orientation
+    defaultSelectedBlocks: ElementBlock[]
+    defaultActiveStaticBlocks: string[]
+    defaultBackgroundImages: Partial<Record<Breakpoint, BackgroundImage>>
+
+    withPreview?: boolean
+    htmlPreviewFn?: (
+        bgImage: BackgroundImage,
+        width: number,
+        height: number,
+        content: string,
+        staticContent: string,
+        fontFaces: string,
+    ) => string
+    previewPath?: string
+    previewKey?: string
+
+    canvasImageBased?: boolean
+
+    pageTitle?: string
+    defaultScale?: number
+
+    // Path (no origin) of the backend factory default background for this editor,
+    // e.g. '/storage/file/static/image/default_certificate.png'. The Reset button
+    // restores this image; the origin is derived from the loaded background URL.
+    defaultBackgroundPath?: string
+}
+

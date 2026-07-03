@@ -1,4 +1,5 @@
 import type { InjectionKey } from 'vue'
+import type { EditorV2Props } from '@@/shared/types/app'
 
 /**
  * Central state + actions store for EditorV2 (the Canva-like editor).
@@ -8,46 +9,6 @@ import type { InjectionKey } from 'vue'
  * are reused unchanged — only the UI/UX differs. State is provided via
  * provide/inject so the panels/canvas stay thin.
  */
-export interface EditorV2Props {
-    tenantId: number
-    eventId: number
-    templateId?: number
-
-    customBlocks: ElementBlock[]
-    staticBlocks: ElementBlock[]
-    canvasSizeOptions: CanvasSize[]
-    fontOptions: TemplateFont[]
-
-    defaultSelectedCanvasSizeIds: Breakpoint[]
-    defaultActiveCanvasSizeId: Breakpoint
-    defaultOrientation: Orientation
-    defaultSelectedBlocks: ElementBlock[]
-    defaultActiveStaticBlocks: string[]
-    defaultBackgroundImages: Partial<Record<Breakpoint, BackgroundImage>>
-
-    withPreview?: boolean
-    htmlPreviewFn?: (
-        bgImage: BackgroundImage,
-        width: number,
-        height: number,
-        content: string,
-        staticContent: string,
-        fontFaces: string,
-    ) => string
-    previewPath?: string
-    previewKey?: string
-
-    canvasImageBased?: boolean
-
-    pageTitle?: string
-    defaultScale?: number
-
-    // Path (no origin) of the backend factory default background for this editor,
-    // e.g. '/storage/file/static/image/default_certificate.png'. The Reset button
-    // restores this image; the origin is derived from the loaded background URL.
-    defaultBackgroundPath?: string
-}
-
 const MAX_FILE_SIZE = 1024 * 1024 // 1MB
 const DUPLICATE_OFFSET = 5
 
