@@ -43,9 +43,9 @@ watch(file, async (f) => {
                     Note: The background image will serve as the canvas, including its dimensions.
                 </p>
                 <UAlert
-                    color="neutral"
+                    color="info"
                     variant="soft"
-                    icon="lucide:info"
+                    icon="lucide:alert-triangle"
                     title="Requirements"
                     description="Max file size 1 MB. Allowed formats: PNG, JPG, or JPEG."
                 />
