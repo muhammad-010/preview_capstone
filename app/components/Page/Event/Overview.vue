@@ -14,8 +14,8 @@ defineExpose(exposed)
 const { data, refresh } = await useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/detail`, {
     transform: res => ({
         ...res.data,
-        start_time: formatLongDate(res.data.start_time || ''),
-        end_time: formatLongDate(res.data.end_time || ''),
+        start_time: formatLongDate(res.data?.start_time || ''),
+        end_time: formatLongDate(res.data?.end_time || ''),
     }),
 })
 exposed.refresh = refresh

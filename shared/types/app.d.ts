@@ -97,6 +97,19 @@ export interface CanvasSize {
     orientation: Orientation
 }
 
+/**
+ * EditorV2 canvas-size preset for the image-based editors (invitation /
+ * certificate). Decoupled from the breakpoint slug: only its width/height feed
+ * the canvas dimensions and the saved variant `setting`.
+ */
+export interface CanvasSizePreset {
+    key: string
+    label: string
+    width: number
+    height: number
+    orientation: Orientation
+}
+
 export interface BlockSetting {
     key: string
     value: string | boolean | number
@@ -124,6 +137,13 @@ export interface Block {
     /** whether display the value setting for this block */
     withValue?: boolean
     isDynamic?: boolean
+    /**
+     * EDITOR-ONLY rotation in degrees, used by EditorV2's rotate handle.
+     * Transient: it is not serialized by makeTemplateVariant() nor restored by
+     * parseTemplateVariants(), so it never reaches the backend. Persist it only
+     * once the backend renderer supports a rotation field (see the EditorV2 plan).
+     */
+    rotate?: number
 }
 
 export interface ElementBlock extends Block {
@@ -135,3 +155,43 @@ export interface ElementBlock extends Block {
 }
 
 export type BackgroundPerBreakpoint = Record<Breakpoint, string | undefined>
+
+export interface EditorV2Props {
+    tenantId: number
+    eventId: number
+    templateId?: number
+
+    customBlocks: ElementBlock[]
+    staticBlocks: ElementBlock[]
+    canvasSizeOptions: CanvasSize[]
+    fontOptions: TemplateFont[]
+
+    defaultSelectedCanvasSizeIds: Breakpoint[]
+    defaultActiveCanvasSizeId: Breakpoint
+    defaultOrientation: Orientation
+    defaultSelectedBlocks: ElementBlock[]
+    defaultActiveStaticBlocks: string[]
+    defaultBackgroundImages: Partial<Record<Breakpoint, BackgroundImage>>
+
+    withPreview?: boolean
+    htmlPreviewFn?: (
+        bgImage: BackgroundImage,
+        width: number,
+        height: number,
+        content: string,
+        staticContent: string,
+        fontFaces: string,
+    ) => string
+    previewPath?: string
+    previewKey?: string
+
+    canvasImageBased?: boolean
+
+    pageTitle?: string
+    defaultScale?: number
+
+    // Path (no origin) of the backend factory default background for this editor,
+    // e.g. '/storage/file/static/image/default_certificate.png'. The Reset button
+    // restores this image; the origin is derived from the loaded background URL.
+    defaultBackgroundPath?: string
+}

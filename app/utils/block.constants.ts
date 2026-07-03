@@ -26,6 +26,26 @@ export const CHECK_IN_VALID_BREAKPOINTS: Breakpoint[] = [
     BREAKPOINT_XL,
 ]
 
+// Feature flag: when false (current), the canvas-size picker is hidden and the
+// image-based editors (invitation / certificate) size the canvas from the
+// uploaded background image. Flip to true to re-enable the preset picker.
+export const EDITOR_CANVAS_SIZE_PRESETS_ENABLED: boolean = false
+
+// EditorV2 canvas-size presets for the image-based editors (invitation /
+// certificate), grouped by orientation. The chosen preset only drives the canvas
+// width/height; the saved variant keeps its single breakpoint slug.
+export const KEY_VISUAL_CANVAS_PRESETS: CanvasSizePreset[] = [
+    // Portrait
+    { key: 'invitation-portrait', label: 'Invitation', width: 1200, height: 1800, orientation: EDITOR_CANVAS_PORTRAIT },
+    { key: 'story', label: 'Story', width: 1080, height: 1920, orientation: EDITOR_CANVAS_PORTRAIT },
+    { key: 'square', label: 'Square', width: 1080, height: 1080, orientation: EDITOR_CANVAS_PORTRAIT },
+    { key: 'a4-portrait', label: 'A4 Portrait', width: 2480, height: 3508, orientation: EDITOR_CANVAS_PORTRAIT },
+    // Landscape
+    { key: 'certificate-landscape', label: 'Certificate', width: 1600, height: 1131, orientation: EDITOR_CANVAS_LANDSCAPE },
+    { key: 'presentation', label: 'Presentation', width: 1920, height: 1080, orientation: EDITOR_CANVAS_LANDSCAPE },
+    { key: 'a4-landscape', label: 'A4 Landscape', width: 3508, height: 2480, orientation: EDITOR_CANVAS_LANDSCAPE },
+]
+
 export const BLOCK_DYNAMIC_TEXT_TYPE = 'text'
 export const BLOCK_DYNAMIC_QR_IMAGE_TYPE = 'qr-image'
 export const DYNAMIC_BLOCK_TYPES: string[] = [
@@ -100,6 +120,11 @@ export const BLOCK_SETTING_LIST: string[] = [
     BLOCK_SETTING_TITLE,
     BLOCK_SETTING_INPUT_PLACEHOLDER,
     BLOCK_SETTING_BUTTON_TEXT,
+    // QR-image width/height live in `setting`; they must be in the allowlist so
+    // filterBlockData restores the saved size on load (otherwise it falls back to
+    // the 200px default from makeDynamicElementBlock).
+    BLOCK_SETTING_WIDTH,
+    BLOCK_SETTING_HEIGHT,
 ]
 
 export const BLOCK_TEXT_DEFAULT_STYLE: BlockSetting[] = [

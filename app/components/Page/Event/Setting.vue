@@ -25,7 +25,9 @@ watch(data, (dataval) => {
     for (const key in dataval) {
         if (!Object.hasOwn(dataval, key)) continue
         const element = dataval[key as TenantEventSettingKeys]
-        settings.value[key as TenantEventSettingKeys].value = element.value
+        const target = settings.value[key as TenantEventSettingKeys]
+        if (!target || !element) continue
+        target.value = element.value
 
         if (key === 'certificate') certificateActive.value = element.value
     }

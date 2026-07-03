@@ -70,7 +70,7 @@ definePageMeta({
 </script>
 
 <template>
-    <EditorMain
+    <EditorSwitch
         :tenant-id="tenantId"
         :event-id="eventId"
         :template-id="template?.template_id"
@@ -88,6 +88,7 @@ definePageMeta({
         :html-preview-fn="getBackendRenderHtml"
         page-title="Digital Certificate Key Visual Editor"
         :default-scale="0.35"
+        default-background-path="/storage/file/static/image/default_certificate.png"
         @refresh="refresh"
     />
 </template>

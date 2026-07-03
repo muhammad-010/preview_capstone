@@ -37,7 +37,9 @@ const defaultOrientation = computed(() => {
     return canvas ? canvas.orientation : EDITOR_CANVAS_PORTRAIT
 })
 const defaultSelectedBlocks = computed(() => [...selectedCustomBlocks, ...selectedStaticBlocks])
-const defaultActiveStaticBlocks = computed(() => selectedStaticBlocks.length ? selectedStaticBlocks.map(e => e.id) : [])
+// A check-in page needs the scanner QR, so show it by default on a fresh template
+// (no saved static blocks yet); the editor materializes it onto the canvas.
+const defaultActiveStaticBlocks = computed(() => selectedStaticBlocks.length ? selectedStaticBlocks.map(e => e.id) : [STATIC_BLOCK_SCANNER_QR.id])
 const defaultBackgroundImages = computed(() => {
     const backgroundImages = cloneObject(selectedBackgroundImages)
     for (const bp of validBreakpoints) {
@@ -74,7 +76,7 @@ definePageMeta({
 </script>
 
 <template>
-    <EditorMain
+    <EditorSwitch
         :tenant-id="tenantId"
         :event-id="eventId"
         :template-id="template?.template_id"

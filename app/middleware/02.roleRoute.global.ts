@@ -8,8 +8,8 @@ export default defineNuxtRouteMiddleware((to, _) => {
     if (!roleRoute(roleSlug.value).includes(firstSegment)) {
         console.log('Access denied to', to.path)
         throw createError({
-            status: 403,
-            statusText: 'Access Denied',
+            statusCode: 403,
+            statusMessage: 'Access Denied',
             fatal: true,
         })
     }
