@@ -76,7 +76,10 @@ definePageMeta({
 </script>
 
 <template>
-    <UPageCard class="p-4 pt-2 w-full max-w-md">
+    <UPageCard
+        class="p-4 pt-2 w-full max-w-md"
+        style="width: 100%; max-width: 28rem;"
+    >
         <UAuthForm
             :schema="schema"
             :fields="fields"
