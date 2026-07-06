@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const props = defineProps<{
     total: number
+    noBorder?: boolean
+    paginationLimit?: number[]
 }>()
 const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
@@ -9,7 +11,10 @@ const end = computed(() => Math.min(page.value * limit.value, props.total))
 </script>
 
 <template>
-    <div class="flex justify-between border-t border-default pt-4 px-4">
+    <div
+        class="flex justify-between pt-4 px-4"
+        :class="`${!noBorder ? 'border-t border-default' : ''}`"
+    >
         <div class="text-toned">
             Showing {{ `${start} - ${end}` }} of {{ total }} data
         </div>
@@ -17,7 +22,7 @@ const end = computed(() => Math.min(page.value * limit.value, props.total))
         <div class="flex items-center">
             <USelect
                 v-model="limit"
-                :items="TABLE_PAGINATION_LIMIT"
+                :items="paginationLimit ?? TABLE_PAGINATION_LIMIT"
             />
             <UPagination
                 :page="page"

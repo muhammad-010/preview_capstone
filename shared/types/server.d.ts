@@ -1,7 +1,3 @@
-export type FetchOptions = RequestInit & {
-    query?: QueryObject
-}
-
 export interface FetchResult {
     message?: string
     success?: boolean
@@ -77,6 +73,21 @@ export type TenantEventStoreFormResult = Result<TenantEventStoreForm>
 
 export type TenantEventStoreAddResult = Result<
     AddedData<number, 'store_id'>
+>
+
+// EVENT PRODUCT
+export type TenantEventStoreProductListResult = Result<
+    PaginatedData<TenantEventStoreProduct, 'product'>
+>
+
+export type TenantEventStoreProductDetailResult = Result<TenantEventStoreProduct>
+
+export type TenantEventStoreProductItemResult = Result<{
+    item: TenantEventStoreProductItem[]
+}>
+
+export type TenantEventStoreProductAddResult = Result<
+    AddedData<number, 'product_id'>
 >
 
 // EVENT SESSION

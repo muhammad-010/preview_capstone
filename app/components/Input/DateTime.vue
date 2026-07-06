@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { DateFormatter, parseAbsolute, getLocalTimeZone, CalendarDate, CalendarDateTime } from '@internationalized/date'
 
+defineProps<{
+    disabled?: boolean
+}>()
+
 const model = defineModel<ISOString>({ default: new Date().toISOString() })
 const dateModel = shallowRef(new CalendarDate(...getISODateArray(model.value)))
 const hourModel = ref(getISOHourArray(model.value).map(e => String(e).padStart(2, '0')).join(':'))
@@ -29,6 +33,7 @@ const df = new DateFormatter('en-US', {
             color="neutral"
             variant="outline"
             class="w-full"
+            :disabled="disabled"
             :ui="{ base: 'justify-start!' }"
         >
             {{ label }}

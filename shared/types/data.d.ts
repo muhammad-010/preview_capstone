@@ -127,7 +127,6 @@ export interface TenantEventForm {
 }
 
 // EVENT STORE
-
 export interface TenantEventStore {
     store_id: number
     title: string
@@ -145,6 +144,59 @@ export interface TenantEventStoreForm {
     is_open: boolean
 
     banner_image?: File
+}
+
+// EVENT PRODUCT
+export type StoreProductStatus = 'active' | 'inactive'
+
+export interface TenantEventStoreProductItem {
+    product_item_id?: number
+    name?: string
+    reference_type: string
+    reference_id: number
+
+    fe_uid?: string
+}
+
+export interface TenantEventStoreProductStock {
+    total: number
+    reserved: number
+}
+
+export interface TenantEventStoreProduct {
+    product_id: number
+    name: string
+    description: string
+    image_url: string
+    status: StoreProductStatus
+    price: number
+    discount_value: number
+    sale_start_at?: ISOString
+    items: TenantEventStoreProductItem[]
+
+    final_price?: number
+    currency?: string
+    stock_total?: number
+    stock?: TenantEventStoreProductStock
+    created_at?: ISOString
+    updated_at?: ISOString
+}
+
+export interface TenantEventStoreProductForm {
+    name: string
+    description: string
+    product_image_upload_key?: string
+    status: StoreProductStatus
+    price: number
+    discount_value: number
+    stock: number
+    sale_start_at?: ISOString
+    items: TenantEventStoreProductItem[]
+
+    product_type?: string
+    final_price?: number
+    banner_image?: File
+    raw_items?: string[]
 }
 
 // EVENT SESSIONS

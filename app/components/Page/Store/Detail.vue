@@ -83,7 +83,14 @@ function openEditForm(id: number) {
             <PageStoreCard
                 :store="store"
                 :event-title="eventTitle"
+                class="mb-12"
                 @open-edit="(id) => openEditForm(id)"
+            />
+
+            <PageProductList
+                :tenant-id="tenantId"
+                :event-id="eventId"
+                :store-id="store.store_id"
             />
         </template>
 

@@ -54,14 +54,17 @@ const emit = defineEmits([EMIT_OPEN_EDIT])
                         <h1 class="mb-6 text-6xl font-bold">
                             {{ store.title }}
                         </h1>
-                        <p class="text-base/relaxed">
+                        <p class="text-base/relaxed whitespace-pre-wrap">
                             {{ store.subtitle }}
                         </p>
                     </div>
+                </div>
 
+                <div class="text-right z-10">
                     <UButton
                         v-if="store && store.store_id"
                         size="xl"
+                        color="neutral"
                         icon="lucide:pencil"
                         label="Edit Store"
                         @click="() => emit(EMIT_OPEN_EDIT, store.store_id)"
