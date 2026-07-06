@@ -10,43 +10,62 @@ const search = ref('')
 const query = ref('')
 const page = ref(1)
 const limit = ref(4)
-const total = computed(() => 4)
+
+const exposed = {
+    refresh: () => {},
+}
+defineExpose(exposed)
+const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/store/${props.storeId}/product`, {
+    transform: res => res.data,
+    query: computed(() => {
+        return {
+            query: query.value,
+            page: page.value,
+            limit: limit.value,
+        }
+    }),
+    watch: false,
+})
+exposed.refresh = refresh
+
+const products = computed<TenantEventStoreProduct[]>(() => data.value?.product ?? [])
+const total = computed(() => data.value?.total_data ?? 0)
+watch(page, () => refresh())
+watch(limit, () => refresh())
 
 function searchData() {
-    // page.value = 1
+    page.value = 1
     query.value = search.value
-    // refresh()
+    refresh()
 }
 
 function clearSearch() {
-    // page.value = 1
-    // search.value = ''
+    page.value = 1
+    search.value = ''
     query.value = search.value
-    // refresh()
+    refresh()
 }
 
 function refreshData() {
-    //refresh()
+    refresh()
     emit(EMIT_DETAIL_REFRESH)
 }
 
 const formDialog = ref(false)
 const targetId = ref<number | undefined>()
-//const target = ref<CustomAttributeForm | undefined>()
+const target = ref<TenantEventStoreProductForm | undefined>()
 
 function openAddForm() {
     targetId.value = undefined
-    //target.value = undefined
+    target.value = undefined
     formDialog.value = true
 }
 
-/*
-function openEditForm(fields: CustomAttributeForm, id: number) {
+function openEditForm(fields: TenantEventStoreProductForm, id: number) {
     targetId.value = id
     target.value = fields
     formDialog.value = true
 }
-*/
 </script>
 
 <template>
@@ -76,20 +95,28 @@ function openEditForm(fields: CustomAttributeForm, id: number) {
             </div>
         </div>
 
-        <PageProductTable
-            v-model:limit="limit"
-            v-model:page="page"
-            :total="total"
-            :with-pagination="true"
-        />
-
         <PageProductModalForm
             v-model:open="formDialog"
+            v-model:fields="target"
             v-model:id="targetId"
             :tenant-id="tenantId"
             :event-id="eventId"
             :store-id="storeId"
             @refresh="refreshData"
+        />
+
+        <PageProductTable
+            v-model:limit="limit"
+            v-model:page="page"
+            :tenant-id="tenantId"
+            :event-id="eventId"
+            :store-id="storeId"
+            :data="products"
+            :total="total"
+            :pending="pending"
+            with-pagination
+            @refresh="refreshData"
+            @open-edit="openEditForm"
         />
     </div>
 </template>

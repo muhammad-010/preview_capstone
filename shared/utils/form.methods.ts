@@ -9,6 +9,8 @@ import type {
     UserForm,
     TenantEventSession,
     TenantEventSessionForm,
+    TenantEventStoreProduct,
+    TenantEventStoreProductForm,
     CustomAttribute,
     CustomAttributeForm,
 } from '../types/data'
@@ -138,4 +140,20 @@ export function customAttributeFormToCustomAttribute(data: CustomAttributeForm):
         name: data.name,
         is_visible: data.is_visible,
     } as CustomAttribute
+}
+
+export function storeProductToStoreProductForm(data: TenantEventStoreProduct): TenantEventStoreProductForm {
+    return {
+        name: data.name,
+        description: data.description,
+        status: data.status,
+        price: data.price,
+        discount_value: data.discount_value,
+        final_price: data.final_price || data.price,
+        stock: data.stock_total || 0,
+        sale_start_at: data.sale_start_at ? new Date(data.sale_start_at).toISOString() : undefined,
+        items: [...data.items],
+        raw_items: [...data.items.map(e => `${e.reference_type}-${e.reference_id}`)],
+        product_type: 'scheduled-session', // HARDCODE
+    } as TenantEventStoreProductForm
 }

@@ -1,4 +1,5 @@
 import { $fetch } from 'ofetch'
+import type { FetchOptions } from 'ofetch'
 import type { H3Event } from 'h3'
 
 async function _api<T>(
@@ -6,7 +7,7 @@ async function _api<T>(
     event: H3Event,
     method: string,
     path: string,
-    options: FetchOptions = {},
+    options: FetchOptions<'json'> = {},
 ): Promise<T> {
     const externalApi = process.env.EXTERNAL_API_URL
     if (!externalApi) {
@@ -55,7 +56,7 @@ export async function apiNoAuth<T>(
     event: H3Event,
     method: string,
     path: string,
-    options: FetchOptions = {},
+    options: FetchOptions<'json'> = {},
 ): Promise<T> {
     return await _api(false, event, method, path, options)
 }
@@ -64,7 +65,7 @@ export async function api<T>(
     event: H3Event,
     method: string,
     path: string,
-    options: FetchOptions = {},
+    options: FetchOptions<'json'> = {},
 ): Promise<T> {
     return await _api(true, event, method, path, options)
 }

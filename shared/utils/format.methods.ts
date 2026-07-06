@@ -165,3 +165,46 @@ export function formatNumberStringToNumber(value: string, fallback?: number): nu
     }
     return fallback ? fallback : 0
 }
+
+export function getCurrencyFormatter(currency?: string): Intl.NumberFormat {
+    if (!currency || currency === 'IDR') {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            maximumFractionDigits: 0,
+        })
+    }
+
+    switch (currency.toUpperCase()) {
+        case 'USD':
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+            })
+
+        case 'EUR':
+            return new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'EUR',
+            })
+
+        case 'JPY':
+            return new Intl.NumberFormat('ja-JP', {
+                style: 'currency',
+                currency: 'JPY',
+            })
+
+        case 'SGD':
+            return new Intl.NumberFormat('en-SG', {
+                style: 'currency',
+                currency: 'SGD',
+            })
+
+        default:
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0,
+            })
+    }
+}

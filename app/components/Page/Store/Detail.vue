@@ -87,7 +87,11 @@ function openEditForm(id: number) {
                 @open-edit="(id) => openEditForm(id)"
             />
 
-            <PageProductList />
+            <PageProductList
+                :tenant-id="tenantId"
+                :event-id="eventId"
+                :store-id="store.store_id"
+            />
         </template>
 
         <PageStoreModalForm

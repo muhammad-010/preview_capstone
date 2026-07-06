@@ -6,7 +6,7 @@ defineProps<{
 }>()
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
 const formDialog = defineModel<boolean>('open', { default: false })
-//const fields = defineModel<TenantEventStoreForm | undefined>('fields', { default: undefined })
+const fields = defineModel<TenantEventStoreProductForm | undefined>('fields', { default: undefined })
 const id = defineModel<number | undefined>('id', { default: undefined })
 const formRef = ref()
 const formLoading = ref(false)
@@ -14,7 +14,7 @@ const formSuccess = ref(false)
 
 function closeForm(close: () => void) {
     close()
-    //fields.value = undefined
+    fields.value = undefined
     id.value = undefined
 }
 
@@ -40,8 +40,7 @@ async function saveForm(close: () => void) {
     >
         <template #header="{ close }">
             <div class="flex justify-between items-center w-full">
-                <!-- <h5>{{ fields ? 'Edit' : 'Add' }} Product</h5> -->
-                <h5>{{ 'Form' }} Product</h5>
+                <h5>{{ fields ? 'Edit' : 'Add' }} Product</h5>
 
                 <UButton
                     color="neutral"
@@ -63,6 +62,7 @@ async function saveForm(close: () => void) {
                         :event-id="eventId"
                         :store-id="storeId"
                         :product-id="id"
+                        :fields="fields"
                         is-modal
                     />
                 </div>
