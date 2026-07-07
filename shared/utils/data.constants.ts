@@ -8,6 +8,7 @@ import type {
     ParticipantSessionStatus,
     TenantEventSettingKeys,
     TemplateType,
+    StoreProductType,
 } from '../types/data'
 
 // STATUS
@@ -126,7 +127,10 @@ export const SEND_CHANNEL_COLORS: Record<SendChannel, 'neutral' | 'success'> = {
     [SEND_CHANNEL_WHATSAPP]: 'success',
 } as const
 
-// EVENT TEMPLATE
+// EVENT_TEMPLATE
 export const TEMPLATE_INVITATION: TemplateType = 'invitation'
 export const TEMPLATE_SCANQR: TemplateType = 'scanqr'
 export const TEMPLATE_CERTIFICATE: TemplateType = 'certificate'
+
+// STORE_PRODUCT_TYPE
+export const STORE_PRODUCT_TYPE_SCHEDULED_SESSION: StoreProductType = 'scheduled-session'

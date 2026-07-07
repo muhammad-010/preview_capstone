@@ -148,6 +148,7 @@ export interface TenantEventStoreForm {
 
 // EVENT PRODUCT
 export type StoreProductStatus = 'active' | 'inactive'
+export type StoreProductType = 'scheduled-session'
 
 export interface TenantEventStoreProductItem {
     product_item_id?: number
@@ -193,7 +194,7 @@ export interface TenantEventStoreProductForm {
     sale_start_at?: ISOString
     items: TenantEventStoreProductItem[]
 
-    product_type?: string
+    product_type?: StoreProductType
     final_price?: number
     banner_image?: File
     raw_items?: string[]

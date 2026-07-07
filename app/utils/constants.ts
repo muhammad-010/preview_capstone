@@ -89,3 +89,7 @@ export const TENANT_EVENT_SETTINGS = {
         value: false,
     },
 }
+
+export const STORE_PRODUCT_TYPES = [
+    { label: 'Scheduled', value: STORE_PRODUCT_TYPE_SCHEDULED_SESSION },
+]

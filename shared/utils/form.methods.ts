@@ -154,6 +154,6 @@ export function storeProductToStoreProductForm(data: TenantEventStoreProduct): T
         sale_start_at: data.sale_start_at ? new Date(data.sale_start_at).toISOString() : undefined,
         items: [...data.items],
         raw_items: [...data.items.map(e => `${e.reference_type}-${e.reference_id}`)],
-        product_type: 'scheduled-session', // HARDCODE
+        product_type: STORE_PRODUCT_TYPE_SCHEDULED_SESSION, // HARDCODE
     } as TenantEventStoreProductForm
 }
