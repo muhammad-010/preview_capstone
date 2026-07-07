@@ -118,15 +118,9 @@ function formatPrice(value: number, currency?: string): string {
                     <div class="absolute right-2 top-2 flex gap-2">
                         <UBadge
                             v-if="product.status === 'inactive'"
-                            size="xl"
+                            size="lg"
                             color="error"
                             label="Unpublished"
-                        />
-                        <UBadge
-                            v-if="product.discount_value > 0"
-                            size="xl"
-                            color="warning"
-                            :label="`${product.discount_value}% Off`"
                         />
                     </div>
                 </template>
@@ -138,12 +132,20 @@ function formatPrice(value: number, currency?: string): string {
                         </h3>
 
                         <div class="mt-auto">
-                            <h3
-                                v-if="product.discount_value > 0"
-                                class="font-normal text-muted line-through decoration-2"
-                            >
-                                {{ formatPrice(product.price, product.currency) }}
-                            </h3>
+                            <div class="flex items-center gap-2 mb-2">
+                                <h3
+                                    v-if="product.discount_value > 0"
+                                    class="font-normal text-muted line-through decoration-2"
+                                >
+                                    {{ formatPrice(product.price, product.currency) }}
+                                </h3>
+                                <UBadge
+                                    v-if="product.discount_value > 0"
+                                    color="warning"
+                                    variant="subtle"
+                                    :label="`${product.discount_value}% Off`"
+                                />
+                            </div>
                             <h2 class="font-bold mb-2">
                                 {{ formatPrice(product.final_price || product.price, product.currency) }}
                             </h2>
