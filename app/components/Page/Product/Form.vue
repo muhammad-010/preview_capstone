@@ -21,7 +21,7 @@ async function saveData() {
 }
 defineExpose({ saveData })
 
-const productTypes = ref<SelectItem[]>([{ label: 'Schedule', value: 'scheduled-session' }])
+const productTypes = ref<SelectItem[]>(STORE_PRODUCT_TYPES)
 
 const isCreate = !props.productId
 const bannerSchema = z
@@ -69,7 +69,7 @@ function createState(): TenantEventStoreProductForm {
         sale_start_at: defaultSaleStart.toISOString(),
         items: [],
         raw_items: [],
-        product_type: 'scheduled-session',
+        product_type: STORE_PRODUCT_TYPE_SCHEDULED_SESSION,
     }
 }
 type PartialExceptStatus
@@ -84,15 +84,34 @@ const statusSwitch = computed({
     },
 })
 
-const { data } = await useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/store/${props.storeId}/product/item`, {
+const {
+    data,
+    status: productItemsStatus,
+    execute: getProductItems,
+    refresh: refreshProductItems,
+} = await useLazyApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/store/${props.storeId}/product/item`, {
     query: {
-        type: state.product_type || 'scheduled-session',
+        type: state.product_type || STORE_PRODUCT_TYPE_SCHEDULED_SESSION,
     },
     transform: res => ({
         item: res.data.item.map(e => ({ ...e, fe_uid: `${e.reference_type}-${e.reference_id}` })),
     }),
+    immediate: Boolean(state.raw_items?.length),
 })
 const productItems = computed(() => data.value?.item || [])
+
+function onOpenProductItems() {
+    if (!productItems.value.length) {
+        getProductItems()
+    }
+}
+
+watch(() => state.product_type, (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+        state.raw_items = cloneObject([])
+        refreshProductItems()
+    }
+})
 
 function parseRawProductItems(raw: string[]): TenantEventStoreProductItem[] {
     const res: TenantEventStoreProductItem[] = []
@@ -292,13 +311,15 @@ function submitData(payload: FormSubmitEvent<Schema>) {
                 required
                 :class="`${isModal ? '' : 'my-2'} w-full`"
             >
-                <USelect
+                <USelectMenu
                     v-model="state.raw_items"
+                    :loading="productItemsStatus === 'pending'"
                     multiple
                     class="w-full"
                     label-key="name"
                     value-key="fe_uid"
                     :items="productItems"
+                    @update:open="onOpenProductItems"
                 />
             </UFormField>
 

@@ -65,6 +65,7 @@ async function deleteData(id: number) {
     }
 }
 
+// UPDATION
 async function editData(id: number) {
     try {
         const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/store/${props.storeId}/product/${id}`)
@@ -79,6 +80,15 @@ async function editData(id: number) {
         errorToast({ error, description: 'Failed to get product detail' })
         closeDeleteConfirmation(true)
     }
+}
+
+// DETAILION
+const detailDialog = ref(false)
+const target = ref<TenantEventStoreProduct | undefined>()
+
+function openDetail(product: TenantEventStoreProduct) {
+    target.value = cloneObject(product)
+    detailDialog.value = true
 }
 
 function formatPrice(value: number, currency?: string): string {
@@ -105,13 +115,20 @@ function formatPrice(value: number, currency?: string): string {
                         class="absolute inset-0 bg-cover bg-center bg-no-repeat"
                         :style="{ backgroundImage: `url('${product.image_url}')` }"
                     />
-                    <UBadge
-                        v-if="product.discount_value > 0"
-                        class="absolute right-2 top-2"
-                        size="xl"
-                        color="warning"
-                        :label="`${product.discount_value}% Off`"
-                    />
+                    <div class="absolute right-2 top-2 flex gap-2">
+                        <UBadge
+                            v-if="product.status === 'inactive'"
+                            size="xl"
+                            color="error"
+                            label="Unpublished"
+                        />
+                        <UBadge
+                            v-if="product.discount_value > 0"
+                            size="xl"
+                            color="warning"
+                            :label="`${product.discount_value}% Off`"
+                        />
+                    </div>
                 </template>
 
                 <template #default>
@@ -162,6 +179,7 @@ function formatPrice(value: number, currency?: string): string {
                             variant="soft"
                             class="w-full"
                             label="Preview"
+                            @click="() => openDetail(product)"
                         />
                         <div class="flex gap-2">
                             <UButton
@@ -198,6 +216,11 @@ function formatPrice(value: number, currency?: string): string {
             title="Delete Confirmation"
             :body="`Are you sure you want to delete ${deleteTarget.name}? This action cannot be undone`"
             @confirm="deleteData(deleteTarget.id)"
+        />
+
+        <PageProductModalDetail
+            v-model:open="detailDialog"
+            v-model:fields="target"
         />
     </div>
 </template>

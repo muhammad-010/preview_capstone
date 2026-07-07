@@ -208,3 +208,17 @@ export function getCurrencyFormatter(currency?: string): Intl.NumberFormat {
             })
     }
 }
+
+export function formatIsBeforeDate(date?: ISOString): boolean {
+    if (!date) return false
+
+    const target = new Date(date)
+    return new Date() < target
+}
+
+export function formatIsAfterDate(date?: ISOString): boolean {
+    if (!date) return false
+
+    const target = new Date(date)
+    return new Date() > target
+}
