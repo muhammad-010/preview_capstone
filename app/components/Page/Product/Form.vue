@@ -31,9 +31,9 @@ const bannerSchema = z
 const schema = z.object({
     name: zodStringRequired('Product name is required'),
     description: zodStringRequired('Product name is required'),
-    price: zodNumberRequired(),
+    price: zodNumberRequired().int().gt(0),
     discount_value: zodNumberRequired(),
-    stock: zodNumberRequired(),
+    stock: zodNumberRequired().int().gt(0),
     status: zodEnum(['active', 'inactive']),
     sale_start_at: zodISODatetime().optional(),
     banner_image: isCreate ? bannerSchema : bannerSchema.optional(),
