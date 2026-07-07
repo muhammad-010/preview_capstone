@@ -126,9 +126,13 @@ function parseRawProductItems(raw: string[]): TenantEventStoreProductItem[] {
 }
 
 const finalPrice = computed(() => {
-    if (!state.discount_value || !state.price) {
+    if (!state.price) {
         return 0
     }
+    else if (!state.discount_value) {
+        return state.price
+    }
+
     return state.price * (100 - state.discount_value) / 100
 })
 
