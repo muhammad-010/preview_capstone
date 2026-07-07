@@ -7,8 +7,6 @@ const fields = defineModel<TenantEventStoreProduct | undefined>('fields', { defa
 
 function closeDialog(close: () => void) {
     close()
-    const intervId = setInterval(() => fields.value = undefined, 1000)
-    clearInterval(intervId)
 }
 
 function formatPrice(value: number, currency?: string): string {
