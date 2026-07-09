@@ -9,7 +9,7 @@ import type { EditorV2Props } from '@@/shared/types/app'
  * are reused unchanged — only the UI/UX differs. State is provided via
  * provide/inject so the panels/canvas stay thin.
  */
-const MAX_FILE_SIZE = 1024 * 1024 // 1MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 const DUPLICATE_OFFSET = 5
 
 function clampPct(n: number): number {
@@ -195,7 +195,7 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         const slot = bgImage.value?.[activeCanvasSizeId.value]
         if (!file || !slot) return
         if (file.size > MAX_FILE_SIZE) {
-            toast.add({ title: 'Background Exceed Limit', description: 'Max file limit are 1MB', color: 'error' })
+            toast.add({ title: 'Background Exceed Limit', description: 'Max file limit are 2MB', color: 'error' })
             return
         }
 

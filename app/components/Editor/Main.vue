@@ -39,7 +39,7 @@ const DRAG_Y_LIMIT = 10
 const DRAG_DATATRANSFER_COPY = 'copy'
 const EVENT_MOUSEMOVE = 'mousemove'
 const EVENT_MOUSEUP = 'mouseup'
-const MAX_FILE_SIZE = 1024 * 1024 // 1MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 
 const router = useRouter()
 const toast = useToast()
@@ -128,7 +128,7 @@ watch(
         if (file.size > MAX_FILE_SIZE) {
             toast.add({
                 title: 'Background Exceed Limit',
-                description: 'Max file limit are 1MB',
+                description: 'Max file limit are 2MB',
                 color: 'error',
             })
             bgImage.value[activeCanvasSizeId.value]!.file = undefined
@@ -1314,7 +1314,7 @@ function preview() {
 
                     <div class="mb-4">
                         <h4 class="text-sm font-medium mb-2">
-                            Background Image (Max 1MB)
+                            Background Image (Max 2MB)
                         </h4>
 
                         <template v-if="bgImage && bgImage[activeCanvasSizeId]">
