@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * First-open prompt shown when the design still uses the default background.
- * Offers to upload a custom background (PNG/JPG/JPEG, max 1MB), reusing the
+ * Offers to upload a custom background (PNG/JPG/JPEG, max 2MB), reusing the
  * editor's existing background-upload flow (writes the active canvas background).
  */
 const open = defineModel<boolean>('open')

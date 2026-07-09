@@ -56,7 +56,7 @@ function selectCanvasPreset(key: string) {
         <!-- BACKGROUND -->
         <UCard :ui="{ header: 'p-2 sm:px-3', body: 'p-2 sm:p-3' }">
             <template #header>
-                <h5>Background (Max 1MB)</h5>
+                <h5>Background (Max 2MB)</h5>
             </template>
             <UFileUpload
                 v-slot="{ open, removeFile }"
