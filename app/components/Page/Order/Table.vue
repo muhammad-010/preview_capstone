@@ -51,6 +51,7 @@ function formatCurrency(value: number, currency?: string): string {
     return formatter.format(value)
 }
 
+const detailModal = ref(false)
 function useColumns() {
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
@@ -154,6 +155,7 @@ function useColumns() {
                             color: 'neutral',
                             variant: 'ghost',
                             icon: 'lucide:info',
+                            onClick: () => detailModal.value = true,
                         }),
                     ]),
                     h(UTooltip, { text: 'Refund', delayDuration: 0 }, () => [
@@ -186,5 +188,78 @@ const columns = useColumns()
             v-model:page="page"
             :total="total"
         />
+
+  <UModal
+      v-model:open="detailModal"
+    title="Order Detail"
+  >
+    <template #body>
+      <section class="flex justify-between items-center border-b border-default pb-4 mb-4">
+          <DetailSectionData
+              title="Invoice ID"
+              subtitle="INV/1/1/20260101"
+          />
+          <DetailSectionData title="Payment Status">
+              <UBadge
+                  color="success"
+                  variant="subtle"
+                  label="Paid"
+              />
+          </DetailSectionData>
+          <DetailSectionData title="Order Status">
+              <UBadge
+                  color="success"
+                  variant="subtle"
+                  label="Success"
+              />
+          </DetailSectionData>
+      </section>
+
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <DetailSectionTitle title="Customer Info" />
+            <DetailSectionData
+                title="Name"
+                subtitle="Ramona"
+                class="mb-4"
+            />
+            <DetailSectionData
+                title="Email"
+                subtitle="ramona@mythag.com"
+                class="mb-4"
+            />
+            <DetailSectionData
+                title="Event"
+                subtitle="Keeper's Enrollment"
+                class="mb-4"
+            />
+        </div>
+
+        <div>
+            <DetailSectionTitle title="Payment Info" />
+            <DetailSectionData
+                title="Amount"
+                :subtitle="formatCurrency(1500000)"
+                class="mb-4"
+            />
+            <DetailSectionData
+                title="Method"
+                subtitle="Virtual Account (BCA VA)"
+                class="mb-4"
+            />
+            <DetailSectionData
+                title="Ordered At"
+                :subtitle="formatLongDate('2026-07-06T17:16:32+07:00')"
+                class="mb-4"
+            />
+            <DetailSectionData
+                title="Paid At"
+                :subtitle="formatLongDate('2026-07-06T17:16:32+07:00')"
+                class="mb-4"
+            />
+        </div>
+      </section>
+    </template>
+  </UModal>
     </div>
 </template>
