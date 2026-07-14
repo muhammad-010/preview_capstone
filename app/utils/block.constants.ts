@@ -146,7 +146,13 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     type: BLOCK_TEXT_TYPE,
     label: 'Text',
     value: 'Hello World',
-    setting: [],
+    // width/height default to '' (auto): the text box hugs its content until the
+    // user sets a size (via the inspector fields or drag handles), at which point
+    // it becomes a fixed text area. Empty values still serialize into `setting`.
+    setting: [
+        { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '' },
+        { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '' },
+    ],
     style: cloneObject(BLOCK_TEXT_DEFAULT_STYLE),
     x: 0,
     y: 0,

@@ -18,7 +18,6 @@ const emit = defineEmits<{
 const ctx = useEditorV2Context()
 
 type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
-const CORNER_HANDLES: ResizeHandle[] = ['nw', 'ne', 'se', 'sw']
 const ALL_HANDLES: ResizeHandle[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
 const HANDLE_PX = 10
 const BORDER_PX = 1.5
@@ -39,8 +38,26 @@ const canInlineEdit = computed(() => bpBlock.value?.type === BLOCK_TEXT_TYPE)
 const handles = computed<ResizeHandle[]>(() => {
     const t = bpBlock.value?.type
     if (t === BLOCK_IMAGE_TYPE || t === BLOCK_DYNAMIC_QR_IMAGE_TYPE) return ALL_HANDLES
-    if (isText.value) return CORNER_HANDLES
+    // text areas resize as a box: edges resize one axis, corners resize both.
+    if (isText.value) return ALL_HANDLES
     return []
+})
+
+// Explicit text-area size (from `setting` width/height). Empty = auto-sized, so
+// the wrapper keeps its intrinsic width. A bare number is treated as px.
+const toCssSize = (v: string | boolean | number | undefined) => {
+    const s = String(v ?? '').trim()
+    if (s === '') return undefined
+    return /^\d+(\.\d+)?$/.test(s) ? `${s}px` : s
+}
+const textBoxSize = computed(() => {
+    if (!isText.value) return null
+    const bp = bpBlock.value
+    if (!bp) return null
+    const w = toCssSize(getBlockStyleValue(bp.setting, BLOCK_SETTING_WIDTH))
+    const h = toCssSize(getBlockStyleValue(bp.setting, BLOCK_SETTING_HEIGHT))
+    if (!w && !h) return null
+    return { w, h }
 })
 const resizable = computed(() => handles.value.length > 0)
 
@@ -58,6 +75,7 @@ const editStyle = computed(() => (bpBlock.value ? compilePreviewStyle(bpBlock.va
 const wrapperStyle = computed(() => {
     const bp = bpBlock.value
     if (!bp) return {}
+    const box = textBoxSize.value
     return {
         position: 'absolute' as const,
         left: `${bp.x}%`,
@@ -66,7 +84,17 @@ const wrapperStyle = computed(() => {
         // against the shrinking space near the right edge (which would scale images
         // down / reflow text as the element moves). Must be max-content, not
         // fit-content (fit-content still clamps to available space).
-        width: 'max-content' as const,
+        // Once a text area is given an explicit size, honor it instead and wrap the
+        // text inside the fixed box.
+        width: box?.w ?? ('max-content' as const),
+        ...(box?.h ? { height: box.h } : {}),
+        ...(box
+            ? {
+                    whiteSpace: 'normal' as const,
+                    overflowWrap: 'break-word' as const,
+                    overflow: 'hidden' as const,
+                }
+            : {}),
         transform: 'translate(-50%, -50%)',
         cursor: editing.value ? 'text' : 'move',
         userSelect: 'none' as const,

@@ -104,6 +104,14 @@ watch([ctx.canvasWidth, ctx.canvasHeight], () => nextTick(tryAutoFit))
             <div class="grow" />
 
             <UButton
+                class="cursor-pointer"
+                label="Copy HTML"
+                color="neutral"
+                variant="outline"
+                icon="lucide:code"
+                @click="ctx.copyHtml()"
+            />
+            <UButton
                 v-if="ctx.withPreview && ctx.previewPath"
                 class="cursor-pointer"
                 label="Preview"

@@ -421,13 +421,20 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         return String(getBlockStyleValue(bpBlock.style, BLOCK_STYLE_FONT_SIZE) ?? '1rem')
     }
     function getBoxSize(bpBlock: Block): { w: number, h: number } | null {
+        // Treat empty/non-numeric values (e.g. an auto-sized text box whose
+        // width/height are '') as absent so getBoxSize reports "no box" rather
+        // than a bogus 0×0 one.
+        const toPx = (v: unknown) => {
+            const n = Number(String(v).replace(/px$/, ''))
+            return Number.isFinite(n) && String(v).trim() !== '' ? n : undefined
+        }
         const fromStyle = (key: string) => {
             const v = getBlockStyleValue(bpBlock.style, key)
-            return v !== undefined ? Number(String(v).replace(/px$/, '')) : undefined
+            return v !== undefined ? toPx(v) : undefined
         }
         const fromSetting = (key: string) => {
             const found = bpBlock.setting.find(s => s.key === key)
-            return found ? Number(String(found.value).replace(/px$/, '')) : undefined
+            return found ? toPx(found.value) : undefined
         }
         const w = fromStyle(BLOCK_STYLE_WIDTH) ?? fromSetting(BLOCK_SETTING_WIDTH)
         const h = fromStyle(BLOCK_STYLE_HEIGHT) ?? fromSetting(BLOCK_SETTING_HEIGHT)
@@ -749,6 +756,30 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         window.open(props.previewPath, '_blank', 'noopener,noreferrer')
     }
 
+    // Copies the standalone HTML document the editor produces (same output as
+    // the backend / v1 preview) for the active breakpoint to the clipboard.
+    async function copyHtml() {
+        if (!import.meta.client) return
+        try {
+            const html = buildEditorHtml({
+                blocks: blockContainer.value,
+                staticBlockIds: activeStaticBlocks.value,
+                findStaticBlock: findStaticDef,
+                breakpoint: activeCanvasSizeId.value,
+                bgImages: bgImage.value,
+                width: canvasWidth.value,
+                height: canvasHeight.value,
+                fontOptions: props.fontOptions,
+                htmlPreviewFn: props.htmlPreviewFn,
+            })
+            await navigator.clipboard.writeText(html)
+            successToast({ description: 'HTML copied to clipboard' })
+        }
+        catch (error) {
+            errorToast({ error, description: 'Failed to copy HTML' })
+        }
+    }
+
     function goBack() {
         router.go(-1)
     }
@@ -879,6 +910,7 @@ export function useEditorV2(props: EditorV2Props, emit: (event: typeof EMIT_EDIT
         loading,
         save,
         preview,
+        copyHtml,
         goBack,
 
         // history
