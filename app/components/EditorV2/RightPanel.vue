@@ -10,7 +10,10 @@ const idx = computed(() => ctx.singleSelectedId.value)
 const block = computed(() => ctx.singleSelected.value)
 const bp = computed(() => ctx.singleSelectedBp.value)
 
-const styleFields = computed(() => bp.value?.style.filter(s => !s.hidden) ?? [])
+// EditorV2 opts the font-size field into the Google-Docs-style control; V1 keeps
+// its plain text input (it renders the field with its original `type`).
+const styleFields = computed(() => (bp.value?.style.filter(s => !s.hidden) ?? [])
+    .map(s => s.key === BLOCK_STYLE_FONT_SIZE ? { ...s, type: 'font-size' } : s))
 const settingFields = computed(() => bp.value?.setting.filter(s => !s.hidden) ?? [])
 
 function onPos(axis: 'x' | 'y', value: number) {
@@ -51,7 +54,7 @@ function onValue(value: string) {
                             :step="0.2"
                             :min="0"
                             :max="100"
-                            @update:model-value="(v: number) => onPos('x', Number(v))"
+                            @update:model-value="(v) => onPos('x', Number(v))"
                         />
                     </UFormField>
                     <UFormField label="Y (%)">
@@ -60,7 +63,7 @@ function onValue(value: string) {
                             :step="0.2"
                             :min="0"
                             :max="100"
-                            @update:model-value="(v: number) => onPos('y', Number(v))"
+                            @update:model-value="(v) => onPos('y', Number(v))"
                         />
                     </UFormField>
                 </div>

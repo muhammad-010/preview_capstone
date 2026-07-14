@@ -1,5 +1,11 @@
 <!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
+// Nuxt's auto-import registry deterministically drops BLOCK_STYLE_FONT_FAMILY_OPTIONS
+// (its sibling BLOCK_STYLE_* option constants auto-import fine), which throws a
+// ReferenceError here and takes down the whole Style inspector. Import it explicitly
+// so the Font Family field always resolves.
+import { BLOCK_STYLE_FONT_FAMILY_OPTIONS } from '~/utils/block.constants'
+
 const props = defineProps<{
     field: BlockSetting
     fontOptions?: TemplateFont[]
@@ -90,6 +96,14 @@ function setMultiValue(e: any) {
                     />
                 </template>
             </UPopover>
+
+            <!-- Font Size (Google-Docs-style: editable field + presets + steppers) -->
+            <EditorFontSizeInput
+                v-else-if="field.type === 'font-size'"
+                :model-value="String(field.value)"
+                class="w-full"
+                @update:model-value="setValue"
+            />
 
             <!-- Number -->
             <UInputNumber
