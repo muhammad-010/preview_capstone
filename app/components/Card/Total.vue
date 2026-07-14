@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
     title?: string
     total?: number
     icon?: string
@@ -8,6 +8,9 @@ defineProps<{
     stats?: string
     statsStatus?: 'up' | 'down' | 'equal'
     statsText?: string
+    statsTextStatus?: 'up' | 'down' | 'equal'
+    formatNumber?: 'suffix' | 'currency'
+    iconColor?: 'error' | 'success' | 'warning' | 'info' | 'primary'
 }>()
 
 function statsIcon(statsStatus: 'up' | 'down' | 'equal' | undefined) {
@@ -21,7 +24,21 @@ function statsIcon(statsStatus: 'up' | 'down' | 'equal' | undefined) {
     }
 }
 
-function statsTextColor(statsStatus: 'up' | 'down' | 'equal' | undefined) {
+function statsTextColor(
+  statsTextStatus: 'up' | 'down' | 'equal' | undefined,
+  statsStatus: 'up' | 'down' | 'equal' | undefined,
+) {
+    if (statsTextStatus) {
+      switch (statsTextStatus) {
+          case 'up':
+              return 'text-success'
+          case 'down':
+              return 'text-error'
+          default:
+              return 'text-neutral'
+      }
+    }
+
     switch (statsStatus) {
         case 'up':
             return 'text-success'
@@ -31,6 +48,30 @@ function statsTextColor(statsStatus: 'up' | 'down' | 'equal' | undefined) {
             return 'text-neutral'
     }
 }
+
+function formatCurrency(value: number, currency?: string): string {
+    const formatter = getCurrencyFormatter(currency)
+    return formatter.format(value)
+}
+
+const iconColorClass = computed(() => {
+  if (!props.iconColor) return 'text-neutral'
+
+  switch (props.iconColor) {
+    case 'error':
+      return 'text-error'
+    case 'success':
+      return 'text-success'
+    case 'warning':
+      return 'text-warning'
+    case 'info':
+      return 'text-info'
+    case 'primary':
+      return 'text-primary'
+    default:
+      return 'text-neutral'
+  }
+})
 </script>
 
 <template>
@@ -38,26 +79,34 @@ function statsTextColor(statsStatus: 'up' | 'down' | 'equal' | undefined) {
         <div class="flex justify-between">
             <div class="mb-2">
                 <p>{{ title }}</p>
-                <h1>{{ formatNumberSuffix(total || 0) }}{{ percentage ? ' %' : '' }}</h1>
+                <h1>
+                  <span v-if="!formatNumber">{{ formatNumberSuffix(total || 0) }}</span>
+                  <span v-else-if="formatNumber === 'suffix'">{{ formatNumberSuffix(total || 0) }}</span>
+                  <span v-else-if="formatNumber === 'currency'">{{ formatCurrency(total || 0) }}</span>
+                  {{ percentage ? ' %' : '' }}
+                </h1>
             </div>
+
             <div v-if="icon">
                 <UIcon
                     :name="icon"
-                    class="text-neutral-500 size-8 ml-auto"
+                    class="size-8 ml-auto"
+                    :class="`${iconColorClass}`"
                 />
             </div>
         </div>
+
         <div
             v-if="withStats"
-            class="flex items-center mt-2"
+            class="flex items-center"
         >
             <UIcon
                 :name="statsIcon(statsStatus)"
-                :class="statsTextColor(statsStatus)"
+                :class="statsTextColor(statsTextStatus, statsStatus)"
                 class="size-4 mr-1"
             />
             <small
-                :class="statsTextColor(statsStatus)"
+                :class="statsTextColor(statsTextStatus, statsStatus)"
                 class="mr-1"
             >{{ stats }}</small>
             <small>{{ statsText }}</small>
