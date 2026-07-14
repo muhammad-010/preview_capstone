@@ -11,8 +11,6 @@ interface Guide { axis: 'v' | 'h', pos: number }
 
 const SNAP_THRESHOLD_PX = 6
 const MIN_BOX_PX = 12
-const MIN_FONT_PX = 6
-const MAX_FONT_PX = 400
 
 const ctx = useEditorV2Context()
 const { snap } = useEditorSnapping()
@@ -49,8 +47,6 @@ let resizeData: null | {
     cy0: number
     angle: number
     isText: boolean
-    fontPx: number
-    fontUnit: 'rem' | 'px'
 } = null
 
 let marqueeStart = { x: 0, y: 0 }
@@ -64,11 +60,6 @@ function blockBoxPx(idx: number): { w: number, h: number } {
     const el = canvasEl.value?.querySelector<HTMLElement>(`[data-block-idx="${idx}"]`)
     if (!el) return { w: MIN_BOX_PX, h: MIN_BOX_PX }
     return { w: el.offsetWidth || MIN_BOX_PX, h: el.offsetHeight || MIN_BOX_PX }
-}
-function blockFontPx(idx: number): number {
-    const el = canvasEl.value?.querySelector<HTMLElement>(`[data-block-idx="${idx}"] p`)
-    if (!el) return 16
-    return parseFloat(getComputedStyle(el).fontSize) || 16
 }
 
 function addListeners() {
@@ -137,7 +128,6 @@ function onResizeDown(idx: number, dir: ResizeHandle, e: PointerEvent) {
     const bp = ctx.bpOf(idx)
     if (!bp) return
     const box = blockBoxPx(idx)
-    const fontStr = ctx.getFontSize(bp)
     resizeData = {
         idx,
         dir,
@@ -147,8 +137,6 @@ function onResizeDown(idx: number, dir: ResizeHandle, e: PointerEvent) {
         cy0: percentToPx(bp.y, ch.value),
         angle: ((bp.rotate || 0) * Math.PI) / 180,
         isText: bp.type === BLOCK_TEXT_TYPE || bp.type === BLOCK_DYNAMIC_TEXT_TYPE,
-        fontPx: blockFontPx(idx),
-        fontUnit: fontStr.endsWith('rem') ? 'rem' : 'px',
     }
     mode = 'resize'
     moved = false
@@ -176,7 +164,9 @@ function onResizeMove(e: PointerEvent) {
     let newH = sy !== 0 ? Math.max(MIN_BOX_PX, sy * ly) : startH
     const corner = sx !== 0 && sy !== 0
     const s = Math.max(newW / startW, newH / startH)
-    if (isText || corner) {
+    // images keep their aspect ratio on corner drags; text areas resize freely on
+    // every handle so users can shape the box (width and height independently).
+    if (!isText && corner) {
         newW = startW * s
         newH = startH * s
     }
@@ -185,13 +175,9 @@ function onResizeMove(e: PointerEvent) {
     const cyN = cy0 + ux.y * (sx * (newW - startW) / 2) + uy.y * (sy * (newH - startH) / 2)
     ctx.setPosition(idx, pxToPercent(cxN, cw.value), pxToPercent(cyN, ch.value))
 
-    if (isText) {
-        const fpx = Math.min(MAX_FONT_PX, Math.max(MIN_FONT_PX, resizeData.fontPx * s))
-        ctx.setFontSize(idx, resizeData.fontUnit === 'rem' ? `${(fpx / 16).toFixed(3)}rem` : `${Math.round(fpx)}px`)
-    }
-    else {
-        ctx.setBoxSizePx(idx, newW, newH)
-    }
+    // both text areas and images resize the box; text font-size is set only via
+    // the inspector now, no longer by dragging.
+    ctx.setBoxSizePx(idx, newW, newH)
 }
 
 // ---- MARQUEE ----

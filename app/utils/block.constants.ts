@@ -105,6 +105,9 @@ export const BLOCK_STYLE_TEXT_ALIGN_OPTIONS = [
     { label: 'Justify', value: 'justify' },
 ]
 
+// Google-Docs-style font-size presets (px) offered by the EditorV2 font-size control.
+export const BLOCK_STYLE_FONT_SIZE_PRESETS = [8, 9, 10, 11, 12, 14, 18, 24, 30, 36, 48, 60, 72, 96]
+
 export const BLOCK_STYLE_FONT_FAMILY_OPTIONS: TemplateFont[] = [
     { name: 'sans-serif', value: 'sans-serif', url: '' },
     { name: 'serif', value: 'serif', url: '' },
@@ -131,7 +134,7 @@ export const BLOCK_TEXT_DEFAULT_STYLE: BlockSetting[] = [
     { key: BLOCK_STYLE_COLOR, label: 'Text Color', type: 'color', value: '#000000' },
     { key: BLOCK_STYLE_TEXT_ALIGN, label: 'Text Align', type: 'select', value: 'left', options: cloneObject(BLOCK_STYLE_TEXT_ALIGN_OPTIONS) },
     { key: BLOCK_STYLE_FONT_FAMILY, label: 'Font Family', type: 'font-select', value: 'sans-serif' },
-    { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'text', value: '1rem' },
+    { key: BLOCK_STYLE_FONT_SIZE, label: 'Font Size', type: 'text', value: '16px' },
     { key: BLOCK_STYLE_FONT_WEIGHT, label: 'Bold', type: 'select', value: '500', options: cloneObject(BLOCK_STYLE_FONT_WEIGHT_OPTIONS) },
     { key: BLOCK_STYLE_FONT_STYLE, label: 'Italic', type: 'checkbox', value: 'normal', trueValue: 'italic', falseValue: 'normal' },
 ]
@@ -146,7 +149,13 @@ export const BLOCK_TEXT_DEFAULT: ElementBlock = {
     type: BLOCK_TEXT_TYPE,
     label: 'Text',
     value: 'Hello World',
-    setting: [],
+    // width/height default to '' (auto): the text box hugs its content until the
+    // user sets a size (via the inspector fields or drag handles), at which point
+    // it becomes a fixed text area. Empty values still serialize into `setting`.
+    setting: [
+        { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '' },
+        { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '' },
+    ],
     style: cloneObject(BLOCK_TEXT_DEFAULT_STYLE),
     x: 0,
     y: 0,

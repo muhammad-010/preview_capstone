@@ -181,6 +181,12 @@ export function makeDynamicElementBlock(elements: TemplateElementDynamicVar[]): 
 
         if (el.type === BLOCK_DYNAMIC_TEXT_TYPE) {
             style.push(...cloneObject(BLOCK_TEXT_DEFAULT_STYLE))
+            // width/height default to '' (auto), matching free-text blocks: the box
+            // hugs its content until the user sets a size via the inspector or drag.
+            setting.push(
+                { key: BLOCK_SETTING_WIDTH, label: 'Width', type: 'text', value: '' },
+                { key: BLOCK_SETTING_HEIGHT, label: 'Height', type: 'text', value: '' },
+            )
         }
         else if (el.type === BLOCK_DYNAMIC_QR_IMAGE_TYPE) {
             setting.push(
@@ -449,6 +455,100 @@ export function getFallbackPreviewHtml(
     </body>
     </html>
     `
+}
+
+type EditorHtmlPreviewFn = (
+    bgImage: BackgroundImage,
+    width: number,
+    height: number,
+    content: string,
+    staticContent: string,
+    fontFaces: string,
+) => string
+
+/**
+ * Wraps a per-breakpoint block in its absolutely-positioned container. Unlike
+ * v1's iframe renderer it does NOT emit `data-block-idx` — that attribute only
+ * exists for v1's iframe click/resize wiring, so the copied markup stays clean.
+ *
+ * `width: max-content` mirrors v2's canvas wrapper (EditorV2/Element.vue) so the
+ * absolutely-positioned box takes its intrinsic width instead of shrink-to-fitting
+ * against the right edge, which would otherwise reflow/wrap text near that edge.
+ */
+function renderPositionedBlock(block: Block, value: string | boolean | number) {
+    return `
+    <div style="${getPositionStyle(block)} width: max-content;">
+        ${renderPreviewHtml(block, value, compilePreviewStyle(block))}
+    </div>
+    `
+}
+
+// Replicates the Tailwind Preflight rules the v2 canvas renders under, so the
+// standalone copied document matches the on-canvas design instead of picking up
+// UA defaults (fat `<p>` margins, inline images, tighter line-height). A `<style>`
+// is `display:none` and applies document-wide wherever it sits, so injecting it
+// into the body content keeps the change scoped to the copied output.
+const EDITOR_HTML_RESET = `<style>
+    *, ::before, ::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { line-height: 1.5; }
+    img, svg, video { display: block; max-width: 100%; height: auto; }
+</style>`
+
+/**
+ * Assembles the full standalone HTML document for the active breakpoint — the
+ * same document v1's iframe preview / the backend produce — from the editor's
+ * blocks, static blocks, background and fonts. Pure and side-effect free so it
+ * can be reused (v2's "Copy HTML" action). Relies on `getPositionStyle`, which
+ * only resolves on the client, so call it from client-side code.
+ */
+export function buildEditorHtml(opts: {
+    blocks: ElementBlock[]
+    staticBlockIds: string[]
+    findStaticBlock: (id: string) => ElementBlock | undefined
+    breakpoint: Breakpoint
+    bgImages?: Partial<Record<Breakpoint, BackgroundImage>>
+    width: number
+    height: number
+    fontOptions: TemplateFont[]
+    htmlPreviewFn?: EditorHtmlPreviewFn
+}): string {
+    const usedFonts: string[] = []
+    const collectFonts = (style: BlockSetting[]) => {
+        const blockFonts = getBlockStyleValue(style, BLOCK_STYLE_FONT_FAMILY)
+        if (blockFonts && typeof blockFonts === 'string') {
+            usedFonts.push(...blockFonts.split(',').map(v => v.trim()))
+        }
+    }
+
+    const customParts: string[] = []
+    for (const block of opts.blocks) {
+        const bpBlock = block?.perBreakpoint?.[opts.breakpoint]
+        if (!bpBlock) continue
+        collectFonts(bpBlock.style)
+        customParts.push(renderPositionedBlock(bpBlock, getBlockValue(block)))
+    }
+
+    const staticParts: string[] = []
+    for (const id of opts.staticBlockIds) {
+        const block = opts.findStaticBlock(id)
+        const bpBlock = block?.perBreakpoint?.[opts.breakpoint]
+        if (!block || !bpBlock) continue
+        collectFonts(bpBlock.style)
+        staticParts.push(renderPositionedBlock(bpBlock, block.value))
+    }
+
+    const bgImage = opts.bgImages?.[opts.breakpoint] ?? { dataUrl: '' } as BackgroundImage
+    const fontFaces = generateFontFaceRules(opts.fontOptions, usedFonts)
+    const render = opts.htmlPreviewFn ?? getFallbackPreviewHtml
+
+    return render(
+        bgImage,
+        opts.width,
+        opts.height,
+        EDITOR_HTML_RESET + customParts.join('\n'),
+        staticParts.join('\n'),
+        fontFaces,
+    )
 }
 
 function filterBlockData(
