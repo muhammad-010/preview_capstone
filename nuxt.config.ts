@@ -32,16 +32,16 @@ export default defineNuxtConfig({
             editorV2Enabled: process.env.NUXT_PUBLIC_EDITOR_V2_ENABLED === 'true',
         },
     },
+    routeRules: {
+        '/storage/file/public/document/**': {
+            proxy: `${process.env.EXTERNAL_API_URL}/storage/file/public/document/**`,
+        },
+    },
     compatibilityDate: '2025-07-15',
     nitro: {
         imports: {
             dirs: ['shared/types', 'shared/utils'],
         },
-    },
-    routeRules: {
-      '/storage/file/public/document/**': {
-        proxy: `${process.env.EXTERNAL_API_URL}/storage/file/public/document/**`
-      }
     },
     eslint: {
         config: {
