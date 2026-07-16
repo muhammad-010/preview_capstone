@@ -194,8 +194,9 @@ export interface TenantEventStoreProductForm {
     sale_start_at?: ISOString
     items: TenantEventStoreProductItem[]
 
-    product_type?: StoreProductType
+    attributes?: number[]
     final_price?: number
+    product_type?: StoreProductType
     banner_image?: File
     raw_items?: string[]
 }

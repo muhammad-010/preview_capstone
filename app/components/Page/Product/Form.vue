@@ -39,6 +39,7 @@ const schema = z.object({
     banner_image: isCreate ? bannerSchema : bannerSchema.optional(),
     product_type: zodStringOptional(),
     raw_items: z.array(z.any()).min(1, 'At least one item'),
+    attributes: z.array(z.number()),
 })
     .superRefine((data, ctx) => {
         if (data.status !== 'active') return
@@ -69,6 +70,7 @@ function createState(): TenantEventStoreProductForm {
         sale_start_at: defaultSaleStart.toISOString(),
         items: [],
         raw_items: [],
+        attributes: [],
         product_type: STORE_PRODUCT_TYPE_SCHEDULED_SESSION,
     }
 }
@@ -85,7 +87,7 @@ const statusSwitch = computed({
 })
 
 const {
-    data,
+    data: productItemsData,
     status: productItemsStatus,
     execute: getProductItems,
     refresh: refreshProductItems,
@@ -98,7 +100,7 @@ const {
     }),
     immediate: Boolean(state.raw_items?.length),
 })
-const productItems = computed(() => data.value?.item || [])
+const productItems = computed(() => productItemsData.value?.item || [])
 
 function onOpenProductItems() {
     if (!productItems.value.length) {
@@ -124,6 +126,89 @@ function parseRawProductItems(raw: string[]): TenantEventStoreProductItem[] {
     }
     return res
 }
+
+const attributeListPage = ref(1)
+const attributeListSearch = ref('')
+const attributeListQuery = ref('')
+const attributeListHasMore = ref(true)
+const {
+  data: attributeListData,
+  status: attributeListStatus,
+  execute: getAttributeList,
+} = await useLazyApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/attribute`, {
+  query: computed(() => {
+    return {
+      query: attributeListQuery.value,
+      page: attributeListPage.value,
+      limit: 10,
+    }
+  }),
+  transform: res => res.data,
+  immediate: Boolean(state.attributes?.length),
+})
+const attributeList = ref<CustomAttribute[]>([])
+watch(attributeListData, (newData) => {
+  if (newData) {
+    attributeList.value.push(...newData.custom_attribute)
+    attributeListHasMore.value = attributeList.value.length < newData.total_data
+  }
+})
+watch(attributeListPage, () => {
+    getAttributeList()
+})
+watch(attributeListSearch, (newData, oldData) => {
+  if (attributeListStatus.value == 'pending') return
+
+  if (newData.length >= 3) {
+    attributeList.value = []
+    attributeListQuery.value = attributeListSearch.value
+    attributeListPage.value = 1
+  }
+  else if (oldData.length > newData.length && attributeListQuery.value !== '') {
+    attributeList.value = []
+    attributeListQuery.value = ''
+    attributeListPage.value = 1
+  }
+})
+
+const attributesSelectMenu = useTemplateRef('selectMenuRef')
+let removeAttributesSelectListener: (() => void) | null = null
+
+function attachScrollAttributesSelectMenu() {
+  nextTick(() => {
+    const viewport = attributesSelectMenu.value?.viewportRef
+    if (!viewport) return
+
+    const onScroll = () => {
+      if (attributeListStatus.value === 'pending') return
+
+      const threshold = 100
+      if ((viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - threshold) && attributeListHasMore.value) {
+        attributeListPage.value++
+      }
+    }
+
+    viewport.addEventListener('scroll', onScroll)
+    removeAttributesSelectListener = () => {
+      viewport.removeEventListener('scroll', onScroll)
+    }
+  })
+}
+
+function onOpenAttributes(open: boolean) {
+  if (!open) {
+    removeAttributesSelectListener?.()
+    return
+  }
+
+  if (!attributeList.value.length) {
+    getAttributeList()
+  }
+
+  attachScrollAttributesSelectMenu()
+}
+
+onBeforeUnmount(() => removeAttributesSelectListener?.())
 
 const finalPrice = computed(() => {
     if (!state.price) {
@@ -172,6 +257,7 @@ async function addData(payload: FormSubmitEvent<Schema>) {
             discount_value: payload.data.discount_value || 0,
             status: payload.data.status as StoreProductStatus,
             items: [],
+            attributes: [...payload.data.attributes],
         }
 
         if (payload.data.status === 'active') {
@@ -212,6 +298,7 @@ async function editData(payload: FormSubmitEvent<Schema>, productId: number) {
             discount_value: payload.data.discount_value || 0,
             status: payload.data.status as StoreProductStatus,
             items: [],
+            attributes: [...payload.data.attributes],
         }
 
         if (payload.data.status === 'active') {
@@ -425,6 +512,25 @@ function submitData(payload: FormSubmitEvent<Schema>) {
                     />
                 </UFormField>
             </div>
+
+            <UFormField
+                label="Attributes"
+                name="attributes"
+                :class="`${isModal ? '' : 'my-2'}`"
+            >
+                <USelectMenu
+                    ref="selectMenuRef"
+                    v-model="state.attributes"
+                    v-model:search-term="attributeListSearch"
+                    :loading="attributeListStatus === 'pending'"
+                    multiple
+                    class="w-full"
+                    label-key="name"
+                    value-key="custom_attribute_id"
+                    :items="attributeList"
+                    @update:open="onOpenAttributes"
+                />
+            </UFormField>
 
             <UFormField
                 label="Product Image"
