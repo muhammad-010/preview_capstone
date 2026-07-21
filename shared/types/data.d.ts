@@ -165,8 +165,8 @@ export interface TenantEventStoreProductStock {
 }
 
 export interface TenantEventStoreProductAttribute {
-  attribute_id: number
-  name: string
+    attribute_id: number
+    name: string
 }
 
 export interface TenantEventStoreProduct {

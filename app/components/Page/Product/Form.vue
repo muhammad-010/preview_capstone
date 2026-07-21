@@ -132,80 +132,80 @@ const attributeListSearch = ref('')
 const attributeListQuery = ref('')
 const attributeListHasMore = ref(true)
 const {
-  data: attributeListData,
-  status: attributeListStatus,
-  execute: getAttributeList,
+    data: attributeListData,
+    status: attributeListStatus,
+    execute: getAttributeList,
 } = await useLazyApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/attribute`, {
-  query: computed(() => {
-    return {
-      query: attributeListQuery.value,
-      page: attributeListPage.value,
-      limit: 10,
-    }
-  }),
-  transform: res => res.data,
-  immediate: Boolean(state.attributes?.length),
+    query: computed(() => {
+        return {
+            query: attributeListQuery.value,
+            page: attributeListPage.value,
+            limit: 10,
+        }
+    }),
+    transform: res => res.data,
+    immediate: Boolean(state.attributes?.length),
 })
 const attributeList = ref<CustomAttribute[]>([])
 watch(attributeListData, (newData) => {
-  if (newData) {
-    attributeList.value.push(...newData.custom_attribute)
-    attributeListHasMore.value = attributeList.value.length < newData.total_data
-  }
+    if (newData) {
+        attributeList.value.push(...newData.custom_attribute)
+        attributeListHasMore.value = attributeList.value.length < newData.total_data
+    }
 })
 watch(attributeListPage, () => {
     getAttributeList()
 })
 watch(attributeListSearch, (newData, oldData) => {
-  if (attributeListStatus.value == 'pending') return
+    if (attributeListStatus.value == 'pending') return
 
-  if (newData.length >= 3) {
-    attributeList.value = []
-    attributeListQuery.value = attributeListSearch.value
-    attributeListPage.value = 1
-  }
-  else if (oldData.length > newData.length && attributeListQuery.value !== '') {
-    attributeList.value = []
-    attributeListQuery.value = ''
-    attributeListPage.value = 1
-  }
+    if (newData.length >= 3) {
+        attributeList.value = []
+        attributeListQuery.value = attributeListSearch.value
+        attributeListPage.value = 1
+    }
+    else if (oldData.length > newData.length && attributeListQuery.value !== '') {
+        attributeList.value = []
+        attributeListQuery.value = ''
+        attributeListPage.value = 1
+    }
 })
 
 const attributesSelectMenu = useTemplateRef('selectMenuRef')
 let removeAttributesSelectListener: (() => void) | null = null
 
 function attachScrollAttributesSelectMenu() {
-  nextTick(() => {
-    const viewport = attributesSelectMenu.value?.viewportRef
-    if (!viewport) return
+    nextTick(() => {
+        const viewport = attributesSelectMenu.value?.viewportRef
+        if (!viewport) return
 
-    const onScroll = () => {
-      if (attributeListStatus.value === 'pending') return
+        const onScroll = () => {
+            if (attributeListStatus.value === 'pending') return
 
-      const threshold = 100
-      if ((viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - threshold) && attributeListHasMore.value) {
-        attributeListPage.value++
-      }
-    }
+            const threshold = 100
+            if ((viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - threshold) && attributeListHasMore.value) {
+                attributeListPage.value++
+            }
+        }
 
-    viewport.addEventListener('scroll', onScroll)
-    removeAttributesSelectListener = () => {
-      viewport.removeEventListener('scroll', onScroll)
-    }
-  })
+        viewport.addEventListener('scroll', onScroll)
+        removeAttributesSelectListener = () => {
+            viewport.removeEventListener('scroll', onScroll)
+        }
+    })
 }
 
 function onOpenAttributes(open: boolean) {
-  if (!open) {
-    removeAttributesSelectListener?.()
-    return
-  }
+    if (!open) {
+        removeAttributesSelectListener?.()
+        return
+    }
 
-  if (!attributeList.value.length) {
-    getAttributeList()
-  }
+    if (!attributeList.value.length) {
+        getAttributeList()
+    }
 
-  attachScrollAttributesSelectMenu()
+    attachScrollAttributesSelectMenu()
 }
 
 onBeforeUnmount(() => removeAttributesSelectListener?.())
