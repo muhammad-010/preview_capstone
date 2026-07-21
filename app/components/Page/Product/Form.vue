@@ -159,14 +159,21 @@ watch(attributeListPage, () => {
 watch(attributeListSearch, (newData, oldData) => {
     if (attributeListStatus.value == 'pending') return
 
-    if (newData.length >= 3) {
-        attributeList.value = []
-        attributeListQuery.value = attributeListSearch.value
-        attributeListPage.value = 1
+    const query
+        = newData.length >= 3
+            ? newData
+            : oldData.length > newData.length && attributeListQuery.value !== ''
+                ? ''
+                : null
+
+    if (query === null) return
+
+    attributeList.value = []
+    attributeListQuery.value = query
+    if (attributeListPage.value === 1) {
+        getAttributeList()
     }
-    else if (oldData.length > newData.length && attributeListQuery.value !== '') {
-        attributeList.value = []
-        attributeListQuery.value = ''
+    else {
         attributeListPage.value = 1
     }
 })
