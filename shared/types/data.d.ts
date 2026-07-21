@@ -164,6 +164,11 @@ export interface TenantEventStoreProductStock {
     reserved: number
 }
 
+export interface TenantEventStoreProductAttribute {
+  attribute_id: number
+  name: string
+}
+
 export interface TenantEventStoreProduct {
     product_id: number
     name: string
@@ -174,6 +179,7 @@ export interface TenantEventStoreProduct {
     discount_value: number
     sale_start_at?: ISOString
     items: TenantEventStoreProductItem[]
+    attributes: TenantEventStoreProductAttribute[]
 
     final_price?: number
     currency?: string
