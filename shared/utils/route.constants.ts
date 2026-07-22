@@ -5,6 +5,7 @@ export const APP_UNAUTHORIZED_REDIRECT = '/auth/login'
 export const APP_PUBLIC_ROUTE: string[] = [
     '/auth',
     '/guest',
+    '/storage',
 ]
 
 export const APP_SUPER_ADMIN_ROUTES: string[] = [
