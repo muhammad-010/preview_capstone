@@ -149,10 +149,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 format-number="currency"
                 icon="lucide:hand-coins"
                 icon-color="success"
-                with-stats
-                stats="15%"
-                stats-status="up"
-                stats-text="Since yesterday"
             />
 
             <CardTotal
@@ -160,10 +156,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 :total="847"
                 icon="lucide:credit-card"
                 icon-color="info"
-                with-stats
-                stats="15%"
-                stats-status="down"
-                stats-text="Since yesterday"
             />
 
             <CardTotal
@@ -171,11 +163,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 :total="23"
                 icon="lucide:clock-alert"
                 icon-color="warning"
-                with-stats
-                stats="15%"
-                stats-status="down"
-                stats-text="Since yesterday"
-                stats-text-status="up"
             />
 
             <CardTotal
@@ -184,11 +171,6 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 format-number="currency"
                 icon="lucide:refresh-ccw"
                 icon-color="error"
-                with-stats
-                stats="2%"
-                stats-status="up"
-                stats-text="Since yesterday"
-                stats-text-status="down"
             />
         </div>
 
@@ -357,7 +339,11 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
             </template>
 
             <template #footer>
-              <UButton label="Apply Filter" block class="text-xl font-semibold py-3" />
+                <UButton
+                    label="Apply Filter"
+                    block
+                    class="text-xl font-semibold py-3"
+                />
             </template>
         </USlideover>
     </div>
