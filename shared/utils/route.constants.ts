@@ -219,12 +219,12 @@ export const APP_ROUTES: AppRoute[] = [
         ],
     },
     {
-      title: 'Order',
-      description: 'Manage transactions, refunds, and payment gateways',
-      label: 'Order',
-      icon: 'lucide:credit-card',
-      to: '/order',
-      render: true,
+        title: 'Order',
+        description: 'Manage transactions, refunds, and payment gateways',
+        label: 'Order',
+        icon: 'lucide:credit-card',
+        to: '/order',
+        render: true,
     },
 
     {

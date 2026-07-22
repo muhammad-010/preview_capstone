@@ -25,18 +25,18 @@ function statsIcon(statsStatus: 'up' | 'down' | 'equal' | undefined) {
 }
 
 function statsTextColor(
-  statsTextStatus: 'up' | 'down' | 'equal' | undefined,
-  statsStatus: 'up' | 'down' | 'equal' | undefined,
+    statsTextStatus: 'up' | 'down' | 'equal' | undefined,
+    statsStatus: 'up' | 'down' | 'equal' | undefined,
 ) {
     if (statsTextStatus) {
-      switch (statsTextStatus) {
-          case 'up':
-              return 'text-success'
-          case 'down':
-              return 'text-error'
-          default:
-              return 'text-neutral'
-      }
+        switch (statsTextStatus) {
+            case 'up':
+                return 'text-success'
+            case 'down':
+                return 'text-error'
+            default:
+                return 'text-neutral'
+        }
     }
 
     switch (statsStatus) {
@@ -55,22 +55,22 @@ function formatCurrency(value: number, currency?: string): string {
 }
 
 const iconColorClass = computed(() => {
-  if (!props.iconColor) return 'text-neutral'
+    if (!props.iconColor) return 'text-neutral'
 
-  switch (props.iconColor) {
-    case 'error':
-      return 'text-error'
-    case 'success':
-      return 'text-success'
-    case 'warning':
-      return 'text-warning'
-    case 'info':
-      return 'text-info'
-    case 'primary':
-      return 'text-primary'
-    default:
-      return 'text-neutral'
-  }
+    switch (props.iconColor) {
+        case 'error':
+            return 'text-error'
+        case 'success':
+            return 'text-success'
+        case 'warning':
+            return 'text-warning'
+        case 'info':
+            return 'text-info'
+        case 'primary':
+            return 'text-primary'
+        default:
+            return 'text-neutral'
+    }
 })
 </script>
 
@@ -80,10 +80,10 @@ const iconColorClass = computed(() => {
             <div class="mb-2">
                 <p>{{ title }}</p>
                 <h1>
-                  <span v-if="!formatNumber">{{ formatNumberSuffix(total || 0) }}</span>
-                  <span v-else-if="formatNumber === 'suffix'">{{ formatNumberSuffix(total || 0) }}</span>
-                  <span v-else-if="formatNumber === 'currency'">{{ formatCurrency(total || 0) }}</span>
-                  {{ percentage ? ' %' : '' }}
+                    <span v-if="!formatNumber">{{ formatNumberSuffix(total || 0) }}</span>
+                    <span v-else-if="formatNumber === 'suffix'">{{ formatNumberSuffix(total || 0) }}</span>
+                    <span v-else-if="formatNumber === 'currency'">{{ formatCurrency(total || 0) }}</span>
+                    {{ percentage ? ' %' : '' }}
                 </h1>
             </div>
 

@@ -1,18 +1,21 @@
 <script setup lang="ts">
+import { h, resolveComponent } from 'vue'
+import type { TableColumn } from '@nuxt/ui'
+
 type OrderStatus = 'Success' | 'Pending' | 'Waiting Payment' | 'Failed' | 'Refunded'
 type OrderPaymentStatus = 'paid' | 'pending' | 'expired' | 'failed' | 'refunded'
 interface Order {
-  order_id: number
-  invoice: string
-  name: string
-  amount: number
-  payment_method: {
+    order_id: number
+    invoice: string
     name: string
-    detail: string
-  }
-  payment_status: OrderPaymentStatus
-  status: OrderStatus
-  date: ISOString
+    amount: number
+    payment_method: {
+        name: string
+        detail: string
+    }
+    payment_status: OrderPaymentStatus
+    status: OrderStatus
+    date: ISOString
 }
 const ORDER_STATUS_COLORS: Record<
     OrderStatus, 'success' | 'error' | 'primary' | 'neutral' | 'info' | 'warning' | 'secondary'
@@ -33,9 +36,6 @@ const PAYMENT_ORDER_STATUS_COLORS: Record<
     ['expired']: 'neutral',
 } as const
 
-import { h, resolveComponent } from 'vue'
-import type { TableColumn } from '@nuxt/ui'
-
 defineProps<{
     data: Order[]
     total: number
@@ -44,7 +44,6 @@ defineProps<{
 }>()
 const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
-
 
 function formatCurrency(value: number, currency?: string): string {
     const formatter = getCurrencyFormatter(currency)
@@ -190,7 +189,7 @@ const columns = useColumns()
         />
 
         <PageOrderModalDetail
-          v-model:open="detailModal"
+            v-model:open="detailModal"
         />
     </div>
 </template>
