@@ -1,37 +1,20 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
 
-type OrderStatus = 'Success' | 'Pending' | 'Waiting Payment' | 'Failed' | 'Refunded'
-type OrderPaymentStatus = 'paid' | 'pending' | 'expired' | 'failed' | 'refunded'
-interface Order {
-    order_id: number
-    invoice: string
-    name: string
-    amount: number
-    payment_method: {
-        name: string
-        detail: string
-    }
-    payment_status: OrderPaymentStatus
-    status: OrderStatus
-    date: ISOString
-}
-
 const route = useRoute()
-// const { tenantId } = useUserState()
+const { tenantId } = useUserState()
 
 const search = ref('')
 const query = ref('')
 const page = ref(1)
 const limit = ref(5)
 
-/*
-const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId.value}/event`, {
+const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId.value}/order`, {
     transform: res => res.data,
     query: { query, page, limit },
     watch: [page, limit],
 })
-*/
+/*
 const pending = ref(false)
 const data = ref({
     order: [
@@ -103,20 +86,21 @@ const data = ref({
     ],
     total_data: 5,
 })
-const list = computed<Order[]>(() => data.value?.order ?? [])
+*/
+const list = computed<TenantOrder[]>(() => data.value?.list ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
 
 function searchData() {
     page.value = 1
     query.value = search.value
-    // refresh()
+    refresh()
 }
 
 function clearSearch() {
     page.value = 1
     search.value = ''
     query.value = ''
-    // refresh()
+    refresh()
 }
 
 const filterSlideover = ref(false)

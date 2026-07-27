@@ -1,4 +1,7 @@
 <script setup lang="ts">
+defineProps<{
+  item?: TenantOrder
+}>()
 const open = defineModel<boolean>('open', { default: false })
 
 const sections = [
@@ -21,11 +24,6 @@ watch(open, (newData) => {
         activeSection.value = ['0']
     }
 })
-
-function formatCurrency(value: number, currency?: string): string {
-    const formatter = getCurrencyFormatter(currency)
-    return formatter.format(value)
-}
 </script>
 
 <template>
@@ -48,7 +46,7 @@ function formatCurrency(value: number, currency?: string): string {
             </div>
         </template>
 
-        <template #body>
+        <template v-if="item" #body>
             <section class="flex flex-col justify-between gap-2 border-b border-default pb-4 mb-4">
                 <!-- <div class="text-sm mb-2"> -->
                 <!--   <p class="text-toned">Event Name</p> -->
@@ -56,20 +54,20 @@ function formatCurrency(value: number, currency?: string): string {
                 <!-- </div> -->
                 <div class="flex justify-between items-center">
                     <p class="font-mono text-sm">
-                        INV/1/1/20260101
+                        {{ item.invoice }}
                     </p>
 
                     <div>
                         <UBadge
-                            color="success"
+                            :color="TENANT_ORDER_STATUS_COLORS[item.order_status]"
                             variant="subtle"
-                            label="Order: Success"
+                            :label="`Order: ${item.order_status}`"
                             class="mr-2"
                         />
                         <UBadge
-                            color="success"
+                            :color="TENANT_PAYMENT_STATUS_COLORS[item.payment_status]"
                             variant="subtle"
-                            label="Payment: Paid"
+                            :label="`Payment: ${item.payment_status}`"
                             class="ml-2"
                         />
                     </div>
@@ -78,7 +76,7 @@ function formatCurrency(value: number, currency?: string): string {
 
             <section class="flex flex-col justify-center items-center gap-2 border-b border-default pb-4 mb-4">
                 <span class="text-sm text-toned">Total Amount</span>
-                <span class="text-4xl font-bold">{{ formatCurrency(1500000) }}</span>
+                <span class="text-4xl font-bold">{{ item.total_price }}</span>
             </section>
 
             <UAccordion
@@ -92,87 +90,96 @@ function formatCurrency(value: number, currency?: string): string {
                             Customer Name
                         </div>
                         <div class="text-sm text-right font-bold">
-                            Ramona
+                          {{ item.user_name }}
                         </div>
 
                         <div class="text-sm">
                             Customer Email
                         </div>
                         <div class="text-sm text-right font-bold">
-                            ramona@mythag.com
+                          {{ item.user_email ?? '-' }}
                         </div>
 
                         <div class="text-sm">
                             Payment Method
                         </div>
                         <div class="text-sm text-right font-bold">
-                            Virtual Account (BCA VA)
+                          {{ item.payment_method }}
                         </div>
 
                         <div class="text-sm">
                             Paid Amount
                         </div>
                         <div class="text-sm text-right font-bold">
-                            {{ formatCurrency(1500000) }}
+                          {{ item.payment_amount ?? '-' }}
                         </div>
 
                         <div class="text-sm">
                             Ordered At
                         </div>
                         <div class="text-sm text-right font-bold">
-                            {{ formatLongDate('2026-07-06T17:16:32+07:00') }}
+                            {{ formatLongDate(item.created_at) }}
                         </div>
 
                         <div class="text-sm">
                             Paid At
                         </div>
                         <div class="text-sm text-right font-bold">
-                            {{ formatLongDate('2026-07-06T17:16:32+07:00') }}
+                            {{ item.payment_paid_at ? formatLongDate(item.payment_paid_at) : '-' }}
                         </div>
 
                         <div class="text-sm">
                             Purchase Platform
                         </div>
                         <div class="text-sm text-right font-bold">
-                            Rawooh Tickets
+                          {{ item.purchase_platform }}
                         </div>
                     </div>
                 </template>
 
                 <template #purchased-items>
-                    <div class="grid grid-cols-2 gap-4 not-last:mb-4 not-last:pb-4 not-last:border-b not-last:border-default">
+                    <div
+                      v-if="item.items"
+                      v-for="orderItem in item.items"
+                      :key="orderItem.id"
+                      class="grid grid-cols-2 gap-4 not-last:mb-4 not-last:pb-4 not-last:border-b not-last:border-default"
+                    >
                         <div class="col-span-2 flex justify-between items-center text-sm">
                             <p class="font-semibold">
-                                Ticket One
+                            {{ orderItem.product_name }}
                             </p>
                         </div>
 
                         <div class="text-sm">
                             <div class="text-xs text-toned flex justify-between items-end w-[70%]">
-                                <span>3 x</span>
+                              <span>{{ orderItem.quantity }} x</span>
 
                                 <div class="text-right flex flex-col">
-                                    <div class="flex items-center justify-between gap-4">
+                                    <div
+                                      v-if="orderItem.discount_value"
+                                      class="flex items-center justify-between gap-4"
+                                    >
                                         <p class="line-through">
-                                            {{ formatCurrency(1000000) }}
+                                            {{ orderItem.price }}
                                         </p>
                                         <UBadge
                                             color="warning"
                                             variant="subtle"
                                             size="sm"
-                                            label="50% Off"
+                                            :label="`${orderItem.discount_value} Off`"
                                         />
                                     </div>
 
                                     <div class="flex items-center justify-between gap-4">
-                                        <p>{{ formatCurrency(500000) }}</p>
+                                        <p v-if="orderItem.discount_value">{{ orderItem.discounted_price }}</p>
+                                        <p v-else>{{ orderItem.price }}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="text-sm text-right font-bold flex flex-col justify-end">
-                            {{ formatCurrency(1500000) }}
+                            {{ orderItem.subtotal }}
                         </div>
                     </div>
 
@@ -181,48 +188,43 @@ function formatCurrency(value: number, currency?: string): string {
                             Subtotal
                         </div>
                         <div class="text-sm text-right font-bold">
-                            {{ formatCurrency(1500000) }}
+                            {{ item.total_price }}
                         </div>
 
                         <div class="text-sm">
                             Taxes & Fees
                         </div>
                         <div class="text-sm text-right font-bold">
-                            {{ formatCurrency(0) }}
+                            {{ item.fee_amount ?? '-' }}
                         </div>
 
                         <div class="text-sm">
                             Total Amount
                         </div>
                         <div class="text-sm text-right font-bold">
-                            {{ formatCurrency(1500000) }}
+                            {{ item.payment_amount ?? '-' }}
                         </div>
                     </div>
                 </template>
 
                 <template #tickets-owner>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="text-sm">
-                            Ramona
+                    <template
+                      v-if="item.items"
+                      v-for="orderItem in item.items"
+                    >
+                        <div
+                          v-for="ticket in orderItem.tickets"
+                          :key="ticket.id"
+                          class="grid grid-cols-2 gap-2"
+                        >
+                            <div class="text-sm">
+                              {{ ticket.name }}
+                            </div>
+                            <div class="text-sm text-right font-bold">
+                              {{ orderItem.product_name }}
+                            </div>
                         </div>
-                        <div class="text-sm text-right font-bold">
-                            Ticket One
-                        </div>
-
-                        <div class="text-sm">
-                            Thais
-                        </div>
-                        <div class="text-sm text-right font-bold">
-                            Ticket One
-                        </div>
-
-                        <div class="text-sm">
-                            Miryam
-                        </div>
-                        <div class="text-sm text-right font-bold">
-                            Ticket One
-                        </div>
-                    </div>
+                    </template>
                 </template>
             </UAccordion>
         </template>

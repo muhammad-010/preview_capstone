@@ -2,42 +2,9 @@
 import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 
-type OrderStatus = 'Success' | 'Pending' | 'Waiting Payment' | 'Failed' | 'Refunded'
-type OrderPaymentStatus = 'paid' | 'pending' | 'expired' | 'failed' | 'refunded'
-interface Order {
-    order_id: number
-    invoice: string
-    name: string
-    amount: number
-    payment_method: {
-        name: string
-        detail: string
-    }
-    payment_status: OrderPaymentStatus
-    status: OrderStatus
-    date: ISOString
-}
-const ORDER_STATUS_COLORS: Record<
-    OrderStatus, 'success' | 'error' | 'primary' | 'neutral' | 'info' | 'warning' | 'secondary'
-> = {
-    ['Success']: 'success',
-    ['Failed']: 'error',
-    ['Refunded']: 'secondary',
-    ['Pending']: 'warning',
-    ['Waiting Payment']: 'info',
-} as const
-const PAYMENT_ORDER_STATUS_COLORS: Record<
-    OrderPaymentStatus, 'success' | 'error' | 'primary' | 'neutral' | 'info' | 'warning' | 'secondary'
-> = {
-    ['paid']: 'success',
-    ['failed']: 'error',
-    ['refunded']: 'secondary',
-    ['pending']: 'warning',
-    ['expired']: 'neutral',
-} as const
-
-defineProps<{
-    data: Order[]
+const props = defineProps<{
+    tenantId: number
+    data: TenantOrder[]
     total: number
     pending?: boolean
     withPagination?: boolean
@@ -45,12 +12,9 @@ defineProps<{
 const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
 
-function formatCurrency(value: number, currency?: string): string {
-    const formatter = getCurrencyFormatter(currency)
-    return formatter.format(value)
-}
+const { $api } = useNuxtApp()
+const { errorToast } = useErrorToast()
 
-const detailModal = ref(false)
 function useColumns() {
     const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
@@ -78,7 +42,7 @@ function useColumns() {
                 },
             },
             cell: ({ row }) => {
-                return h('div', { class: 'truncate' }, row.original.name)
+                return h('div', { class: 'truncate' }, row.original.user_name)
             },
         },
         {
@@ -90,7 +54,7 @@ function useColumns() {
                 },
             },
             cell: ({ row }) => {
-                return h('div', { class: 'truncate' }, formatCurrency(row.original.amount))
+                return h('div', { class: 'truncate' }, row.original.total_price)
             },
         },
         {
@@ -103,8 +67,8 @@ function useColumns() {
             },
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('div', { class: 'truncate' }, row.original.payment_method.name || ''),
-                    h('div', { class: 'truncate text-xs' }, row.original.payment_method.detail || ''),
+                    h('div', { class: 'truncate' }, row.original.payment_method || ''),
+                    // h('div', { class: 'truncate text-xs' }, row.original.payment_method.detail || ''),
                 ])
             },
         },
@@ -113,7 +77,7 @@ function useColumns() {
             header: 'Status',
             cell: ({ row }) => {
                 return h(UBadge, {
-                    color: PAYMENT_ORDER_STATUS_COLORS[row.getValue('payment_status') as OrderPaymentStatus],
+                    color: TENANT_PAYMENT_STATUS_COLORS[row.getValue('payment_status') as TenantPaymentStatus],
                     variant: 'subtle',
                     label: row.original.payment_status,
                 })
@@ -124,9 +88,9 @@ function useColumns() {
             header: 'Status',
             cell: ({ row }) => {
                 return h(UBadge, {
-                    color: ORDER_STATUS_COLORS[row.getValue('status') as OrderStatus],
+                    color: TENANT_ORDER_STATUS_COLORS[row.getValue('order_status') as TenantOrderStatus],
                     variant: 'subtle',
-                    label: row.original.status,
+                    label: row.original.order_status,
                 })
             },
         },
@@ -135,7 +99,7 @@ function useColumns() {
             header: 'Date',
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('span', {}, row.original.date ? formatLongDate(row.original.date) : ''),
+                    h('span', {}, row.original.created_at ? formatLongDate(row.original.created_at) : ''),
                 ])
             },
         },
@@ -147,14 +111,14 @@ function useColumns() {
                     td: 'w-[1%]',
                 },
             },
-            cell: () => {
+            cell: ({ row }) => {
                 return h('div', { class: 'inline-flex gap-2' }, [
                     h(UTooltip, { text: 'Detail', delayDuration: 0 }, () => [
                         h(UButton, {
                             color: 'neutral',
                             variant: 'ghost',
                             icon: 'lucide:info',
-                            onClick: () => detailModal.value = true,
+                            onClick: () => openDetail(row.original.order_id),
                         }),
                     ]),
                     h(UTooltip, { text: 'Refund', delayDuration: 0 }, () => [
@@ -167,10 +131,30 @@ function useColumns() {
                 ])
             },
         },
-    ] as TableColumn<Order>[]
+    ] as TableColumn<TenantOrder>[]
 }
 
 const columns = useColumns()
+
+// DETAILION
+const detailModal = ref(false)
+const target = ref<TenantOrder | undefined>()
+
+async function openDetail(orderId: number) {
+    try {
+        const data = await $api(`/api/tenant/${props.tenantId}/order/${orderId}/detail`)
+        if (data.success) {
+          target.value = cloneObject(data.data)
+          detailModal.value = true
+        }
+        else {
+            errorToast({ description: data.message })
+        }
+    }
+    catch (error) {
+        errorToast({ error, description: 'Failed to get order detail' })
+    }
+}
 </script>
 
 <template>
@@ -190,6 +174,7 @@ const columns = useColumns()
 
         <PageOrderModalDetail
             v-model:open="detailModal"
+            :item="target"
         />
     </div>
 </template>

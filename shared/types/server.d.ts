@@ -185,7 +185,7 @@ export type ParticipantExportResult = Result<{
     filepath: string
 }>
 
-// USERS
+// USER
 export type TenantMemberListresult = Result<
     PaginatedData<User, 'user'>
 >
@@ -197,3 +197,10 @@ export type TenantMemberFormResult = Result<UserForm>
 export type TenantMemberAddResult = Result<
     AddedData<number, 'user_id'>
 >
+
+// ORDER
+export type TenantOrderListResult = Result<
+    PaginatedData<TenantOrder, 'list'>
+>
+
+export type TenantMemberDetailResult = Result<TenantOrder>
