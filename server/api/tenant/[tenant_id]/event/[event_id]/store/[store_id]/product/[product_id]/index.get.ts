@@ -12,7 +12,7 @@ export default defineEventHandler(async (event): Promise<TenantEventStoreProduct
     })
     if (res.success) {
         if (res.data.attributes === null) {
-          res.data.attributes = []
+            res.data.attributes = []
         }
         return res
     }
