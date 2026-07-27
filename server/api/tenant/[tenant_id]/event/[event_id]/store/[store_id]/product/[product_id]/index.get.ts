@@ -11,6 +11,9 @@ export default defineEventHandler(async (event): Promise<TenantEventStoreProduct
         query,
     })
     if (res.success) {
+        if (res.data.attributes === null) {
+          res.data.attributes = []
+        }
         return res
     }
     else {
