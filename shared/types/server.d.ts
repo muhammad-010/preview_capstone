@@ -203,4 +203,4 @@ export type TenantOrderListResult = Result<
     PaginatedData<TenantOrder, 'list'>
 >
 
-export type TenantMemberDetailResult = Result<TenantOrder>
+export type TenantOrderDetailResult = Result<TenantOrder>
