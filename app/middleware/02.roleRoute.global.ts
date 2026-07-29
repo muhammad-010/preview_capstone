@@ -1,5 +1,4 @@
 export default defineNuxtRouteMiddleware((to, _) => {
-    console.log(to.path)
     if (to.path === '/' || APP_PUBLIC_ROUTE.some(path => to.path.startsWith(path))) {
         return
     }

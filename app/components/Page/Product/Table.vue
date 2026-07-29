@@ -156,7 +156,7 @@ function formatPrice(value: number, currency?: string): string {
                                     color="info"
                                     size="lg"
                                     variant="subtle"
-                                    :label="`Stock: ${product.stock?.total || 0}`"
+                                    :label="`Stock: ${formatThousandNumber(product.stock?.total || 0)}`"
                                     :ui="{ base: 'rounded-md!' }"
                                 />
                                 <UBadge
@@ -164,7 +164,7 @@ function formatPrice(value: number, currency?: string): string {
                                     color="success"
                                     size="lg"
                                     variant="subtle"
-                                    :label="`Sold: ${product.stock?.reserved || 0}`"
+                                    :label="`Sold: ${formatThousandNumber(product.stock?.reserved || 0)}`"
                                     :ui="{ base: 'rounded-md!' }"
                                 />
                             </div>

@@ -55,8 +55,6 @@ const schema = z.object({
     })
 type Schema = z.output<typeof schema>
 
-const defaultSaleStart = new Date()
-defaultSaleStart.setSeconds(0, 0)
 function createState(): TenantEventStoreProductForm {
     if (props.fields) return cloneObject(props.fields)
     return {
@@ -67,7 +65,7 @@ function createState(): TenantEventStoreProductForm {
         stock: 0,
         status: 'inactive',
         banner_image: undefined,
-        sale_start_at: defaultSaleStart.toISOString(),
+        sale_start_at: undefined,
         items: [],
         raw_items: [],
         attributes: [],
@@ -405,7 +403,7 @@ function submitData(payload: FormSubmitEvent<Schema>) {
 
             <UFormField
                 label="Choose Included Items"
-                name="items"
+                name="raw_items"
                 required
                 :class="`${isModal ? '' : 'my-2'} w-full`"
             >
@@ -540,6 +538,7 @@ function submitData(payload: FormSubmitEvent<Schema>) {
             </UFormField>
 
             <UFormField
+                id="banner_image_file_upload"
                 label="Product Image"
                 name="banner_image"
                 description="JPG or PNG, 2MB Max"
@@ -551,9 +550,15 @@ function submitData(payload: FormSubmitEvent<Schema>) {
                     label="Click or Drop to add image"
                     color="neutral"
                     accept="image/*"
-                    class="min-h-48"
+                    class="min-h-80"
                 />
             </UFormField>
         </div>
     </UForm>
 </template>
+
+<style scoped>
+#banner_image_file_upload :deep([data-slot="image"]) {
+  object-fit: contain;
+}
+</style>

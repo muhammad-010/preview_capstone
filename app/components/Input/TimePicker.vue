@@ -2,7 +2,7 @@
 defineProps<{
     withSecond?: boolean
 }>()
-const model = defineModel<string>({ default: '00:00:00' })
+const model = defineModel<string | undefined>({ default: undefined })
 
 function parseTime(value?: string) {
     const [h = '00', m = '00', s = '00'] = value?.split(':') ?? []

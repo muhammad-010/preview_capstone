@@ -222,3 +222,7 @@ export function formatIsAfterDate(date?: ISOString): boolean {
     const target = new Date(date)
     return new Date() > target
 }
+
+export function formatThousandNumber(value: number) {
+    return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}

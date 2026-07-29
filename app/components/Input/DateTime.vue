@@ -5,11 +5,11 @@ defineProps<{
     disabled?: boolean
 }>()
 
-const model = defineModel<ISOString>({ default: new Date().toISOString() })
-const dateModel = shallowRef(new CalendarDate(...getISODateArray(model.value)))
-const hourModel = ref(getISOHourArray(model.value).map(e => String(e).padStart(2, '0')).join(':'))
+const model = defineModel<ISOString | undefined>({ default: undefined })
+const dateModel = shallowRef(model.value ? new CalendarDate(...getISODateArray(model.value)) : undefined)
+const hourModel = ref(model.value ? getISOHourArray(model.value).map(e => String(e).padStart(2, '0')).join(':') : undefined)
 const label = computed(() => {
-    if (!model.value) return 'Select date and time'
+    if (!model.value || !dateModel.value || !hourModel.value) return 'Select date and time'
 
     const d = df.format(parseAbsolute(model.value, getLocalTimeZone()).toDate())
     const [h, m, _] = hourModel.value.split(':')
@@ -17,6 +17,8 @@ const label = computed(() => {
     return `${d} at ${h}:${m}`
 })
 watch([dateModel, hourModel], ([newDate, newHour]) => {
+    if (!newDate || !newHour) return
+
     const [hour, minute, second] = newHour.split(':').map(Number)
     const date = new CalendarDateTime(newDate.year, newDate.month, newDate.day, hour, minute, second)
     model.value = date.toDate(getLocalTimeZone()).toISOString()
