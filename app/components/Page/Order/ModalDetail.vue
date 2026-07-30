@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  item?: TenantOrder
+    item?: TenantOrder
 }>()
 const open = defineModel<boolean>('open', { default: false })
 
@@ -46,7 +46,10 @@ watch(open, (newData) => {
             </div>
         </template>
 
-        <template v-if="item" #body>
+        <template
+            v-if="item"
+            #body
+        >
             <section class="flex flex-col justify-between gap-2 border-b border-default pb-4 mb-4">
                 <!-- <div class="text-sm mb-2"> -->
                 <!--   <p class="text-toned">Event Name</p> -->
@@ -90,28 +93,28 @@ watch(open, (newData) => {
                             Customer Name
                         </div>
                         <div class="text-sm text-right font-bold">
-                          {{ item.user_name }}
+                            {{ item.user_name }}
                         </div>
 
                         <div class="text-sm">
                             Customer Email
                         </div>
                         <div class="text-sm text-right font-bold">
-                          {{ item.user_email ?? '-' }}
+                            {{ item.user_email ?? '-' }}
                         </div>
 
                         <div class="text-sm">
                             Payment Method
                         </div>
                         <div class="text-sm text-right font-bold">
-                          {{ item.payment_method }}
+                            {{ item.payment_method }}
                         </div>
 
                         <div class="text-sm">
                             Paid Amount
                         </div>
                         <div class="text-sm text-right font-bold">
-                          {{ item.payment_amount ?? '-' }}
+                            {{ item.payment_amount ?? '-' }}
                         </div>
 
                         <div class="text-sm">
@@ -132,56 +135,61 @@ watch(open, (newData) => {
                             Purchase Platform
                         </div>
                         <div class="text-sm text-right font-bold">
-                          {{ item.purchase_platform }}
+                            {{ item.purchase_platform }}
                         </div>
                     </div>
                 </template>
 
                 <template #purchased-items>
-                    <div
-                      v-if="item.items"
-                      v-for="orderItem in item.items"
-                      :key="orderItem.id"
-                      class="grid grid-cols-2 gap-4 not-last:mb-4 not-last:pb-4 not-last:border-b not-last:border-default"
-                    >
-                        <div class="col-span-2 flex justify-between items-center text-sm">
-                            <p class="font-semibold">
-                            {{ orderItem.product_name }}
-                            </p>
-                        </div>
+                    <template v-if="item.items">
+                        <div
+                            v-for="orderItem in item.items"
+                            :key="orderItem.id"
+                            class="grid grid-cols-2 gap-4 not-last:mb-4 not-last:pb-4 not-last:border-b not-last:border-default"
+                        >
+                            <div class="col-span-2 flex justify-between items-center text-sm">
+                                <p class="font-semibold">
+                                    {{ orderItem.product_name }}
+                                </p>
+                            </div>
 
-                        <div class="text-sm">
-                            <div class="text-xs text-toned flex justify-between items-end w-[70%]">
-                              <span>{{ orderItem.quantity }} x</span>
+                            <div class="text-sm">
+                                <div class="text-xs text-toned flex justify-between items-end w-[70%]">
+                                    <span>{{ orderItem.quantity }} x</span>
 
-                                <div class="text-right flex flex-col">
-                                    <div
-                                      v-if="orderItem.discount_value"
-                                      class="flex items-center justify-between gap-4"
-                                    >
-                                        <p class="line-through">
-                                            {{ orderItem.price }}
-                                        </p>
-                                        <UBadge
-                                            color="warning"
-                                            variant="subtle"
-                                            size="sm"
-                                            :label="`${orderItem.discount_value} Off`"
-                                        />
-                                    </div>
+                                    <div class="text-right flex flex-col">
+                                        <div
+                                            v-if="orderItem.discount_value"
+                                            class="flex items-center justify-between gap-4"
+                                        >
+                                            <p class="line-through">
+                                                {{ orderItem.price }}
+                                            </p>
+                                            <UBadge
+                                                color="warning"
+                                                variant="subtle"
+                                                size="sm"
+                                                :label="`${orderItem.discount_value} Off`"
+                                            />
+                                        </div>
 
-                                    <div class="flex items-center justify-between gap-4">
-                                        <p v-if="orderItem.discount_value">{{ orderItem.discounted_price }}</p>
-                                        <p v-else>{{ orderItem.price }}</p>
+                                        <div class="flex items-center justify-between gap-4">
+                                            <p v-if="orderItem.discount_value">
+                                                {{ orderItem.discounted_price }}
+                                            </p>
+                                            <p v-else>
+                                                {{ orderItem.price }}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="text-sm text-right font-bold flex flex-col justify-end">
-                            {{ orderItem.subtotal }}
+                            <div class="text-sm text-right font-bold flex flex-col justify-end">
+                                {{ orderItem.subtotal }}
+                            </div>
                         </div>
-                    </div>
+                    </template>
 
                     <div class="grid grid-cols-2 gap-2 mb-4">
                         <div class="text-sm">
@@ -208,22 +216,21 @@ watch(open, (newData) => {
                 </template>
 
                 <template #tickets-owner>
-                    <template
-                      v-if="item.items"
-                      v-for="orderItem in item.items"
-                    >
-                        <div
-                          v-for="ticket in orderItem.tickets"
-                          :key="ticket.id"
-                          class="grid grid-cols-2 gap-2"
-                        >
-                            <div class="text-sm">
-                              {{ ticket.name }}
+                    <template v-if="item.items">
+                        <template v-for="orderItem in item.items">
+                            <div
+                                v-for="ticket in orderItem.tickets"
+                                :key="ticket.id"
+                                class="grid grid-cols-2 gap-2"
+                            >
+                                <div class="text-sm">
+                                    {{ ticket.name }}
+                                </div>
+                                <div class="text-sm text-right font-bold">
+                                    {{ orderItem.product_name }}
+                                </div>
                             </div>
-                            <div class="text-sm text-right font-bold">
-                              {{ orderItem.product_name }}
-                            </div>
-                        </div>
+                        </template>
                     </template>
                 </template>
             </UAccordion>

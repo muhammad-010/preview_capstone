@@ -375,39 +375,39 @@ export interface UserForm {
 export type TenantOrderStatus = 'Success' | 'Pending' | 'Waiting Payment' | 'Failed' | 'Refunded'
 export type TenantPaymentStatus = 'Paid' | 'Pending' | 'Expired' | 'Failed' | 'Refunded'
 export interface TenantOrderItemTicket {
-  id: number
-  name: string
-  email: string
-  phone: string
+    id: number
+    name: string
+    email: string
+    phone: string
 }
 
 export interface TenantOrderItem {
-  id: number
-  product_id: number
-  product_name: string
-  price: string
-  quantity: number
-  subtotal: string
-  tickets: TenantOrderItemTicket[]
+    id: number
+    product_id: number
+    product_name: string
+    price: string
+    quantity: number
+    subtotal: string
+    tickets: TenantOrderItemTicket[]
 
-  discount_value?: string
-  discounted_price?: string
+    discount_value?: string
+    discounted_price?: string
 }
 
 export interface TenantOrder {
-  order_id: number
-  invoice: string
-  user_name: string
-  total_price: string
-  order_status: TenantOrderStatus
-  payment_status: TenantPaymentStatus
-  payment_method: string
-  created_at: ISOString
+    order_id: number
+    invoice: string
+    user_name: string
+    total_price: string
+    order_status: TenantOrderStatus
+    payment_status: TenantPaymentStatus
+    payment_method: string
+    created_at: ISOString
 
-  user_email?: string
-  fee_amount?: string
-  payment_amount?: string
-  payment_paid_at?: ISOString
-  purchase_platform?: string
-  items?: TenantOrderItem[]
+    user_email?: string
+    fee_amount?: string
+    payment_amount?: string
+    payment_paid_at?: ISOString
+    purchase_platform?: string
+    items?: TenantOrderItem[]
 }

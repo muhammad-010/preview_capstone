@@ -27,13 +27,13 @@ const filterPaymentStatus = ref([])
 const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId.value}/order`, {
     transform: res => res.data,
     query: {
-      query,
-      ...(filterMinAmount.value ? { total_price_from: filterMinAmount.value } : {}),
-      ...(filterMaxAmount.value ? { total_price_to: filterMaxAmount.value } : {}),
-      ...(filterOrderStatus.value.length ? { order_statuses: filterOrderStatus.value.join(',') } : {}),
-      ...(filterPaymentStatus.value.length ? { payment_statuses: filterPaymentStatus.value.join(',') } : {}),
-      page,
-      limit,
+        query,
+        ...(filterMinAmount.value ? { total_price_from: filterMinAmount.value } : {}),
+        ...(filterMaxAmount.value ? { total_price_to: filterMaxAmount.value } : {}),
+        ...(filterOrderStatus.value.length ? { order_statuses: filterOrderStatus.value.join(',') } : {}),
+        ...(filterPaymentStatus.value.length ? { payment_statuses: filterPaymentStatus.value.join(',') } : {}),
+        page,
+        limit,
     },
     watch: [page, limit],
 })
