@@ -144,8 +144,8 @@ async function openDetail(orderId: number) {
     try {
         const data = await $api(`/api/tenant/${props.tenantId}/order/${orderId}/detail`)
         if (data.success) {
-          target.value = cloneObject(data.data)
-          detailModal.value = true
+            target.value = cloneObject(data.data)
+            detailModal.value = true
         }
         else {
             errorToast({ description: data.message })
