@@ -20,6 +20,7 @@ export const APP_TENANT_ADMIN_ROUTES: string[] = [
     '/members',
     '/reports',
     '/lottery',
+    '/order',
 ]
 
 export const APP_POC_ADMIN_ROUTES: string[] = [
@@ -217,6 +218,14 @@ export const APP_ROUTES: AppRoute[] = [
                 disabled: true,
             },
         ],
+    },
+    {
+        title: 'Order',
+        description: 'Manage transactions, refunds, and payment gateways',
+        label: 'Order',
+        icon: 'lucide:credit-card',
+        to: '/order',
+        render: true,
     },
 
     {

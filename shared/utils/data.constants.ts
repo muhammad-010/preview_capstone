@@ -9,6 +9,8 @@ import type {
     TenantEventSettingKeys,
     TemplateType,
     StoreProductType,
+    TenantOrderStatus,
+    TenantPaymentStatus,
 } from '../types/data'
 
 // STATUS
@@ -134,3 +136,25 @@ export const TEMPLATE_CERTIFICATE: TemplateType = 'certificate'
 
 // STORE_PRODUCT_TYPE
 export const STORE_PRODUCT_TYPE_SCHEDULED_SESSION: StoreProductType = 'scheduled-session'
+
+// ORDER_STATUS
+export const TENANT_ORDER_STATUS_COLORS: Record<
+    TenantOrderStatus, 'success' | 'error' | 'primary' | 'neutral' | 'info' | 'warning' | 'secondary'
+> = {
+    ['Success']: 'success',
+    ['Failed']: 'error',
+    ['Refunded']: 'secondary',
+    ['Pending']: 'warning',
+    ['Waiting Payment']: 'info',
+} as const
+
+// PAYMENT_STATUS
+export const TENANT_PAYMENT_STATUS_COLORS: Record<
+    TenantPaymentStatus, 'success' | 'error' | 'primary' | 'neutral' | 'info' | 'warning' | 'secondary'
+> = {
+    ['Paid']: 'success',
+    ['Failed']: 'error',
+    ['Refunded']: 'secondary',
+    ['Pending']: 'warning',
+    ['Expired']: 'neutral',
+} as const
