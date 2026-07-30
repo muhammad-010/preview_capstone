@@ -26,29 +26,29 @@ const filterOrderStatus = ref([])
 const filterPaymentStatus = ref([])
 
 const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId.value}/order`, {
-  transform: res => res.data,
-  watch: false,
-  query: computed(() => ({
-    query: query.value,
-    ...(filterStartDate.value ? { created_at_from: toZoned(filterStartDate.value, timeZone).toDate().toISOString() } : {}),
-    ...(filterEndDate.value ? { created_at_to: toZoned(filterEndDate.value, timeZone).toDate().toISOString() } : {}),
-    ...(filterMinAmount.value ? { total_price_from: filterMinAmount.value } : {}),
-    ...(filterMaxAmount.value ? { total_price_to: filterMaxAmount.value } : {}),
-    ...(filterPaymentMethod.value.length
-      ? { payment_method_ids: filterPaymentMethod.value.join(',') }
-      : {}),
-    ...(filterOrderStatus.value.length
-      ? { order_statuses: filterOrderStatus.value.map(e => TENANT_ORDER_STATUS_ENUM[e]).join(',') }
-      : {}),
-    ...(filterPaymentStatus.value.length
-      ? { payment_statuses: filterPaymentStatus.value.map(e => TENANT_PAYMENT_STATUS_ENUM[e]).join(',') }
-      : {}),
-    page: page.value,
-    limit: limit.value,
-  })),
+    transform: res => res.data,
+    watch: false,
+    query: computed(() => ({
+        query: query.value,
+        ...(filterStartDate.value ? { created_at_from: toZoned(filterStartDate.value, timeZone).toDate().toISOString() } : {}),
+        ...(filterEndDate.value ? { created_at_to: toZoned(filterEndDate.value, timeZone).toDate().toISOString() } : {}),
+        ...(filterMinAmount.value ? { total_price_from: filterMinAmount.value } : {}),
+        ...(filterMaxAmount.value ? { total_price_to: filterMaxAmount.value } : {}),
+        ...(filterPaymentMethod.value.length
+            ? { payment_method_ids: filterPaymentMethod.value.join(',') }
+            : {}),
+        ...(filterOrderStatus.value.length
+            ? { order_statuses: filterOrderStatus.value.map(e => TENANT_ORDER_STATUS_ENUM[e]).join(',') }
+            : {}),
+        ...(filterPaymentStatus.value.length
+            ? { payment_statuses: filterPaymentStatus.value.map(e => TENANT_PAYMENT_STATUS_ENUM[e]).join(',') }
+            : {}),
+        page: page.value,
+        limit: limit.value,
+    })),
 })
 watch([page, limit], () => {
-  refresh()
+    refresh()
 })
 const list = computed<TenantOrder[]>(() => data.value?.list ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
@@ -67,19 +67,19 @@ function clearSearch() {
 }
 
 function applyFilter() {
-  filterSlideover.value = false
-  refresh()
+    filterSlideover.value = false
+    refresh()
 }
 
 function resetFilter() {
-  filterStartDate.value = undefined
-  filterEndDate.value = undefined
-  filterMinAmount.value = 0
-  filterMaxAmount.value = 0
-  filterOrderStatus.value = []
-  filterPaymentStatus.value = []
-  filterPaymentMethod.value = []
-  refresh()
+    filterStartDate.value = undefined
+    filterEndDate.value = undefined
+    filterMinAmount.value = 0
+    filterMaxAmount.value = 0
+    filterOrderStatus.value = []
+    filterPaymentStatus.value = []
+    filterPaymentMethod.value = []
+    refresh()
 }
 
 const { data: paymentMethodData } = await useApi(`/api/public/order/payment_method`, {
@@ -272,8 +272,8 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                         label="Payment Method"
                     >
                         <USelectMenu
-                            multiple
                             v-model="filterPaymentMethod"
+                            multiple
                             :items="paymentMethods"
                             value-key="value"
                             class="min-w-48"

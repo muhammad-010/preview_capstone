@@ -139,19 +139,19 @@ export const STORE_PRODUCT_TYPE_SCHEDULED_SESSION: StoreProductType = 'scheduled
 
 // ORDER_STATUS
 export const TENANT_ORDER_STATUS_LIST: { label: TenantOrderStatus, value: TenantOrderStatus, description?: string }[] = [
-  { label: 'Success', value: 'Success' },
-  { label: 'Pending', value: 'Pending' },
-  { label: 'Waiting Payment', value: 'Waiting Payment' },
-  { label: 'Failed', value: 'Failed' },
-  { label: 'Refunded', value: 'Refunded' },
+    { label: 'Success', value: 'Success' },
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Waiting Payment', value: 'Waiting Payment' },
+    { label: 'Failed', value: 'Failed' },
+    { label: 'Refunded', value: 'Refunded' },
 ]
 export const TENANT_ORDER_STATUS_ENUM = {
-  'Waiting Payment': 1,
-  Pending: 2,
-  Success: 3,
-  Failed: 4,
-  'Waiting Refund': 5,
-  Refunded: 6,
+    'Waiting Payment': 1,
+    'Pending': 2,
+    'Success': 3,
+    'Failed': 4,
+    'Waiting Refund': 5,
+    'Refunded': 6,
 } as const
 export const TENANT_ORDER_STATUS_COLORS: Record<
     TenantOrderStatus, 'success' | 'error' | 'primary' | 'neutral' | 'info' | 'warning' | 'secondary'
@@ -165,19 +165,19 @@ export const TENANT_ORDER_STATUS_COLORS: Record<
 
 // PAYMENT_STATUS
 export const TENANT_PAYMENT_STATUS_LIST: { label: TenantPaymentStatus, value: TenantPaymentStatus, description?: string }[] = [
-  { label: 'Paid',  value: 'Paid' },
-  { label: 'Pending', value: 'Pending' },
-  { label: 'Expired', value: 'Expired' },
-  { label: 'Failed', value: 'Failed' },
-  { label: 'Refunded', value: 'Refunded' },
+    { label: 'Paid', value: 'Paid' },
+    { label: 'Pending', value: 'Pending' },
+    { label: 'Expired', value: 'Expired' },
+    { label: 'Failed', value: 'Failed' },
+    { label: 'Refunded', value: 'Refunded' },
 ]
 export const TENANT_PAYMENT_STATUS_ENUM = {
-  Pending: 1,
-  Paid: 2,
-  Failed: 3,
-  Expired: 4,
-  'Refund Pending': 5,
-  Refunded: 6,
+    'Pending': 1,
+    'Paid': 2,
+    'Failed': 3,
+    'Expired': 4,
+    'Refund Pending': 5,
+    'Refunded': 6,
 } as const
 export const TENANT_PAYMENT_STATUS_COLORS: Record<
     TenantPaymentStatus, 'success' | 'error' | 'primary' | 'neutral' | 'info' | 'warning' | 'secondary'
