@@ -9,84 +9,34 @@ const query = ref('')
 const page = ref(1)
 const limit = ref(5)
 
+const filterSlideover = ref(false)
+const filterStartDateRef = useTemplateRef('filterStartDateRef')
+const filterStartDate = shallowRef(new CalendarDate(2022, 1, 10))
+
+const filterEndDateRef = useTemplateRef('filterEndDateRef')
+const filterEndDate = shallowRef(new CalendarDate(2022, 2, 10))
+
+const filterMinAmount = ref(0)
+const filterMaxAmount = ref(0)
+
+const filterPaymentMethod = ref('all')
+
+const filterOrderStatus = ref([])
+const filterPaymentStatus = ref([])
+
 const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId.value}/order`, {
     transform: res => res.data,
-    query: { query, page, limit },
+    query: {
+      query,
+      ...(filterMinAmount.value ? { total_price_from: filterMinAmount.value } : {}),
+      ...(filterMaxAmount.value ? { total_price_to: filterMaxAmount.value } : {}),
+      ...(filterOrderStatus.value.length ? { order_statuses: filterOrderStatus.value.join(',') } : {}),
+      ...(filterPaymentStatus.value.length ? { payment_statuses: filterPaymentStatus.value.join(',') } : {}),
+      page,
+      limit,
+    },
     watch: [page, limit],
 })
-/*
-const pending = ref(false)
-const data = ref({
-    order: [
-        {
-            order_id: 1,
-            invoice: 'INV/1/1/20260101',
-            name: 'Ramona',
-            amount: 1500000,
-            payment_method: {
-                name: 'Virtual Account',
-                detail: 'BCA VA',
-            },
-            payment_status: 'paid' as OrderPaymentStatus,
-            status: 'Success' as OrderStatus,
-            date: '2026-07-06T17:16:32+07:00',
-        },
-        {
-            order_id: 2,
-            invoice: 'INV/2/2/20260101',
-            name: 'Tawil',
-            amount: 1500000,
-            payment_method: {
-                name: 'E-Wallet',
-                detail: 'GoPay',
-            },
-            payment_status: 'pending' as OrderPaymentStatus,
-            status: 'Pending' as OrderStatus,
-            date: '2026-07-06T17:16:32+07:00',
-        },
-        {
-            order_id: 3,
-            invoice: 'INV/3/3/20260101',
-            name: 'Miryam',
-            amount: 500000,
-            payment_method: {
-                name: 'Retail Outlet',
-                detail: 'Alfamart',
-            },
-            payment_status: 'expired' as OrderPaymentStatus,
-            status: 'Waiting Payment' as OrderStatus,
-            date: '2026-07-06T17:16:32+07:00',
-        },
-        {
-            order_id: 4,
-            invoice: 'INV/4/4/20260101',
-            name: 'Arachne',
-            amount: 250000,
-            payment_method: {
-                name: 'Credit Card',
-                detail: 'VISA',
-            },
-            payment_status: 'failed' as OrderPaymentStatus,
-            status: 'Failed' as OrderStatus,
-            date: '2026-07-06T17:16:32+07:00',
-        },
-        {
-            order_id: 5,
-            invoice: 'INV/5/5/20260101',
-            name: 'Thais',
-            amount: 750000,
-            payment_method: {
-                name: 'QRIS',
-                detail: 'QRIS',
-            },
-            payment_status: 'refunded' as OrderPaymentStatus,
-            status: 'Refunded' as OrderStatus,
-            date: '2026-07-06T17:16:32+07:00',
-        },
-    ],
-    total_data: 5,
-})
-*/
 const list = computed<TenantOrder[]>(() => data.value?.list ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
 
@@ -102,21 +52,6 @@ function clearSearch() {
     query.value = ''
     refresh()
 }
-
-const filterSlideover = ref(false)
-const filterStartDateRef = useTemplateRef('filterStartDateRef')
-const filterStartDate = shallowRef(new CalendarDate(2022, 1, 10))
-
-const filterEndDateRef = useTemplateRef('filterEndDateRef')
-const filterEndDate = shallowRef(new CalendarDate(2022, 2, 10))
-
-const filterMinAmount = ref(0)
-const filterMaxAmount = ref(0)
-
-const filterPaymentMethod = ref('all')
-
-const filterOrderStatus = ref([])
-const filterPaymentStatus = ref([])
 
 useHead({
     title: 'Order',
@@ -317,7 +252,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                         <UCheckboxGroup
                             v-model="filterPaymentStatus"
                             variant="table"
-                            :items="['paid', 'pending', 'expired', 'failed', 'refunded']"
+                            :items="['Paid', 'Pending', 'Expired', 'Failed', 'Refunded']"
                         />
                     </UFormField>
                 </div>
@@ -328,6 +263,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     label="Apply Filter"
                     block
                     class="text-xl font-semibold py-3"
+                    @click="refresh()"
                 />
             </template>
         </USlideover>

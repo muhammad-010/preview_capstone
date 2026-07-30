@@ -74,7 +74,7 @@ function useColumns() {
         },
         {
             accessorKey: 'payment_status',
-            header: 'Status',
+            header: 'Payment Status',
             cell: ({ row }) => {
                 return h(UBadge, {
                     color: TENANT_PAYMENT_STATUS_COLORS[row.getValue('payment_status') as TenantPaymentStatus],
@@ -85,7 +85,7 @@ function useColumns() {
         },
         {
             accessorKey: 'status',
-            header: 'Status',
+            header: 'Order Status',
             cell: ({ row }) => {
                 return h(UBadge, {
                     color: TENANT_ORDER_STATUS_COLORS[row.getValue('order_status') as TenantOrderStatus],
