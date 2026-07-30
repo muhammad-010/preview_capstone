@@ -204,3 +204,7 @@ export type TenantOrderListResult = Result<
 >
 
 export type TenantOrderDetailResult = Result<TenantOrder>
+
+export type PaymentMethodListResult = Result<{
+    payment_methods: PaymentMethod[]
+}>

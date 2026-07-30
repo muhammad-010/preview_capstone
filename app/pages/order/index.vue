@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDate } from '@internationalized/date'
+import { toZoned } from '@internationalized/date'
 
 const route = useRoute()
 const { tenantId } = useUserState()
@@ -9,33 +9,46 @@ const query = ref('')
 const page = ref(1)
 const limit = ref(5)
 
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 const filterSlideover = ref(false)
 const filterStartDateRef = useTemplateRef('filterStartDateRef')
-const filterStartDate = shallowRef(new CalendarDate(2022, 1, 10))
+const filterStartDate = shallowRef()
 
 const filterEndDateRef = useTemplateRef('filterEndDateRef')
-const filterEndDate = shallowRef(new CalendarDate(2022, 2, 10))
+const filterEndDate = shallowRef()
 
 const filterMinAmount = ref(0)
 const filterMaxAmount = ref(0)
 
-const filterPaymentMethod = ref('all')
+const filterPaymentMethod = ref([])
 
 const filterOrderStatus = ref([])
 const filterPaymentStatus = ref([])
 
 const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId.value}/order`, {
     transform: res => res.data,
-    query: {
-        query,
+    watch: false,
+    query: computed(() => ({
+        query: query.value,
+        ...(filterStartDate.value ? { created_at_from: toZoned(filterStartDate.value, timeZone).toDate().toISOString() } : {}),
+        ...(filterEndDate.value ? { created_at_to: toZoned(filterEndDate.value, timeZone).toDate().toISOString() } : {}),
         ...(filterMinAmount.value ? { total_price_from: filterMinAmount.value } : {}),
         ...(filterMaxAmount.value ? { total_price_to: filterMaxAmount.value } : {}),
-        ...(filterOrderStatus.value.length ? { order_statuses: filterOrderStatus.value.join(',') } : {}),
-        ...(filterPaymentStatus.value.length ? { payment_statuses: filterPaymentStatus.value.join(',') } : {}),
-        page,
-        limit,
-    },
-    watch: [page, limit],
+        ...(filterPaymentMethod.value.length
+            ? { payment_method_ids: filterPaymentMethod.value.join(',') }
+            : {}),
+        ...(filterOrderStatus.value.length
+            ? { order_statuses: filterOrderStatus.value.map(e => TENANT_ORDER_STATUS_ENUM[e]).join(',') }
+            : {}),
+        ...(filterPaymentStatus.value.length
+            ? { payment_statuses: filterPaymentStatus.value.map(e => TENANT_PAYMENT_STATUS_ENUM[e]).join(',') }
+            : {}),
+        page: page.value,
+        limit: limit.value,
+    })),
+})
+watch([page, limit], () => {
+    refresh()
 })
 const list = computed<TenantOrder[]>(() => data.value?.list ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
@@ -52,6 +65,35 @@ function clearSearch() {
     query.value = ''
     refresh()
 }
+
+function applyFilter() {
+    filterSlideover.value = false
+    refresh()
+}
+
+function resetFilter() {
+    filterStartDate.value = undefined
+    filterEndDate.value = undefined
+    filterMinAmount.value = 0
+    filterMaxAmount.value = 0
+    filterOrderStatus.value = []
+    filterPaymentStatus.value = []
+    filterPaymentMethod.value = []
+    refresh()
+}
+
+const { data: paymentMethodData } = await useApi(`/api/public/order/payment_method`, {
+    transform: res => res.data,
+})
+const paymentMethods = computed(() => {
+    if (!paymentMethodData.value) return []
+    const pm = paymentMethodData.value.payment_methods
+        .map(pm => ({
+            label: pm.name,
+            value: pm.id,
+        }))
+    return pm
+})
 
 useHead({
     title: 'Order',
@@ -231,8 +273,12 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     >
                         <USelectMenu
                             v-model="filterPaymentMethod"
-                            :items="[{ label: 'All Payment Method', value: 'all' }]"
+                            multiple
+                            :items="paymentMethods"
                             value-key="value"
+                            class="min-w-48"
+                            placeholder="Select Payment Method (Empty Means All)"
+                            clear
                         />
                     </UFormField>
 
@@ -241,8 +287,10 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     >
                         <UCheckboxGroup
                             v-model="filterOrderStatus"
-                            variant="table"
-                            :items="['Success', 'Pending', 'Waiting Payment', 'Failed', 'Refunded']"
+                            indicator="end"
+                            variant="card"
+                            :items="TENANT_ORDER_STATUS_LIST"
+                            :ui="{ fieldset: 'gap-y-2' }"
                         />
                     </UFormField>
 
@@ -251,20 +299,30 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     >
                         <UCheckboxGroup
                             v-model="filterPaymentStatus"
-                            variant="table"
-                            :items="['Paid', 'Pending', 'Expired', 'Failed', 'Refunded']"
+                            indicator="end"
+                            variant="card"
+                            :items="TENANT_PAYMENT_STATUS_LIST"
+                            :ui="{ fieldset: 'gap-y-2' }"
                         />
                     </UFormField>
                 </div>
             </template>
 
             <template #footer>
-                <UButton
-                    label="Apply Filter"
-                    block
-                    class="text-xl font-semibold py-3"
-                    @click="refresh()"
-                />
+                <div class="flex items-center justify-center w-full gap-4">
+                    <UButton
+                        color="neutral"
+                        variant="soft"
+                        label="Reset Filter"
+                        class="text-lg font-semibold py-3 w-full"
+                        @click="resetFilter()"
+                    />
+                    <UButton
+                        label="Apply Filter"
+                        class="text-lg font-semibold py-3 w-full"
+                        @click="applyFilter()"
+                    />
+                </div>
             </template>
         </USlideover>
     </div>

@@ -84,7 +84,7 @@ function useColumns() {
             },
         },
         {
-            accessorKey: 'status',
+            accessorKey: 'order_status',
             header: 'Order Status',
             cell: ({ row }) => {
                 return h(UBadge, {

@@ -411,3 +411,12 @@ export interface TenantOrder {
     purchase_platform?: string
     items?: TenantOrderItem[]
 }
+
+export interface PaymentMethod {
+    id: number
+    name: string
+    image_url: string
+    is_active: boolean
+    min_amount: number
+    max_amount: number
+}
