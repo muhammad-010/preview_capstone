@@ -345,28 +345,28 @@ export interface TenantEventTicketCheckIn {
 }
 
 export interface TenantEventTicketAbilityReference {
-  event_session_id?: number
-  name?: string
-  start_time?: ISOString
-  end_time?: ISOString
-  location?: string
+    event_session_id?: number
+    name?: string
+    start_time?: ISOString
+    end_time?: ISOString
+    location?: string
 }
 
 export interface TenantEventTicketAbilityActivity {
-  ticket_activity_id: number
-  action: string
-  action_by: number
-  created_at: ISOString
+    ticket_activity_id: number
+    action: string
+    action_by: number
+    created_at: ISOString
 }
 
 export interface TenantEventTicketAbility {
-  ticket_ability_id: number
-  pax: number
-  valid_start_time: ISOString
-  valid_end_time: ISOString
-  reference_type: string
-  reference: TenantEventTicketAbilityReference
-  activities: TenantEventTicketAbilityActivity[]
+    ticket_ability_id: number
+    pax: number
+    valid_start_time: ISOString
+    valid_end_time: ISOString
+    reference_type: string
+    reference: TenantEventTicketAbilityReference
+    activities: TenantEventTicketAbilityActivity[]
 }
 
 // USER
