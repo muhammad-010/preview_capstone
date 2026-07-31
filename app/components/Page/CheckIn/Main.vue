@@ -21,6 +21,8 @@ const participant = defineModel<ParticipantCheckInTarget>('participant', { defau
     name: '',
     maxAttendance: 0,
     customAttributes: [],
+    code: '',
+    activity_id: 0,
 }),
 })
 const errorMessage = defineModel<string>('error-message', { default: '' })
@@ -163,6 +165,8 @@ watch([checkInSuccessDialog, checkInFailedDialog], ([successDialog, failedDialog
             name: '',
             maxAttendance: 0,
             customAttributes: [],
+            code: '',
+            activity_id: 0,
         }
     }
     if (successClosed || failedClosed) {
@@ -187,18 +191,19 @@ async function qrDetected(qrCodes: DetectedBarcode[]) {
     participantQr.value = qrCode.rawValue
 
     try {
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/ticket/action/checkin`, {
             method: 'POST',
             body: {
-                token: participantQr.value,
+                code: participantQr.value,
             },
         })
         participant.value = {
             ...participant.value,
             sessionId: props.sessionId,
-            name: data.participant.name || '',
-            maxAttendance: data.participant.max_attendance || 0,
-            customAttributes: data.participant.custom_attributes || [],
+            name: data.ticket.owner_name || '',
+            maxAttendance: data.ticket.max_attendance || 0,
+            customAttributes: data.ticket.custom_attributes || [],
+            activity_id: data.activity_id,
         }
         if (data.confirmation_attendance) {
             openConfirmAttendanceDialog()
@@ -223,35 +228,35 @@ async function qrDetected(qrCodes: DetectedBarcode[]) {
 }
 
 // MANUAL CHECK IN
-async function selectParticipant(selectedParticipant: Participant | undefined) {
+async function selectParticipant(selectedParticipant: TenantEventTicket | undefined) {
     if (props.isPreview) return
-
     if (!selectedParticipant) return
+
+    await manualCheckIn(selectedParticipant)
+}
+
+async function manualCheckIn(selectedParticipant: TenantEventTicket) {
+    if (props.isPreview || !props.sessionId) return
+    if (!selectedParticipant.code) return
 
     participant.value = {
         ...participant.value,
-        id: selectedParticipant.participant_id || 0,
+        id: selectedParticipant.ticket_id || 0,
         name: selectedParticipant.name,
+        code: selectedParticipant.code,
     }
-    await manualCheckIn()
-}
-
-async function manualCheckIn() {
-    if (props.isPreview || !props.sessionId) return
-
-    if (!participant.value.id) return
-
     try {
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/manual`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/ticket/action/checkin`, {
             method: 'POST',
             body: {
-                participant_id: participant.value.id,
+                code: participant.value.code,
             },
         })
         participant.value = {
             ...participant.value,
-            maxAttendance: data.participant.max_attendance || 0,
-            customAttributes: data.participant.custom_attributes || [],
+            maxAttendance: data.ticket.max_attendance || 0,
+            customAttributes: data.ticket.custom_attributes || [],
+            activity_id: data.activity_id,
         }
         if (data.confirmation_attendance) {
             openConfirmAttendanceDialog()
@@ -287,10 +292,10 @@ async function confirmAttendanceQr(event: FormSubmitEvent<ConfirmAttendanceSchem
     if (props.isPreview || !props.sessionId) return
 
     try {
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/confirm`, {
+        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/ticket/action/confirm`, {
             method: 'POST',
             body: {
-                token: participantQr.value,
+                activity_id: participant.value.activity_id,
                 count_attendance: Number(event.data.count),
             },
         })
@@ -310,10 +315,10 @@ async function confirmAttendanceManual(event: FormSubmitEvent<ConfirmAttendanceS
     if (props.isPreview || !props.sessionId) return
 
     try {
-        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/check-in/confirm/manual`, {
+        await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/ticket/action/confirm`, {
             method: 'POST',
             body: {
-                participant_id: participant.value.id,
+                activity_id: participant.value.activity_id,
                 count_attendance: Number(event.data.count),
             },
         })

@@ -11,6 +11,8 @@ import type {
     StoreProductType,
     TenantOrderStatus,
     TenantPaymentStatus,
+    TenantEventTicketStatus,
+    TenantEventTicketSessionStatus,
 } from '../types/data'
 
 // STATUS
@@ -59,38 +61,38 @@ export const TENANT_EVENT_SETTING_DROPDOWN: TenantEventSettingKeys[] = [
     TENANT_EVENT_SETTING_CERTIFICATE,
 ]
 
-// PARTICIPANT_STATUS
-export const PARTICIPANT_STATUS_CHECKED_IN: ParticipantStatus = 'Checked In'
-export const PARTICIPANT_STATUS_PENDING: ParticipantStatus = 'Pending'
+// TICKET_STATUS
+export const TICKET_STATUS_CHECKED_IN: TenantEventTicketStatus = 'Checked In'
+export const TICKET_STATUS_PENDING: TenantEventTicketStatus = 'Pending'
 
-export const PARTICIPANT_STATUS_DROPDOWN: ParticipantStatus[] = [
-    PARTICIPANT_STATUS_CHECKED_IN,
-    PARTICIPANT_STATUS_PENDING,
+export const TICKET_STATUS_DROPDOWN: TenantEventTicketStatus[] = [
+    TICKET_STATUS_CHECKED_IN,
+    TICKET_STATUS_PENDING,
 ]
 
-export const PARTICIPANT_STATUS_COLORS: Record<ParticipantStatus, 'success' | 'neutral'> = {
-    [PARTICIPANT_STATUS_CHECKED_IN]: 'success',
-    [PARTICIPANT_STATUS_PENDING]: 'neutral',
+export const TICKET_STATUS_COLORS: Record<TenantEventTicketStatus, 'success' | 'neutral'> = {
+    [TICKET_STATUS_CHECKED_IN]: 'success',
+    [TICKET_STATUS_PENDING]: 'neutral',
 } as const
 
-// PARTICIPANT_SSESSION_STATUS
-export const PARTICIPANT_SESSION_STATUS_NONE: ParticipantSessionStatus = 'none'
-export const PARTICIPANT_SESSION_STATUS_PARTIAL: ParticipantSessionStatus = 'partial'
-export const PARTICIPANT_SESSION_STATUS_COMPLETED: ParticipantSessionStatus = 'completed'
+// TICKET_SESSION_STATUS
+export const TICKET_SESSION_STATUS_NONE: TenantEventTicketSessionStatus = 'none'
+export const TICKET_SESSION_STATUS_PARTIAL: TenantEventTicketSessionStatus = 'partial'
+export const TICKET_SESSION_STATUS_COMPLETED: TenantEventTicketSessionStatus = 'completed'
 
-export const PARTICIPANT_SESSION_STATUS_DROPDOWN: ParticipantSessionStatus[] = [
-    PARTICIPANT_SESSION_STATUS_NONE,
-    PARTICIPANT_SESSION_STATUS_PARTIAL,
-    PARTICIPANT_SESSION_STATUS_COMPLETED,
+export const TICKET_SESSION_STATUS_DROPDOWN: TenantEventTicketSessionStatus[] = [
+    TICKET_SESSION_STATUS_NONE,
+    TICKET_SESSION_STATUS_PARTIAL,
+    TICKET_SESSION_STATUS_COMPLETED,
 ]
 
-export const PARTICIPANT_SESSION_STATUS_COLORS: Record<ParticipantSessionStatus, 'neutral' | 'info' | 'success'> = {
-    [PARTICIPANT_SESSION_STATUS_NONE]: 'neutral',
-    [PARTICIPANT_SESSION_STATUS_PARTIAL]: 'info',
-    [PARTICIPANT_SESSION_STATUS_COMPLETED]: 'success',
+export const TICKET_SESSION_STATUS_COLORS: Record<TenantEventTicketSessionStatus, 'neutral' | 'info' | 'success'> = {
+    [TICKET_SESSION_STATUS_NONE]: 'neutral',
+    [TICKET_SESSION_STATUS_PARTIAL]: 'info',
+    [TICKET_SESSION_STATUS_COMPLETED]: 'success',
 } as const
 
-// PARTICIPANT_INVITATION_STATUS
+// TICKET_INVITATION_STATUS
 export const INVITATION_STATUS_ON_QUEUE = 'queue'
 export const INVITATION_STATUS_SUCCESS = 'success'
 export const INVITATION_STATUS_FAILED = 'failed'
@@ -100,20 +102,6 @@ export const INVITATION_STATUS_COLORS: Record<InvitationStatus, 'warning' | 'suc
     [INVITATION_STATUS_SUCCESS]: 'success',
     [INVITATION_STATUS_FAILED]: 'error',
 }
-
-// PARTICIPANT_CATEGORY
-export const PARTICIPANT_CATEGORY_VIP = 'VIP'
-export const PARTICIPANT_CATEGORY_REGULAR = 'Regular'
-
-export const PARTICIPANT_CATEGORY_DROPDOWN: ParticipantCategory[] = [
-    PARTICIPANT_CATEGORY_VIP,
-    PARTICIPANT_CATEGORY_REGULAR,
-]
-
-export const PARTICIPANT_CATEGORY_COLORS: Record<ParticipantCategory, 'warn' | 'neutral'> = {
-    [PARTICIPANT_CATEGORY_VIP]: 'warn',
-    [PARTICIPANT_CATEGORY_REGULAR]: 'neutral',
-} as const
 
 // SEND_CHANNEL
 export const SEND_CHANNEL_EMAIL = 'email'
@@ -187,4 +175,51 @@ export const TENANT_PAYMENT_STATUS_COLORS: Record<
     ['Refunded']: 'secondary',
     ['Pending']: 'warning',
     ['Expired']: 'neutral',
+} as const
+
+// BELOW ARE DEPRECATED
+
+// PARTICIPANT_STATUS
+export const PARTICIPANT_STATUS_CHECKED_IN: ParticipantStatus = 'Checked In'
+export const PARTICIPANT_STATUS_PENDING: ParticipantStatus = 'Pending'
+
+export const PARTICIPANT_STATUS_DROPDOWN: ParticipantStatus[] = [
+    PARTICIPANT_STATUS_CHECKED_IN,
+    PARTICIPANT_STATUS_PENDING,
+]
+
+export const PARTICIPANT_STATUS_COLORS: Record<ParticipantStatus, 'success' | 'neutral'> = {
+    [PARTICIPANT_STATUS_CHECKED_IN]: 'success',
+    [PARTICIPANT_STATUS_PENDING]: 'neutral',
+} as const
+
+// PARTICIPANT_SSESSION_STATUS
+export const PARTICIPANT_SESSION_STATUS_NONE: ParticipantSessionStatus = 'none'
+export const PARTICIPANT_SESSION_STATUS_PARTIAL: ParticipantSessionStatus = 'partial'
+export const PARTICIPANT_SESSION_STATUS_COMPLETED: ParticipantSessionStatus = 'completed'
+
+export const PARTICIPANT_SESSION_STATUS_DROPDOWN: ParticipantSessionStatus[] = [
+    PARTICIPANT_SESSION_STATUS_NONE,
+    PARTICIPANT_SESSION_STATUS_PARTIAL,
+    PARTICIPANT_SESSION_STATUS_COMPLETED,
+]
+
+export const PARTICIPANT_SESSION_STATUS_COLORS: Record<ParticipantSessionStatus, 'neutral' | 'info' | 'success'> = {
+    [PARTICIPANT_SESSION_STATUS_NONE]: 'neutral',
+    [PARTICIPANT_SESSION_STATUS_PARTIAL]: 'info',
+    [PARTICIPANT_SESSION_STATUS_COMPLETED]: 'success',
+} as const
+
+// PARTICIPANT_CATEGORY
+export const PARTICIPANT_CATEGORY_VIP = 'VIP'
+export const PARTICIPANT_CATEGORY_REGULAR = 'Regular'
+
+export const PARTICIPANT_CATEGORY_DROPDOWN: ParticipantCategory[] = [
+    PARTICIPANT_CATEGORY_VIP,
+    PARTICIPANT_CATEGORY_REGULAR,
+]
+
+export const PARTICIPANT_CATEGORY_COLORS: Record<ParticipantCategory, 'warn' | 'neutral'> = {
+    [PARTICIPANT_CATEGORY_VIP]: 'warn',
+    [PARTICIPANT_CATEGORY_REGULAR]: 'neutral',
 } as const

@@ -8,7 +8,7 @@ const { $api } = useNuxtApp()
 const props = defineProps<{
     tenantId: number
     eventId: number
-    data: Participant[]
+    data: TenantEventTicket[]
     total: number
     pending?: boolean
     withPagination?: boolean
@@ -18,7 +18,7 @@ const page = defineModel<number>('page', { default: 0 })
 const selected = defineModel<number[]>('selected', { default: () => [] })
 const filterCustomAttribute = defineModel<CustomAttribute[]>('filter-custom-attribute', { default: () => [] })
 // const filterCheckedIn = defineModel<boolean | null>('filter-checked-in', { default: null })
-const filterSessionStatus = defineModel<ParticipantSessionStatus | null>('filter-session-status', { default: null })
+const filterSessionStatus = defineModel<TenantEventTicketSessionStatus | null>('filter-session-status', { default: null })
 const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_EXPORT, EMIT_TABLE_PRINT_QR, EMIT_TABLE_SEND_QR, EMIT_TABLE_PRINT_CERTIFICATE, EMIT_TABLE_SEND_CERTIFICATE, EMIT_TABLE_BULK_DELETE])
 const { successToast } = useSuccessToast()
 const { errorToast } = useErrorToast()
@@ -98,22 +98,22 @@ const filterSessionStatusItems = [
         value: null,
     },
     {
-        label: formatCapitalize(PARTICIPANT_SESSION_STATUS_NONE),
+        label: formatCapitalize(TICKET_SESSION_STATUS_NONE),
         description: 'Participant that haven\'t checked-in',
-        value: PARTICIPANT_SESSION_STATUS_NONE,
+        value: TICKET_SESSION_STATUS_NONE,
     },
     {
-        label: formatCapitalize(PARTICIPANT_SESSION_STATUS_PARTIAL),
+        label: formatCapitalize(TICKET_SESSION_STATUS_PARTIAL),
         description: 'Participant that already checked-in in some session',
-        value: PARTICIPANT_SESSION_STATUS_PARTIAL,
+        value: TICKET_SESSION_STATUS_PARTIAL,
     },
     {
-        label: formatCapitalize(PARTICIPANT_SESSION_STATUS_COMPLETED),
+        label: formatCapitalize(TICKET_SESSION_STATUS_COMPLETED),
         description: 'Participant that checked-in in all session',
-        value: PARTICIPANT_SESSION_STATUS_COMPLETED,
+        value: TICKET_SESSION_STATUS_COMPLETED,
     },
 ]
-const filterSessionStatusField = ref<ParticipantSessionStatus | null>(null)
+const filterSessionStatusField = ref<TenantEventTicketSessionStatus | null>(null)
 const filterSessionStatusLabel = computed(() => filterSessionStatusItems.find(e => e.value === filterSessionStatus.value)?.label || 'Invalid Data')
 const filterSessionStatusDialog = ref(false)
 
@@ -197,7 +197,7 @@ function closeDeleteConfirmation(skipResetPage?: boolean) {
 
 async function deleteData(id: number) {
     try {
-        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/${id}`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/${id}`, {
             method: 'DELETE',
         })
         if (data.success) {
@@ -222,10 +222,12 @@ const manualCheckInTarget = ref<ParticipantCheckInTarget>({
     name: '',
     maxAttendance: 0,
     customAttributes: [],
+    code: '',
+    activity_id: 0,
 })
 const manualCheckInDialog = ref(false)
 
-function openConfirmManualCheckIn(id: number, name: string) {
+function openConfirmManualCheckIn(id: number, name: string, code: string) {
     manualCheckInTarget.value = {
         id,
         sessionId: 0,
@@ -233,6 +235,8 @@ function openConfirmManualCheckIn(id: number, name: string) {
         name,
         maxAttendance: 0,
         customAttributes: [],
+        code,
+        activity_id: 0,
     }
     manualCheckInDialog.value = true
 }
@@ -286,7 +290,7 @@ watch(
     () => {
         const map: Record<string, boolean> = {}
         props.data.forEach((value, index) => {
-            if (selectAll.value || (value.participant_id && selected.value.includes(value.participant_id))) {
+            if (selectAll.value || (value.ticket_id && selected.value.includes(value.ticket_id))) {
                 map[index] = true
             }
         })
@@ -313,7 +317,7 @@ function useColumns() {
     const UTooltip = resolveComponent('UTooltip')
     const tableRef = useTemplateRef('tableRef')
 
-    function qrSent(participant: Participant) {
+    function qrSent(participant: TenantEventTicket) {
         if (!participant.latest_invitation_log) {
             return h('span', { class: 'text-dimmed' }, 'Not Sent')
         }
@@ -342,7 +346,7 @@ function useColumns() {
         return qrSent
     }
 
-    function certificateSent(participant: Participant) {
+    function certificateSent(participant: TenantEventTicket) {
         if (!participant.latest_certificate_log) {
             return h('span', { class: 'text-dimmed' }, 'Not Sent')
         }
@@ -383,7 +387,7 @@ function useColumns() {
                             askResetSelection(table.toggleAllPageRowsSelected)
                             return
                         }
-                        toggle(row.original.participant_id)
+                        toggle(row.original.ticket_id)
                         row.toggleSelected(!!value)
                     },
                     'aria-label': 'Select row',
@@ -469,7 +473,7 @@ function useColumns() {
             cell: ({ row }) => h('div', { class: 'flex flex-col gap-2' }, certificateSent(row.original)),
         },
         {
-            accessorKey: 'participant_id',
+            accessorKey: 'ticket_id',
             header: 'Action',
             meta: {
                 class: {
@@ -495,7 +499,7 @@ function useColumns() {
                             disabled,
                             icon: 'lucide:circle-check',
                             class: disabled ? 'opacity-25!' : '',
-                            onClick: () => openConfirmManualCheckIn(row.original.participant_id || 0, row.original.name),
+                            onClick: () => openConfirmManualCheckIn(row.original.ticket_id || 0, row.original.name, row.original.code),
                         }),
                     ]),
                     h(UTooltip, { text: 'Edit', delayDuration: 0 }, () => [
@@ -503,7 +507,7 @@ function useColumns() {
                             color: 'neutral',
                             variant: 'ghost',
                             icon: 'lucide:pencil',
-                            to: `/events/${props.eventId}/participant/${row.original.participant_id}/edit`,
+                            to: `/events/${props.eventId}/participant/${row.original.ticket_id}/edit`,
                         }),
                     ]),
                     h(UTooltip, { text: 'Delete', delayDuration: 0 }, () => [
@@ -511,13 +515,13 @@ function useColumns() {
                             color: 'error',
                             variant: 'ghost',
                             icon: 'lucide:trash',
-                            onClick: () => openDeleteConfirmation(row.original.participant_id || 0, row.original.name),
+                            onClick: () => openDeleteConfirmation(row.original.ticket_id || 0, row.original.name),
                         }),
                     ]),
                 ])
             },
         },
-    ] as TableColumn<Participant>[]
+    ] as TableColumn<TenantEventTicket>[]
 
     return { columns, tableRef }
 }

@@ -23,7 +23,7 @@ async function downloadTemplate() {
     try {
         downloadLoading.value = true
         await useDownload(
-            `/api/files/${FILE_IMPORT_PARTICIPANT}`,
+            `/api/storage/file/static/sheet/${FILE_IMPORT_PARTICIPANT}`,
             FILE_IMPORT_PARTICIPANT,
         )
     }
@@ -42,7 +42,7 @@ async function uploadTemplate() {
     body.append('file', uploadFile.value)
     try {
         uploadLoading.value = true
-        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/bulk`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/bulk`, {
             method: 'POST',
             body,
         })

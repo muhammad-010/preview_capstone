@@ -15,13 +15,13 @@ const limit = ref(5)
 const selectedIds = ref<number[]>([])
 const filterCustomAttribute = ref<CustomAttribute[]>(cloneObject(unref(props.customAttributes)))
 // const filterCheckedIn = ref<boolean | null>(null)
-const filterSessionStatus = ref<ParticipantSessionStatus | null>(null)
+const filterSessionStatus = ref<TenantEventTicketSessionStatus | null>(null)
 
 const exposed = {
     refresh: () => {},
 }
 defineExpose(exposed)
-const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
+const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket`, {
     transform: res => res.data,
     query: computed(() => {
         const cleanedFilterCustomAttribute = formatCleanCustomAttribute(filterCustomAttribute.value)
@@ -50,14 +50,15 @@ const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/e
 exposed.refresh = refresh
 const tableRef = ref()
 
-const participants = computed<Participant[]>(() => data.value?.participant ?? [])
+const tickets = computed<TenantEventTicket[]>(() => data.value?.ticket ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
 watch(page, () => refresh())
 watch(limit, () => refresh())
 
+// EXPORTION
 async function exportData() {
     try {
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/export`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/export`, {
             method: 'POST',
             body: {
                 query: query.value,
@@ -72,19 +73,22 @@ async function exportData() {
                 custom_attribute: [...formatCleanCustomAttribute(filterCustomAttribute.value)],
             },
         })
-        if (data.filepath) {
+        if (data.url) {
+            downloadFileUrl(data.url)
+            /*
             const filename = data.filepath.split('/').pop()
             if (!filename) {
                 errorToast({ description: 'Cannot read filename from filepath' })
                 return
             }
             await useDownload(
-                `/api/${data.filepath}`,
+                `/api/files/${data.filepath}`,
                 filename,
             )
+            */
         }
         else {
-            errorToast({ description: 'Cannot read filepath' })
+            errorToast({ description: 'Cannot read url' })
             return
         }
     }
@@ -213,7 +217,7 @@ const bulkDeleteConfirmation = ref(false)
                 v-model:filter-session-status="filterSessionStatus"
                 :tenant-id="tenantId"
                 :event-id="eventId"
-                :data="participants"
+                :data="tickets"
                 :total="total"
                 :pending="pending"
                 with-pagination

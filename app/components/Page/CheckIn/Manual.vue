@@ -19,7 +19,7 @@ const errorMessage = ref('')
 const phoneNumberLoading = ref(false)
 const failedDialog = ref(false)
 const participantDialog = ref(false)
-const participants = ref<Participant[]>([])
+const participants = ref<TenantEventTicket[]>([])
 type Schema = typeof state
 
 function openFailedDialog(msg: string) {
@@ -46,8 +46,8 @@ function clearPhoneNumber() {
     participants.value = []
 }
 
-async function publicPhoneNumber(phoneNumber: string): Promise<ParticipantListResult> {
-    return await $api<ParticipantListResult>(`/api/public/event/${props.eventId}/participant`, {
+async function publicPhoneNumber(phoneNumber: string): Promise<TenantEventTicketListResult> {
+    return await $api<TenantEventTicketListResult>(`/api/public/event/${props.eventId}/ticket`, {
         query: {
             page: 1,
             limit: 10,
@@ -56,8 +56,8 @@ async function publicPhoneNumber(phoneNumber: string): Promise<ParticipantListRe
     })
 }
 
-async function privatePhoneNumber(phoneNumber: string): Promise<ParticipantListResult> {
-    return await $api<ParticipantListResult>(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
+async function privatePhoneNumber(phoneNumber: string): Promise<TenantEventTicketListResult> {
+    return await $api<TenantEventTicketListResult>(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket`, {
         query: {
             page: 1,
             limit: 10,
@@ -76,7 +76,7 @@ async function submitPhoneNumber(event: FormSubmitEvent<Schema>) {
 
     phoneNumberLoading.value = true
     try {
-        let res: ParticipantListResult
+        let res: TenantEventTicketListResult
         if (props.isPublic) {
             res = await publicPhoneNumber(event.data.phoneNumber)
         }
@@ -84,11 +84,11 @@ async function submitPhoneNumber(event: FormSubmitEvent<Schema>) {
             res = await privatePhoneNumber(event.data.phoneNumber)
         }
 
-        if (!res.data.participant.length) {
+        if (!res.data.ticket.length) {
             openFailedDialog('No Participant Found')
             return
         }
-        participants.value = cloneObject(res.data.participant)
+        participants.value = cloneObject(res.data.ticket)
         participantDialog.value = true
         latestPhoneNumber.value = event.data.phoneNumber
     }
@@ -107,12 +107,10 @@ function selectParticipant(pId: number) {
 
     if (!pId) return
 
-    const participant = participants.value.find(p => p.participant_id === pId)
+    const participant = participants.value.find(p => p.ticket_id === pId)
     emit(EMIT_MODAL_SELECT, participant)
     participantDialog.value = false
-    setInterval(() => {
-        clearPhoneNumber()
-    }, 500)
+    clearPhoneNumber()
 }
 </script>
 

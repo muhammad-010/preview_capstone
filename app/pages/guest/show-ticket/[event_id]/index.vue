@@ -6,7 +6,7 @@ const route = useRoute()
 const id = Number(route.params.event_id)
 const errorMessage = ref('')
 const failedDialog = ref(false)
-const selectedParticipant = ref<Participant | undefined | null>(null)
+const selectedParticipant = ref<TenantEventTicket | undefined | null>(null)
 const ticketLoading = ref(false)
 const ticketBlob = ref<Blob | null>(null)
 const ticketUrl = ref<string | null>(null)
@@ -18,11 +18,11 @@ function openFailedDialog(msg: string) {
     failedDialog.value = true
 }
 
-async function selectParticipant(participant: Participant | undefined) {
+async function selectParticipant(participant: TenantEventTicket | undefined) {
     if (!participant) return
 
     selectedParticipant.value = participant
-    await loadTicket(selectedParticipant.value?.ticket_path || '', selectedParticipant.value.participant_id || 0, true)
+    await loadTicket(selectedParticipant.value?.ticket_path || '', selectedParticipant.value.ticket_id || 0, true)
 }
 
 async function loadTicket(filepath: string, pId: number, reload: boolean) {

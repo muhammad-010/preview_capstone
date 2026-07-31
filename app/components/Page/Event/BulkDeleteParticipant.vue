@@ -17,9 +17,9 @@ async function bulkDelete() {
     const ids = props.selectedIds.length > 0 ? props.selectedIds : []
     try {
         bulkDeleteLoading.value = true
-        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/bulk`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/bulk`, {
             method: 'DELETE',
-            body: ids.length ? { participant_ids: ids } : {},
+            body: ids.length ? { ticket_ids: ids } : {},
         })
         if (data.success) {
             successToast({ description: 'Bulk delete success' })

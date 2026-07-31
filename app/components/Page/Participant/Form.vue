@@ -8,13 +8,13 @@ const { errorToast } = useErrorToast()
 const props = defineProps<{
     tenantId: number
     eventId: number
-    participantId?: number
-    fields?: ParticipantForm
+    ticketId?: number
+    fields?: TenantEventTicketForm
     isModal?: boolean
 }>()
 const loading = defineModel<boolean>('loading', { default: false })
 const success = defineModel<boolean>('success', { default: false })
-const formRef = useTemplateRef<Form<ParticipantForm>>('formRef')
+const formRef = useTemplateRef<Form<TenantEventTicketForm>>('formRef')
 async function saveData() {
     await formRef.value?.submit()
 }
@@ -22,7 +22,7 @@ defineExpose({ saveData })
 
 const { customAttributes } = await useFindCustomAttribute(props.tenantId, props.eventId)
 
-const isCreate = !props.participantId
+const isCreate = !props.ticketId
 const schema = z.object({
     name: zodStringRequired('Participant name is required'),
     email: zodEmailRequired(),
@@ -42,7 +42,7 @@ const fields = props.fields
 if (fields && (!fields.custom_attribute || !fields.custom_attribute.length)) {
     fields.custom_attribute = cloneObject(unref(customAttributes.value))
 }
-const state = reactive<Partial<ParticipantForm>>(fields ?? {
+const state = reactive<Partial<TenantEventTicketForm>>(fields ?? {
     name: '',
     email: '',
     phone_number: '',
@@ -52,7 +52,7 @@ const state = reactive<Partial<ParticipantForm>>(fields ?? {
 
 async function addData(payload: FormSubmitEvent<Schema>) {
     try {
-        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket`, {
             method: 'POST',
             body: {
                 ...payload.data,
@@ -72,9 +72,9 @@ async function addData(payload: FormSubmitEvent<Schema>) {
     }
 }
 
-async function editData(payload: FormSubmitEvent<Schema>, participantId: number) {
+async function editData(payload: FormSubmitEvent<Schema>, ticketId: number) {
     try {
-        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/${participantId}`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/${ticketId}`, {
             method: 'PUT',
             body: {
                 ...payload.data,
@@ -100,7 +100,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
         await addData(payload)
     }
     else {
-        await editData(payload, props.participantId)
+        await editData(payload, props.ticketId)
     }
 }
 </script>

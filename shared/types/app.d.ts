@@ -60,6 +60,9 @@ export interface ParticipantCheckInTarget {
     name: string
     maxAttendance: number
     customAttributes: CustomAttribute[]
+
+    code: string
+    activity_id: number
 }
 
 export type Orientation = 'portrait' | 'landscape'

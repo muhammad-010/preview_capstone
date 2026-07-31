@@ -13,6 +13,8 @@ import type {
     TenantEventStoreProductForm,
     CustomAttribute,
     CustomAttributeForm,
+    TenantEventTicket,
+    TenantEventTicketForm,
 } from '../types/data'
 
 export function tenantFormToTenant(data: TenantForm): Tenant {
@@ -81,7 +83,7 @@ export function tenantEventSessionFormToTenantEventSession(data: TenantEventSess
     } as TenantEventSession
 }
 
-export function participantFormToParticipant(data: ParticipantForm): Participant {
+export function tenantEventTicketFormToTenantEventTicket(data: ParticipantForm): TenantEventTicket {
     return {
         name: data.name,
         email: data.email,
@@ -91,10 +93,10 @@ export function participantFormToParticipant(data: ParticipantForm): Participant
         },
         max_attendance: data.max_attendance,
         custom_attribute: [...(data.custom_attribute ?? [])],
-    } as Participant
+    } as TenantEventTicket
 }
 
-export function participantToParticipantForm(data: Participant): ParticipantForm {
+export function tenantEventTicketToTenantEventTicketForm(data: TenantEventTicket): TenantEventTicketForm {
     return {
         name: data.name,
         email: data.email,
@@ -103,7 +105,7 @@ export function participantToParticipantForm(data: Participant): ParticipantForm
             : data.phone_number,
         max_attendance: data.max_attendance,
         custom_attribute: [...(data.custom_attribute ?? [])],
-    } as ParticipantForm
+    } as TenantEventTicketForm
 }
 
 export function userFormToUser(data: UserForm): User {
@@ -157,4 +159,31 @@ export function storeProductToStoreProductForm(data: TenantEventStoreProduct): T
         attributes: [...data.attributes.map(e => e.attribute_id)],
         product_type: STORE_PRODUCT_TYPE_SCHEDULED_SESSION, // HARDCODE
     } as TenantEventStoreProductForm
+}
+
+// BELOW ARE DEPRECATED
+
+export function participantFormToParticipant(data: ParticipantForm): Participant {
+    return {
+        name: data.name,
+        email: data.email,
+        phone_number: data.phone_number,
+        phone: {
+            number: data.phone_number,
+        },
+        max_attendance: data.max_attendance,
+        custom_attribute: [...(data.custom_attribute ?? [])],
+    } as Participant
+}
+
+export function participantToParticipantForm(data: Participant): ParticipantForm {
+    return {
+        name: data.name,
+        email: data.email,
+        phone_number: data.phone
+            ? data.phone.number
+            : data.phone_number,
+        max_attendance: data.max_attendance,
+        custom_attribute: [...(data.custom_attribute ?? [])],
+    } as ParticipantForm
 }

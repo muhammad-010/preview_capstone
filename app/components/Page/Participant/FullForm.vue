@@ -40,7 +40,7 @@ async function saveForm() {
                 v-model:success="formSuccess"
                 :tenant-id="tenantId"
                 :event-id="eventId"
-                :participant-id="id"
+                :ticket-id="id"
                 :fields="fields"
             />
         </CardForm>

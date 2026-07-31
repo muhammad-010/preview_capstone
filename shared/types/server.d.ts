@@ -143,6 +143,79 @@ export type TemplateFontResult = Result<{
     version: string
 }>
 
+// TICKET
+export type TenantEventTicketListResult = Result<
+    PaginatedData<TenantEventTicket, 'ticket'>
+>
+
+export type TenantEventTicketDetailresult = Result<TenantEventTicket>
+
+export type TenantEventTicketFormResult = Result<TenantEventTicketForm>
+
+export type TenantEventTicketAddResult = Result<
+    AddedData<number, 'ticket_id'>
+>
+
+export type TenantEventTicketPrintQRRequest = {
+    ticket_ids?: number[]
+}
+
+export type TenantEventTicketPrintQRResult = Result<{
+    url: string
+}>
+
+export type TenantEventTicketCheckInResult = Result<{
+    activity_id: number
+    checked_in_at: ISOString
+    ticket: {
+        ticket_id: number
+        owner_name: string
+        max_attendance: number
+        custom_attributes: CustomAttribute[]
+    }
+    confirmation_attendance: boolean
+}>
+
+export type TenantEventTicketExportRequest = {
+    query: string
+    custom_attribute?: CustomAttribute[]
+    check_in_session?: TenantEventTicketSessionStatus
+}
+
+export type TenantEventTicketExportResult = Result<{
+    url: string
+}>
+
+export type TenantEventTicketAbilityFound = Result<{
+    ticket_ability: TenantEventTicketAbility[]
+}>
+
+// USER
+export type TenantMemberListresult = Result<
+    PaginatedData<User, 'user'>
+>
+
+export type TenantMemberDetailResult = Result<User>
+
+export type TenantMemberFormResult = Result<UserForm>
+
+export type TenantMemberAddResult = Result<
+    AddedData<number, 'user_id'>
+>
+
+// ORDER
+export type TenantOrderListResult = Result<
+    PaginatedData<TenantOrder, 'list'>
+>
+
+export type TenantOrderDetailResult = Result<TenantOrder>
+
+export type PaymentMethodListResult = Result<{
+    payment_methods: PaymentMethod[]
+}>
+
+// BELOW ARE DEPRECATED
+
 // PARTICIPANTS
 export type ParticipantListResult = Result<
     PaginatedData<Participant, 'participant'>
@@ -183,28 +256,4 @@ export type ParticipantExportRequest = {
 
 export type ParticipantExportResult = Result<{
     filepath: string
-}>
-
-// USER
-export type TenantMemberListresult = Result<
-    PaginatedData<User, 'user'>
->
-
-export type TenantMemberDetailResult = Result<User>
-
-export type TenantMemberFormResult = Result<UserForm>
-
-export type TenantMemberAddResult = Result<
-    AddedData<number, 'user_id'>
->
-
-// ORDER
-export type TenantOrderListResult = Result<
-    PaginatedData<TenantOrder, 'list'>
->
-
-export type TenantOrderDetailResult = Result<TenantOrder>
-
-export type PaymentMethodListResult = Result<{
-    payment_methods: PaymentMethod[]
 }>

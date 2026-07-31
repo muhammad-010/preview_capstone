@@ -47,7 +47,7 @@ export const LOCALSTORAGE_CHECK_IN_PREVIEW = 'check-in-preview'
 export const TABLE_PAGINATION_LIMIT = [5, 10, 25, 50]
 
 // FILENAME
-export const FILE_IMPORT_PARTICIPANT = 'template/bulk_participant_template.xlsx'
+export const FILE_IMPORT_PARTICIPANT = 'bulk_participant.xlsx'
 
 // HTML FILE EXT
 export const FILE_EXT_XLSX = '.xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

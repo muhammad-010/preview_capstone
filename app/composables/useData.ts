@@ -37,6 +37,16 @@ export async function useFindParticipantSession(tenantId: number, eventId: numbe
     return { participantSession, clearParticipantSession: clear, refreshParticipantSession: refresh }
 }
 
+export async function useRawFindTicketAbility(tenantId: number, eventId: number, ticketId: number) {
+    const { $api } = useNuxtApp()
+    const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/ticket/${ticketId}/ability?page=1&limit=10`)
+
+    const eventSessions = data.ticket_ability.map(e => sessionFromTicketAbility(e)).filter(e => e !== undefined)
+    return eventSessions
+}
+
+// BELOW ARE DEPRECATED
+
 export async function useRawFindParticipantSession(tenantId: number, eventId: number, participantId: number) {
     const { $api } = useNuxtApp()
     const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/participant/${participantId}/session/find`)

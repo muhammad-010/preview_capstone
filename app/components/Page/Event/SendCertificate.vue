@@ -21,13 +21,13 @@ async function sendQr() {
     try {
         sendLoading.value = true
         const cleanedFilterCustomAttribute = formatCleanCustomAttribute(props.filterCustomAttribute)
-        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/send`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/send`, {
             method: 'POST',
             body: {
                 document_type: 'certificate',
                 channel: [SEND_CHANNEL_EMAIL],
                 ...(props.query ? { query: props.query } : {}),
-                ...(ids.length ? { participant_ids: ids } : {}),
+                ...(ids.length ? { ticket_ids: ids } : {}),
                 ...(props.filterSessionStatus !== null
                     ? { check_in_session: props.filterSessionStatus }
                     : {}

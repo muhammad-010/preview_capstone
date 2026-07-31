@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-    participants: Participant[]
+    participants: TenantEventTicket[]
 }>()
 const open = defineModel<boolean>({ default: false })
 const emit = defineEmits([EMIT_MODAL_SELECT])
@@ -16,11 +16,11 @@ const emit = defineEmits([EMIT_MODAL_SELECT])
             <div class="flex flex-col justify-center px-12">
                 <UCard
                     v-for="participant in participants"
-                    :key="participant.participant_id"
+                    :key="participant.ticket_id"
                     variant="subtle"
                     class="cursor-pointer mb-6"
                     :ui="{ root: 'hover:ring hover:ring-primary' }"
-                    @click="() => emit(EMIT_MODAL_SELECT, participant.participant_id || 0)"
+                    @click="() => emit(EMIT_MODAL_SELECT, participant.ticket_id || 0)"
                 >
                     <div class="flex justify-between">
                         <div>

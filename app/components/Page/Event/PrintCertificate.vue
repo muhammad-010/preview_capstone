@@ -20,12 +20,12 @@ async function printQr() {
     try {
         printLoading.value = true
         const cleanedFilterCustomAttribute = formatCleanCustomAttribute(props.filterCustomAttribute)
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/participant/print`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/print`, {
             method: 'POST',
             body: {
                 document_type: 'certificate',
                 ...(props.query ? { query: props.query } : {}),
-                ...(ids.length ? { participant_ids: ids } : {}),
+                ...(ids.length ? { ticket_ids: ids } : {}),
                 ...(props.filterSessionStatus !== null
                     ? { check_in_session: props.filterSessionStatus }
                     : {}
@@ -39,7 +39,9 @@ async function printQr() {
                 ),
             },
         })
-        if (data.filepath) {
+        if (data.url) {
+            downloadFileUrl(data.url)
+            /*
             const filename = data.filepath.split('/').pop()
             if (!filename) {
                 errorToast({ description: 'Cannot read filename from filepath' })
@@ -49,6 +51,7 @@ async function printQr() {
                 `/api/files/${data.filepath}`,
                 filename,
             )
+            */
         }
         else {
             errorToast({ description: 'Cannot read filepath' })

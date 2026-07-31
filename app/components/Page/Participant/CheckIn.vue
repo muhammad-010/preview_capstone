@@ -33,7 +33,7 @@ watch([target, sessionDialog], async ([newTarget, newSessionDialog]) => {
     }
     else {
         if (newSessionDialog && newTarget.id) {
-            sessions.value = await useRawFindParticipantSession(props.tenantId, props.eventId, newTarget.id)
+            sessions.value = await useRawFindTicketAbility(props.tenantId, props.eventId, newTarget.id)
         }
     }
     sessionLoading.value = false
@@ -49,6 +49,8 @@ function resetTarget() {
         name: '',
         maxAttendance: 0,
         customAttributes: [],
+        code: '',
+        activity_id: 0,
     }
 }
 
@@ -82,13 +84,14 @@ function closeGuestConfirmationDialog() {
 
 async function checkIn() {
     try {
-        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/check-in/manual`, {
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/ticket/action/checkin`, {
             method: 'POST',
             body: {
-                participant_id: target.value.id,
+                code: target.value.code,
             },
         })
-        target.value.maxAttendance = data.participant.max_attendance
+        target.value.maxAttendance = data.ticket.max_attendance
+        target.value.activity_id = data.activity_id
         if (data.confirmation_attendance) {
             guestConfirmationDialog.value = true
         }
@@ -112,10 +115,10 @@ function validateGuestConfirmation(state: Partial<GuestConfirmationSchema>): For
 
 async function submitGuestConfirmation(event: FormSubmitEvent<GuestConfirmationSchema>) {
     try {
-        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/check-in/confirm/manual`, {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${target.value.sessionId}/ticket/action/confirm`, {
             method: 'POST',
             body: {
-                participant_id: target.value.id,
+                activity_id: target.value.activity_id,
                 count_attendance: Number(event.data.count),
             },
         })

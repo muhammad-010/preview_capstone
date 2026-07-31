@@ -215,7 +215,7 @@ export interface TenantEventSession {
     end_time: ISOString
     location: string
     checked_in_at?: ISOString | null
-    participant_status?: TenantEventParticipantStatus
+    participant_status?: TenantEventTicketStatus
 }
 
 export interface TenantEventSessionForm {
@@ -292,16 +292,13 @@ export interface TemplateFont {
     variant?: TemplateFont[] | null
 }
 
-// PARTICIPANT
-export type ParticipantStatus = 'Pending' | 'Checked In'
-export type ParticipantSessionStatus = 'none' | 'partial' | 'completed'
-export type ParticipantCategory = 'VIP' | 'Regular'
+// TICKET
+export type TenantEventTicketStatus = 'Pending' | 'Checked In'
+export type TenantEventTicketSessionStatus = 'none' | 'partial' | 'completed'
 export type SendChannel = 'email' | 'whatsapp'
 export type InvitationStatus = 'queue' | 'success' | 'failed'
 
-export type ParticipantPhone = Phone
-
-export interface ParticipantInvitationLog {
+export interface TenantEventTicketInvitationLog {
     email?: {
         status: InvitationStatus
     }
@@ -310,30 +307,31 @@ export interface ParticipantInvitationLog {
     }
 }
 
-export interface ParticipantCheckInProgress {
+export interface TenantEventTicketCheckInProgress {
     total: number
     count: number
 }
 
-export interface Participant {
-    participant_id?: number
+export interface TenantEventTicket {
+    ticket_id: number
+    code: string
     name: string
     email: string
     phone_number: string
-    status: ParticipantStatus
+    status: TenantEventTicketStatus
     check_in_time: ISOString
     number_of_attendance: number | null
     max_attendance: number
     custom_attribute: CustomAttribute[] | null
-    latest_invitation_log?: ParticipantInvitationLog | null
-    latest_certificate_log?: ParticipantInvitationLog | null
-    check_in_progress?: ParticipantCheckInProgress
+    latest_invitation_log?: TenantEventTicketInvitationLog | null
+    latest_certificate_log?: TenantEventTicketInvitationLog | null
+    check_in_progress?: TenantEventTicketInProgress
 
     phone?: Phone
     ticket_path?: string
 }
 
-export interface ParticipantForm {
+export interface TenantEventTicketForm {
     name: string
     email: string
     phone_number: string
@@ -341,9 +339,34 @@ export interface ParticipantForm {
     custom_attribute: CustomAttribute[] | null
 }
 
-export interface ParticipantCheckIn {
+export interface TenantEventTicketCheckIn {
     token: string
     count_attendance?: number
+}
+
+export interface TenantEventTicketAbilityReference {
+  event_session_id?: number
+  name?: string
+  start_time?: ISOString
+  end_time?: ISOString
+  location?: string
+}
+
+export interface TenantEventTicketAbilityActivity {
+  ticket_activity_id: number
+  action: string
+  action_by: number
+  created_at: ISOString
+}
+
+export interface TenantEventTicketAbility {
+  ticket_ability_id: number
+  pax: number
+  valid_start_time: ISOString
+  valid_end_time: ISOString
+  reference_type: string
+  reference: TenantEventTicketAbilityReference
+  activities: TenantEventTicketAbilityActivity[]
 }
 
 // USER
@@ -419,4 +442,58 @@ export interface PaymentMethod {
     is_active: boolean
     min_amount: number
     max_amount: number
+}
+
+// BELOW ARE DEPRECATED
+
+// PARTICIPANT
+export type ParticipantStatus = 'Pending' | 'Checked In'
+export type ParticipantSessionStatus = 'none' | 'partial' | 'completed'
+export type ParticipantCategory = 'VIP' | 'Regular'
+
+export type ParticipantPhone = Phone
+
+export interface ParticipantInvitationLog {
+    email?: {
+        status: InvitationStatus
+    }
+    whatsapp?: {
+        status: InvitationStatus
+    }
+}
+
+export interface ParticipantCheckInProgress {
+    total: number
+    count: number
+}
+
+export interface Participant {
+    participant_id?: number
+    name: string
+    email: string
+    phone_number: string
+    status: ParticipantStatus
+    check_in_time: ISOString
+    number_of_attendance: number | null
+    max_attendance: number
+    custom_attribute: CustomAttribute[] | null
+    latest_invitation_log?: ParticipantInvitationLog | null
+    latest_certificate_log?: ParticipantInvitationLog | null
+    check_in_progress?: ParticipantCheckInProgress
+
+    phone?: Phone
+    ticket_path?: string
+}
+
+export interface ParticipantForm {
+    name: string
+    email: string
+    phone_number: string
+    max_attendance: number
+    custom_attribute: CustomAttribute[] | null
+}
+
+export interface ParticipantCheckIn {
+    token: string
+    count_attendance?: number
 }

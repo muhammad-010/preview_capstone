@@ -3,7 +3,7 @@ const route = useRoute()
 const { tenantId } = useUserState()
 const eventId = Number(route.params.event_id)
 const participantId = Number(route.params.participant_id)
-const { participant } = await useParticipantInfo(tenantId.value, eventId, participantId)
+const { participant } = await useTicketInfo(tenantId.value, eventId, participantId)
 const { event } = await useEventInfo(tenantId.value, eventId)
 
 useHead({
