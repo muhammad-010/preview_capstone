@@ -21,7 +21,6 @@ async function saveData() {
 defineExpose({ saveData })
 
 const { customAttributes } = await useFindCustomAttribute(props.tenantId, props.eventId)
-
 const isCreate = !props.ticketId
 const schema = z.object({
     name: zodStringRequired('Participant name is required'),
@@ -35,6 +34,7 @@ const schema = z.object({
             value: z.string().optional(),
         }),
     ).nullable().default([]),
+    raw_items: z.array(z.any()).min(1, 'At least one item'),
 })
 type Schema = z.output<typeof schema>
 
@@ -48,16 +48,129 @@ const state = reactive<Partial<TenantEventTicketForm>>(fields ?? {
     phone_number: '',
     max_attendance: 1,
     custom_attribute: cloneObject(unref(customAttributes.value)),
+    items: [],
+    raw_items: [],
 })
+
+function parseSessionToProductItems(raw: number[]): TenantEventStoreProductItem[] {
+    const res: TenantEventStoreProductItem[] = []
+    for (let i = 0; i < raw.length; i++) {
+        res.push({ reference_type: 'event_sessions', reference_id: raw[i]! })
+    }
+    return res
+}
+
+const sessionListPage = ref(1)
+const sessionListSearch = ref('')
+const sessionListQuery = ref('')
+const sessionListHasMore = ref(true)
+const {
+    data: sessionListData,
+    status: sessionListStatus,
+    execute: getSessionList,
+} = await useLazyApi(`/api/tenant/${props.tenantId}/event/${props.eventId}/session`, {
+    query: computed(() => {
+        return {
+            query: sessionListQuery.value,
+            page: sessionListPage.value,
+            limit: 10,
+        }
+    }),
+    transform: res => res.data,
+    immediate: Boolean(state.raw_items?.length),
+})
+const participantSession = ref<TenantEventSession[]>([])
+watch(sessionListData, (newData) => {
+    if (newData) {
+        participantSession.value.push(...newData.event_session)
+        sessionListHasMore.value = participantSession.value.length < newData.total_data
+    }
+})
+watch(sessionListPage, () => {
+    getSessionList()
+})
+watch(sessionListSearch, (newData, oldData) => {
+    if (sessionListStatus.value == 'pending') return
+
+    const query
+        = newData.length >= 3
+            ? newData
+            : oldData.length > newData.length && sessionListQuery.value !== ''
+                ? ''
+                : null
+
+    if (query === null) return
+
+    participantSession.value = []
+    sessionListQuery.value = query
+    if (sessionListPage.value === 1) {
+        getSessionList()
+    }
+    else {
+        sessionListPage.value = 1
+    }
+})
+
+const sessionSelectMenu = useTemplateRef('selectMenuRef')
+let removeSessionSelectListener: (() => void) | null = null
+
+function attachScrollSessionSelectMenu() {
+    nextTick(() => {
+        const viewport = sessionSelectMenu.value?.viewportRef
+        if (!viewport) return
+
+        const onScroll = () => {
+            if (sessionListStatus.value === 'pending') return
+
+            const threshold = 100
+            if ((viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - threshold) && sessionListHasMore.value) {
+                sessionListPage.value++
+            }
+        }
+
+        viewport.addEventListener('scroll', onScroll)
+        removeSessionSelectListener = () => {
+            viewport.removeEventListener('scroll', onScroll)
+        }
+    })
+}
+
+function onOpenSessions(open: boolean) {
+    if (!open) {
+        removeSessionSelectListener?.()
+        return
+    }
+
+    if (!participantSession.value.length) {
+        getSessionList()
+    }
+
+    attachScrollSessionSelectMenu()
+}
+onMounted(() => {
+    if (!isCreate) {
+        getSessionList()
+    }
+})
+onBeforeUnmount(() => removeSessionSelectListener?.())
 
 async function addData(payload: FormSubmitEvent<Schema>) {
     try {
+        const body: TenantEventTicketForm = {
+            name: payload.data.name,
+            email: payload.data.email,
+            phone_number: payload.data.phone_number,
+            max_attendance: payload.data.max_attendance ?? 1,
+            custom_attribute: formatCleanCustomAttribute(payload.data.custom_attribute ?? []),
+            items: [],
+        }
+
+        if (payload.data.raw_items.length) {
+            body.items = parseSessionToProductItems(payload.data.raw_items)
+        }
         const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket`, {
             method: 'POST',
-            body: {
-                ...payload.data,
-                custom_attribute: formatCleanCustomAttribute(payload.data.custom_attribute ?? []),
-            },
+            body,
         })
         if (data.success) {
             successToast({ description: 'A participant has been created' })
@@ -74,12 +187,21 @@ async function addData(payload: FormSubmitEvent<Schema>) {
 
 async function editData(payload: FormSubmitEvent<Schema>, ticketId: number) {
     try {
+        const body: TenantEventTicketForm = {
+            name: payload.data.name,
+            email: payload.data.email,
+            phone_number: payload.data.phone_number,
+            max_attendance: payload.data.max_attendance ?? 1,
+            custom_attribute: formatCleanCustomAttribute(payload.data.custom_attribute ?? []),
+            items: [],
+        }
+
+        if (payload.data.raw_items.length) {
+            body.items = parseSessionToProductItems(payload.data.raw_items)
+        }
         const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/${ticketId}`, {
             method: 'PUT',
-            body: {
-                ...payload.data,
-                custom_attribute: formatCleanCustomAttribute(payload.data.custom_attribute ?? []),
-            },
+            body,
         })
         if (data.success) {
             successToast({ description: 'A participant has been updated' })
@@ -179,6 +301,25 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                     v-model="state.max_attendance"
                     type="number"
                     class="w-full"
+                />
+            </UFormField>
+
+            <UFormField
+                label="Assigned Session"
+                name="raw_items"
+                :class="`${isModal ? '' : 'my-2'} w-full`"
+            >
+                <USelectMenu
+                    ref="selectMenuRef"
+                    v-model="state.raw_items"
+                    v-model:search-term="sessionListSearch"
+                    :loading="sessionListStatus === 'pending'"
+                    multiple
+                    class="w-full"
+                    value-key="event_session_id"
+                    label-key="name"
+                    :items="participantSession"
+                    @update:open="onOpenSessions"
                 />
             </UFormField>
 

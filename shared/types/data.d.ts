@@ -329,6 +329,7 @@ export interface TenantEventTicket {
 
     phone?: Phone
     ticket_path?: string
+    abilities?: TenantEventTicketAbility[]
 }
 
 export interface TenantEventTicketForm {
@@ -337,6 +338,9 @@ export interface TenantEventTicketForm {
     phone_number: string
     max_attendance: number
     custom_attribute: CustomAttribute[] | null
+
+    items?: TenantEventStoreProductItem[]
+    raw_items?: number[]
 }
 
 export interface TenantEventTicketCheckIn {
@@ -367,6 +371,8 @@ export interface TenantEventTicketAbility {
     reference_type: string
     reference: TenantEventTicketAbilityReference
     activities: TenantEventTicketAbilityActivity[]
+
+    reference_id?: number
 }
 
 // USER

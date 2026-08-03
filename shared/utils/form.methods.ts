@@ -105,6 +105,7 @@ export function tenantEventTicketToTenantEventTicketForm(data: TenantEventTicket
             : data.phone_number,
         max_attendance: data.max_attendance,
         custom_attribute: [...(data.custom_attribute ?? [])],
+        raw_items: data.abilities ? [...data.abilities.map(e => e.reference_id)] : [],
     } as TenantEventTicketForm
 }
 

@@ -25,8 +25,8 @@ export async function useEventInfo(tenantId: number, eventId: number) {
     return { event }
 }
 
-export async function useTicketInfo(tenantId: number, eventId: number, participantId: number) {
-    const { data } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/ticket/${participantId}`, {
+export async function useTicketInfo(tenantId: number, eventId: number, ticketId: number) {
+    const { data } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/ticket/${ticketId}`, {
         transform: res => res.data,
     })
     const participant = computed<TenantEventTicketForm>(() => data.value ?? {} as TenantEventTicketForm)
