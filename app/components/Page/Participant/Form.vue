@@ -48,7 +48,7 @@ const state = reactive<Partial<TenantEventTicketForm>>(fields ?? {
     phone_number: '',
     max_attendance: 1,
     custom_attribute: cloneObject(unref(customAttributes.value)),
-    items: [],
+    abilities: [],
     raw_items: [],
 })
 
@@ -162,11 +162,11 @@ async function addData(payload: FormSubmitEvent<Schema>) {
             phone_number: payload.data.phone_number,
             max_attendance: payload.data.max_attendance ?? 1,
             custom_attribute: formatCleanCustomAttribute(payload.data.custom_attribute ?? []),
-            items: [],
+            abilities: [],
         }
 
         if (payload.data.raw_items.length) {
-            body.items = parseSessionToProductItems(payload.data.raw_items)
+            body.abilities = parseSessionToProductItems(payload.data.raw_items)
         }
         const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket`, {
             method: 'POST',
@@ -193,11 +193,11 @@ async function editData(payload: FormSubmitEvent<Schema>, ticketId: number) {
             phone_number: payload.data.phone_number,
             max_attendance: payload.data.max_attendance ?? 1,
             custom_attribute: formatCleanCustomAttribute(payload.data.custom_attribute ?? []),
-            items: [],
+            abilities: [],
         }
 
         if (payload.data.raw_items.length) {
-            body.items = parseSessionToProductItems(payload.data.raw_items)
+            body.abilities = parseSessionToProductItems(payload.data.raw_items)
         }
         const data = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/${ticketId}`, {
             method: 'PUT',

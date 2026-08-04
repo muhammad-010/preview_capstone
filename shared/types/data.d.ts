@@ -339,7 +339,7 @@ export interface TenantEventTicketForm {
     max_attendance: number
     custom_attribute: CustomAttribute[] | null
 
-    items?: TenantEventStoreProductItem[]
+    abilities?: TenantEventStoreProductItem[]
     raw_items?: number[]
 }
 
