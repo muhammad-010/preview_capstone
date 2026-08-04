@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
     title?: string
-    total?: number
+    total?: number | string
     icon?: string
     percentage?: boolean
     withStats?: boolean
@@ -79,11 +79,14 @@ const iconColorClass = computed(() => {
         <div class="flex justify-between">
             <div class="mb-2">
                 <p>{{ title }}</p>
-                <h1>
+                <h1 v-if="typeof total === 'number'">
                     <span v-if="!formatNumber">{{ formatNumberSuffix(total || 0) }}</span>
                     <span v-else-if="formatNumber === 'suffix'">{{ formatNumberSuffix(total || 0) }}</span>
                     <span v-else-if="formatNumber === 'currency'">{{ formatCurrency(total || 0) }}</span>
                     {{ percentage ? ' %' : '' }}
+                </h1>
+                <h1 v-else-if="typeof total === 'string'">
+                    {{ total }}
                 </h1>
             </div>
 
