@@ -200,7 +200,9 @@ export type TenantMemberAddResult = Result<
 
 // ORDER
 export type TenantOrderListResult = Result<
-    PaginatedData<TenantOrder, 'list'>
+    PaginatedData<TenantOrder, 'list'> & {
+        summary: TenantOrderSummary
+    }
 >
 
 export type TenantOrderDetailResult = Result<TenantOrder>

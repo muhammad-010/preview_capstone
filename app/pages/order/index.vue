@@ -10,7 +10,6 @@ const page = ref(1)
 const limit = ref(5)
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-const filterSlideover = ref(false)
 const filterStartDateRef = useTemplateRef('filterStartDateRef')
 const filterStartDate = shallowRef()
 
@@ -24,6 +23,19 @@ const filterPaymentMethod = ref([])
 
 const filterOrderStatus = ref([])
 const filterPaymentStatus = ref([])
+
+const filterSlideover = ref(false)
+const activeFilterCount = computed(() => {
+    let n = 0
+
+    if (filterStartDate.value && filterEndDate.value) n++
+    if (filterMinAmount.value && filterMaxAmount.value) n++
+    if (filterPaymentMethod.value.length) n++
+    if (filterOrderStatus.value.length) n++
+    if (filterPaymentStatus.value.length) n++
+
+    return n
+})
 
 const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId.value}/order`, {
     transform: res => res.data,
@@ -51,6 +63,7 @@ watch([page, limit], () => {
     refresh()
 })
 const list = computed<TenantOrder[]>(() => data.value?.list ?? [])
+const summary = computed<TenantOrderSummary | null>(() => data.value?.summary ?? null)
 const total = computed(() => data.value?.total_data ?? 0)
 
 function searchData() {
@@ -103,33 +116,34 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
 <template>
     <div class="my-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 mb-8">
+        <div
+            v-if="summary"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 mb-8"
+        >
             <CardTotal
                 title="Total Revenue"
-                :total="186450000"
-                format-number="currency"
+                :total="summary.total_revenue"
                 icon="lucide:hand-coins"
                 icon-color="success"
             />
 
             <CardTotal
                 title="Total Transactions"
-                :total="847"
+                :total="summary.total_transaction"
                 icon="lucide:credit-card"
                 icon-color="info"
             />
 
             <CardTotal
                 title="Pending Payments"
-                :total="23"
+                :total="summary.pending_payment_count"
                 icon="lucide:clock-alert"
                 icon-color="warning"
             />
 
             <CardTotal
                 title="Refunded Amount"
-                :total="4250000"
-                format-number="currency"
+                :total="summary.refunded_amount"
                 icon="lucide:refresh-ccw"
                 icon-color="error"
             />
@@ -147,7 +161,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
 
                     <div class="card-toolbar-actions">
                         <UButton
-                            label="Advanced Filter"
+                            :label="`Advanced Filter${activeFilterCount ? ` (${activeFilterCount})` : ''}`"
                             icon="lucide:filter"
                             color="neutral"
                             variant="subtle"

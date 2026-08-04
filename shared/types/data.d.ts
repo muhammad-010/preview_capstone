@@ -405,6 +405,13 @@ export interface TenantOrder {
     items?: TenantOrderItem[]
 }
 
+export interface TenantOrderSummary {
+    total_revenue: string
+    total_transaction: number
+    pending_payment_count: number
+    refunded_amount: string
+}
+
 export interface PaymentMethod {
     id: number
     name: string
