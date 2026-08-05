@@ -182,6 +182,10 @@ export type TenantEventTicketExportRequest = {
     check_in_session?: TenantEventTicketSessionStatus
 }
 
+export type TenantEventTicketImportTemplateResult = Result<{
+    url: string
+}>
+
 export type TenantEventTicketExportResult = Result<{
     url: string
 }>

@@ -22,10 +22,20 @@ function closeImportDialog() {
 async function downloadTemplate() {
     try {
         downloadLoading.value = true
+        const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/bulk/template`)
+        if (data.url) {
+          downloadFileUrl(data.url)
+        }
+        else {
+            errorToast({ description: 'Cannot read url' })
+            return
+        }
+        /*
         await useDownload(
             `/api/storage/file/static/sheet/${FILE_IMPORT_PARTICIPANT}`,
             FILE_IMPORT_PARTICIPANT,
         )
+        */
     }
     catch (error) {
         errorToast({ error, description: 'Failed to download template' })
