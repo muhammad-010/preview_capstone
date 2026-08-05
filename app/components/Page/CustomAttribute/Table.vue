@@ -69,6 +69,7 @@ async function deleteData(id: number) {
 }
 
 function useColumns() {
+    const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
     const UTooltip = resolveComponent('UTooltip')
 
@@ -89,14 +90,22 @@ function useColumns() {
             accessorKey: 'is_visible',
             header: 'Visible When Check-In',
             cell: ({ row }) => {
-                return h('span', {}, row.original.is_visible ? 'Yes' : 'No')
+                return h(UBadge, {
+                    color: row.original.is_visible ? 'success' : 'neutral',
+                    variant: 'subtle',
+                    label: row.original.is_visible ? 'Yes' : 'No',
+                })
             },
         },
         {
             accessorKey: 'required',
             header: 'Required',
             cell: ({ row }) => {
-                return h('span', {}, row.original.required ? 'Yes' : 'No')
+                return h(UBadge, {
+                    color: row.original.required ? 'success' : 'neutral',
+                    variant: 'subtle',
+                    label: row.original.required ? 'Yes' : 'No',
+                })
             },
         },
         {

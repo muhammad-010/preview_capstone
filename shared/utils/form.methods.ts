@@ -135,6 +135,7 @@ export function customAttributeToCustomAttributeForm(data: CustomAttribute): Cus
     return {
         name: data.name,
         is_visible: data.is_visible,
+        required: data.required,
     } as CustomAttributeForm
 }
 
@@ -142,6 +143,7 @@ export function customAttributeFormToCustomAttribute(data: CustomAttributeForm):
     return {
         name: data.name,
         is_visible: data.is_visible,
+        required: data.required,
     } as CustomAttribute
 }
 
