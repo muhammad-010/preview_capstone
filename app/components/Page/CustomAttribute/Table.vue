@@ -93,6 +93,13 @@ function useColumns() {
             },
         },
         {
+            accessorKey: 'required',
+            header: 'Required',
+            cell: ({ row }) => {
+                return h('span', {}, row.original.required ? 'Yes' : 'No')
+            },
+        },
+        {
             accessorKey: 'custom_attribute_id',
             header: 'Action',
             meta: {

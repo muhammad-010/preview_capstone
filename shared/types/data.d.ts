@@ -231,11 +231,13 @@ export interface CustomAttribute {
     name?: string
     value?: string
     is_visible?: boolean
+    required?: boolean
 }
 
 export interface CustomAttributeForm {
     name: string
     is_visible: boolean
+    required: boolean
 }
 
 // EVENT SETTINGS
@@ -432,6 +434,9 @@ export interface TenantOrder {
     payment_status: TenantPaymentStatus
     payment_method: string
     created_at: ISOString
+
+    store_id?: number
+    store_title?: string
 
     user_email?: string
     fee_amount?: string

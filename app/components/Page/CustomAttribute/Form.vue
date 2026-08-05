@@ -24,12 +24,14 @@ const isCreate = !props.attributeId
 const schema = z.object({
     name: zodStringRequired('Attribute name is required'),
     is_visible: zodBooleanRequired(),
+    required: zodBooleanRequired(),
 })
 type Schema = z.output<typeof schema>
 
 const state = reactive<Partial<CustomAttributeForm>>(props.fields ?? {
     name: '',
     is_visible: false,
+    required: false,
 })
 
 async function addData(payload: FormSubmitEvent<Schema>) {
@@ -113,6 +115,17 @@ function submitData(payload: FormSubmitEvent<Schema>) {
             >
                 <USwitch
                     v-model="state.is_visible"
+                />
+            </UFormField>
+
+            <UFormField
+                label="Required"
+                name="required"
+                required
+                :class="`${isModal ? '' : 'my-2'} w-full`"
+            >
+                <USwitch
+                    v-model="state.required"
                 />
             </UFormField>
         </div>

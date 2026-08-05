@@ -30,7 +30,23 @@ function useColumns() {
                 },
             },
             cell: ({ row }) => {
-                return h('div', { class: 'truncate' }, row.original.invoice)
+                return h('div', {}, [
+                    h('div', { class: 'truncate' }, row.original.invoice || ''),
+                ])
+            },
+        },
+        {
+            accessorKey: 'store_title',
+            header: 'Store',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', {}, [
+                    h('div', { class: 'truncate' }, row.original.store_title || ''),
+                ])
             },
         },
         {
