@@ -24,7 +24,7 @@ async function downloadTemplate() {
         downloadLoading.value = true
         const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/ticket/bulk/template`)
         if (data.url) {
-          downloadFileUrl(data.url)
+            downloadFileUrl(data.url)
         }
         else {
             errorToast({ description: 'Cannot read url' })
