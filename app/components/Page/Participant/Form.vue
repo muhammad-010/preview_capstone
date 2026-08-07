@@ -38,7 +38,7 @@ const schema = z.object({
                 ctx.addIssue({
                     code: 'custom',
                     path: ['value'],
-                    message: `field ${data.name} Required`,
+                    message: `Custom Attribute: ${data.name ? `${data.name} ` : ''}Required`,
                 })
             }
         }),
@@ -325,7 +325,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 v-for="(item, index) in state.custom_attribute"
                 :key="index"
                 :label="`Custom Attribute: ${item.name}`"
-                :name="`custom_attribute.${index}`"
+                :name="`custom_attribute.${index}.value`"
                 :class="`${isModal ? '' : 'my-2'} w-full`"
                 :required="state.custom_attribute![index]!.required ?? false"
             >
