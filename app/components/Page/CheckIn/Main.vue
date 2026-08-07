@@ -239,21 +239,18 @@ async function manualCheckIn(selectedParticipant: TenantEventTicket) {
     if (props.isPreview || !props.sessionId) return
     if (!selectedParticipant.code) return
 
-    participant.value = {
-        ...participant.value,
-        id: selectedParticipant.ticket_id || 0,
-        name: selectedParticipant.name,
-        code: selectedParticipant.code,
-    }
     try {
         const { data } = await $api(`/api/tenant/${props.tenantId}/event/${props.eventId}/session/${props.sessionId}/ticket/action/checkin`, {
             method: 'POST',
             body: {
-                code: participant.value.code,
+                code: selectedParticipant.code,
             },
         })
         participant.value = {
             ...participant.value,
+            id: selectedParticipant.ticket_id || 0,
+            name: selectedParticipant.name,
+            code: selectedParticipant.code,
             maxAttendance: data.ticket.max_attendance || 0,
             customAttributes: data.ticket.custom_attributes || [],
             activity_id: data.activity_id,
