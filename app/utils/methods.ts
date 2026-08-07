@@ -12,8 +12,9 @@ export function cloneObject(target: any) {
 }
 
 export function sessionFromTicketAbility(data: TenantEventTicketAbility): TenantEventSession | undefined {
-    if (data.reference_type !== 'event_session') return undefined
+    if (data.reference_type !== 'event_sessions') return undefined
     if (data.reference.event_session_id === undefined) return undefined
+    const actionCheckin = data.activities.find(e => e.action === 'checkin')
 
     return {
         event_session_id: data.reference.event_session_id,
@@ -21,6 +22,7 @@ export function sessionFromTicketAbility(data: TenantEventTicketAbility): Tenant
         start_time: data.reference.start_time,
         end_time: data.reference.end_time,
         location: data.reference.location,
+        checked_in_at: actionCheckin ? actionCheckin.created_at : undefined
     } as TenantEventSession
 }
 

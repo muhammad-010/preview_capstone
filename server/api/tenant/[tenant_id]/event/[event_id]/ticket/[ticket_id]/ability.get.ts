@@ -4,8 +4,11 @@ export default defineEventHandler(async (event): Promise<TenantEventTicketAbilit
     const eventId = getRouterParam(event, 'event_id')
     const ticketId = getRouterParam(event, 'ticket_id')
     const path = `/tenant/${tenantId}/event/${eventId}/ticket/${ticketId}/ability`
+    const query = getQuery(event)
 
-    const res: TenantEventTicketAbilityFound = await api(event, method, path, {})
+    const res: TenantEventTicketAbilityFound = await api(event, method, path, {
+      query
+    })
     if (res.success) {
         return res
     }

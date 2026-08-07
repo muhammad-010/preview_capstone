@@ -39,7 +39,7 @@ export async function useFindParticipantSession(tenantId: number, eventId: numbe
 
 export async function useRawFindTicketAbility(tenantId: number, eventId: number, ticketId: number) {
     const { $api } = useNuxtApp()
-    const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/ticket/${ticketId}/ability?page=1&limit=10`)
+    const { data } = await $api(`/api/tenant/${tenantId}/event/${eventId}/ticket/${ticketId}/ability?page=1&limit=20`)
 
     const eventSessions = data.ticket_ability.map(e => sessionFromTicketAbility(e)).filter(e => e !== undefined)
     return eventSessions
