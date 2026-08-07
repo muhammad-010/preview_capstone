@@ -62,7 +62,7 @@ function createState(): TenantEventStoreProductForm {
         description: '',
         price: 0,
         discount_value: 0,
-        stock: 0,
+        stock: 1,
         status: 'inactive',
         banner_image: undefined,
         sale_start_at: undefined,
