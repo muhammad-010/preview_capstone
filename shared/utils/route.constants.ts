@@ -21,6 +21,7 @@ export const APP_TENANT_ADMIN_ROUTES: string[] = [
     '/reports',
     '/lottery',
     '/order',
+    '/distribute',
 ]
 
 export const APP_POC_ADMIN_ROUTES: string[] = [
@@ -225,6 +226,14 @@ export const APP_ROUTES: AppRoute[] = [
         label: 'Order',
         icon: 'lucide:credit-card',
         to: '/order',
+        render: true,
+    },
+    {
+        title: 'Distribute',
+        description: 'Send QR Invitation, certificates, and invoices',
+        label: 'Distribute',
+        icon: 'lucide:send-horizontal',
+        to: '/distribute',
         render: true,
     },
 
