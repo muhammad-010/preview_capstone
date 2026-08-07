@@ -32,6 +32,15 @@ const schema = z.object({
             custom_attribute_id: z.number(),
             name: z.string().optional(),
             value: z.string().optional(),
+            required: z.boolean().optional(),
+        }).superRefine((data, ctx) => {
+          if (data.required && !data.value?.trim()) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['value'],
+              message: `field ${data.name} Required`
+            })
+          }
         }),
     ).nullable().default([]),
     raw_items: z.array(z.any()).min(1, 'At least one item'),
@@ -293,20 +302,9 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
             </UFormField>
 
             <UFormField
-                label="Max Attendance"
-                name="max_attendance"
-                :class="`${isModal ? '' : 'my-2'} w-full`"
-            >
-                <UInput
-                    v-model="state.max_attendance"
-                    type="number"
-                    class="w-full"
-                />
-            </UFormField>
-
-            <UFormField
                 label="Assigned Session"
                 name="raw_items"
+                required
                 :class="`${isModal ? '' : 'my-2'} w-full`"
             >
                 <USelectMenu
