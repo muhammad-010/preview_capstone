@@ -34,13 +34,13 @@ const schema = z.object({
             value: z.string().optional(),
             required: z.boolean().optional(),
         }).superRefine((data, ctx) => {
-          if (data.required && !data.value?.trim()) {
-            ctx.addIssue({
-              code: 'custom',
-              path: ['value'],
-              message: `field ${data.name} Required`
-            })
-          }
+            if (data.required && !data.value?.trim()) {
+                ctx.addIssue({
+                    code: 'custom',
+                    path: ['value'],
+                    message: `field ${data.name} Required`,
+                })
+            }
         }),
     ).nullable().default([]),
     raw_items: z.array(z.any()).min(1, 'At least one item'),

@@ -98,9 +98,9 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
 }
 
 function onError(e: FormErrorEvent) {
-  if (!e.errors.find(e => e.name === 'assign_user_ids')) {
-    activeSteps.value = 0
-  }
+    if (!e.errors.find(e => e.name === 'assign_user_ids')) {
+        activeSteps.value = 0
+    }
 }
 </script>
 

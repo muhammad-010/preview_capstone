@@ -7,7 +7,7 @@ export default defineEventHandler(async (event): Promise<TenantEventTicketAbilit
     const query = getQuery(event)
 
     const res: TenantEventTicketAbilityFound = await api(event, method, path, {
-      query
+        query,
     })
     if (res.success) {
         return res

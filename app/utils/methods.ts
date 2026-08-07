@@ -22,7 +22,7 @@ export function sessionFromTicketAbility(data: TenantEventTicketAbility): Tenant
         start_time: data.reference.start_time,
         end_time: data.reference.end_time,
         location: data.reference.location,
-        checked_in_at: actionCheckin ? actionCheckin.created_at : undefined
+        checked_in_at: actionCheckin ? actionCheckin.created_at : undefined,
     } as TenantEventSession
 }
 
