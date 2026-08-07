@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Form, FormSubmitEvent, StepperItem } from '@nuxt/ui'
+import type { Form, FormSubmitEvent, FormErrorEvent, StepperItem } from '@nuxt/ui'
 import * as z from 'zod'
 
 const { $api } = useNuxtApp()
@@ -31,7 +31,7 @@ const schema = z.object({
     start_time: zodISODatetime(),
     end_time: zodISODatetime(),
     status: zodStringOptional(),
-    assign_user_ids: zodArrayNumber(),
+    assign_user_ids: zodArrayNumberRequired(),
 })
 type Schema = z.output<typeof schema>
 
@@ -96,6 +96,12 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
         await editData(payload, props.eventId)
     }
 }
+
+function onError(e: FormErrorEvent) {
+  if (!e.errors.find(e => e.name === 'assign_user_ids')) {
+    activeSteps.value = 0
+  }
+}
 </script>
 
 <template>
@@ -104,6 +110,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
         :schema="schema"
         :state="state"
         @submit.prevent="submitData"
+        @error="onError"
     >
         <UStepper
             v-model="activeSteps"
@@ -178,30 +185,36 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
             </template>
 
             <template #poc>
-                <InputTransfer
-                    v-model="state.assign_user_ids"
-                    :options="users"
-                    key-prop="user_id"
-                    source-title="Available Personnel"
-                    destination-title="Assigned Personnel"
+                <UFormField
+                    name="assign_user_ids"
+                    class="w-full"
                 >
-                    <template #default="{ option, selected, toggle }">
-                        <UCard class="w-full">
-                            <div class="flex w-full justify-between items-center">
-                                <div>
-                                    <h5>{{ option.name }}</h5>
-                                    <small>{{ option.role_str || '-' }}</small>
+                    <InputTransfer
+                        v-model="state.assign_user_ids"
+                        :options="users"
+                        name="assign_user_ids"
+                        key-prop="user_id"
+                        source-title="Available Personnel"
+                        destination-title="Assigned Personnel"
+                    >
+                        <template #default="{ option, selected, toggle }">
+                            <UCard class="w-full">
+                                <div class="flex w-full justify-between items-center">
+                                    <div>
+                                        <h5>{{ option.name }}</h5>
+                                        <small>{{ option.role_str || '-' }}</small>
+                                    </div>
+                                    <UButton
+                                        variant="outline"
+                                        :icon="selected ? 'lucide:user-plus' : 'lucide:user-minus'"
+                                        :color="selected ? 'success' : 'error'"
+                                        @click="toggle"
+                                    />
                                 </div>
-                                <UButton
-                                    variant="outline"
-                                    :icon="selected ? 'lucide:user-plus' : 'lucide:user-minus'"
-                                    :color="selected ? 'success' : 'error'"
-                                    @click="toggle"
-                                />
-                            </div>
-                        </UCard>
-                    </template>
-                </InputTransfer>
+                            </UCard>
+                        </template>
+                    </InputTransfer>
+                </UFormField>
             </template>
         </UStepper>
     </UForm>
