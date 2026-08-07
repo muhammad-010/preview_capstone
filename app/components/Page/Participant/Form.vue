@@ -54,7 +54,7 @@ if (fields) {
     }
     else {
         const latest: CustomAttribute[] = cloneObject(unref(customAttributes.value))
-        fields.custom_attribute = latest.map(attr => {
+        fields.custom_attribute = latest.map((attr) => {
             const saved = fields.custom_attribute!.find(item => item.custom_attribute_id === attr.custom_attribute_id)
 
             return { ...attr, value: saved?.value }
