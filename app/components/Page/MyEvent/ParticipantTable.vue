@@ -3,7 +3,7 @@ import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 
 defineProps<{
-    data: Participant[]
+    data: TenantEventTicket[]
     eventId: number
     total: number
     pending?: boolean
@@ -93,7 +93,7 @@ function useColumns() {
             header: 'QR Sent',
             cell: ({ row }) => h('div', { class: 'flex flex-col gap-2' }, qrSent(row.original)),
         },
-    ] as TableColumn<Participant>[]
+    ] as TableColumn<TenantEventTicket>[]
 
     return { columns, tableRef }
 }

@@ -56,12 +56,12 @@ async function useList(tenantId: number, eventId: number) {
     const page = ref(1)
     const limit = ref(5)
     const toast = useToast()
-    const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/participant`, {
+    const { data, pending, refresh } = await useApi(`/api/tenant/${tenantId}/event/${eventId}/ticket`, {
         transform: res => res.data,
         query: { query, page, limit },
         watch: [page, limit],
     })
-    const participants = computed<Participant[]>(() => data.value?.participant ?? [])
+    const participants = computed<TenantEventTicket[]>(() => data.value?.ticket ?? [])
     const total = computed(() => data.value?.total_data ?? 0)
 
     function searchEvent() {
