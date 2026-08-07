@@ -327,6 +327,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 :label="`Custom Attribute: ${item.name}`"
                 :name="`custom_attribute.${index}`"
                 :class="`${isModal ? '' : 'my-2'} w-full`"
+                :required="state.custom_attribute![index]!.required ?? false"
             >
                 <UInput
                     v-model="state.custom_attribute![index]!.value"
