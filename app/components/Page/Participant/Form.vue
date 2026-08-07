@@ -48,8 +48,18 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 const fields = props.fields
-if (fields && (!fields.custom_attribute || !fields.custom_attribute.length)) {
-    fields.custom_attribute = cloneObject(unref(customAttributes.value))
+if (fields) {
+    if (!fields.custom_attribute || !fields.custom_attribute.length) {
+        fields.custom_attribute = cloneObject(unref(customAttributes.value))
+    }
+    else {
+        const latest: CustomAttribute[] = cloneObject(unref(customAttributes.value))
+        fields.custom_attribute = latest.map(attr => {
+            const saved = fields.custom_attribute!.find(item => item.custom_attribute_id === attr.custom_attribute_id)
+
+            return { ...attr, value: saved?.value }
+        })
+    }
 }
 const state = reactive<Partial<TenantEventTicketForm>>(fields ?? {
     name: '',
