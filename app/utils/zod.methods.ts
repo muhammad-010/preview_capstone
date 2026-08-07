@@ -50,6 +50,10 @@ export function zodISODatetime() {
         .datetime()
 }
 
+export function zodArrayNumberRequired(msg?: string) {
+    return z.array(z.number()).min(1, msg ?? 'At least one item is required')
+}
+
 export function zodArrayNumber() {
     return z.array(z.number())
 }
