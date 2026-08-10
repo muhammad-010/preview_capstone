@@ -32,7 +32,7 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const schema = z.object({
     name: zodStringRequired('Tenant name is required'),
-    owner_name: zodStringRequired('Owner name is required'),
+    owner_name: zodStringRequired('Owner name is required').regex(/^[A-Za-z ]+$/, 'Only letters and spaces are allowed'),
     owner_email: zodEmailRequired(),
     owner_phone_number: zodPhoneNumberRequired(),
     owner_password: zodPasswordOptional(),
