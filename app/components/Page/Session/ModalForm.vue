@@ -2,6 +2,8 @@
 defineProps<{
     tenantId: number
     eventId: number
+    startTime?: ISOString
+    endTime?: ISOString
 }>()
 const emit = defineEmits([EMIT_TABLE_REFRESH])
 const formDialog = defineModel<boolean>('open', { default: false })
@@ -61,6 +63,8 @@ async function saveForm(close: () => void) {
                         :event-id="eventId"
                         :session-id="id"
                         :fields="fields"
+                        :event-start-time="startTime"
+                        :event-end-time="endTime"
                         is-modal
                     />
                 </div>

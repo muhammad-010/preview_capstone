@@ -105,6 +105,8 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {
                 <PageSessionList
                     :tenant-id="tenantId"
                     :event-id="eventId"
+                    :start-time="event.start_time"
+                    :end-time="event.end_time"
                     @refresh="refreshParticipant"
                 />
             </template>

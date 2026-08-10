@@ -2,6 +2,8 @@
 const props = defineProps<{
     tenantId: number
     eventId: number
+    startTime?: ISOString
+    endTime?: ISOString
 }>()
 const emit = defineEmits([EMIT_DETAIL_REFRESH])
 
@@ -103,6 +105,8 @@ function openEditForm(fields: TenantEventSessionForm, id: number) {
                 v-model:id="targetId"
                 :tenant-id="tenantId"
                 :event-id="eventId"
+                :start-time="startTime"
+                :end-time="endTime"
                 @refresh="refreshData"
             />
 

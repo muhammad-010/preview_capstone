@@ -11,6 +11,8 @@ const props = defineProps<{
     sessionId?: number
     fields?: TenantEventSessionForm
     isModal?: boolean
+    eventStartTime?: ISOString
+    eventEndTime?: ISOString
 }>()
 const loading = defineModel<boolean>('loading', { default: false })
 const success = defineModel<boolean>('success', { default: false })
@@ -27,16 +29,71 @@ const schema = z.object({
     end_time: zodISODatetime(),
     location: zodStringRequired('Location is required'),
 })
+    .superRefine((data, ctx) => {
+        const startTime = new Date(data.start_time)
+        const endTime = new Date(data.end_time)
+
+        if (props.eventStartTime) {
+            const eventStart = new Date(props.eventStartTime)
+
+            if (startTime < eventStart) {
+                ctx.addIssue({
+                    code: 'custom',
+                    path: ['start_time'],
+                    message: `Start time cannot be before the event start time (${formatLongDate(props.eventStartTime)})`,
+                })
+            }
+        }
+
+        if (props.eventEndTime) {
+            const eventEnd = new Date(props.eventEndTime)
+
+            if (endTime > eventEnd) {
+                ctx.addIssue({
+                    code: 'custom',
+                    path: ['end_time'],
+                    message: `End time cannot be after the event end time (${formatLongDate(props.eventEndTime)})`,
+                })
+            }
+        }
+        /*
+    if (endTime <= startTime) {
+        ctx.addIssue({
+            code: 'custom',
+            path: ['end_time'],
+            message: 'End time must be after start time',
+        })
+    }
+*/
+    })
 type Schema = z.output<typeof schema>
 
-const defaultStartTime = new Date()
-defaultStartTime.setSeconds(0, 0)
-const defaultEndTime = new Date()
-defaultEndTime.setSeconds(0, 0)
+function defaultStartTime() {
+    const defaultStartTime = new Date()
+    defaultStartTime.setSeconds(0, 0)
+    const iso = defaultStartTime.toISOString()
+
+    if (props.eventStartTime && iso.slice(0, 10) < props.eventStartTime.slice(0, 10)) {
+        return props.eventStartTime
+    }
+
+    return iso
+}
+function defaultEndTime() {
+    const defaultEndTime = new Date()
+    defaultEndTime.setSeconds(0, 0)
+    const iso = defaultEndTime.toISOString()
+
+    if (props.eventEndTime && iso.slice(0, 10) > props.eventEndTime.slice(0, 10)) {
+        return props.eventEndTime
+    }
+
+    return iso
+}
 const state = reactive<Partial<TenantEventSessionForm>>(props.fields ?? {
     name: '',
-    start_time: defaultStartTime.toISOString(),
-    end_time: defaultEndTime.toISOString(),
+    start_time: defaultStartTime(),
+    end_time: defaultEndTime(),
     location: '',
 })
 
@@ -121,6 +178,8 @@ function submitData(payload: FormSubmitEvent<Schema>) {
             >
                 <InputDateTime
                     v-model="state.start_time"
+                    :min-value="eventStartTime"
+                    :max-value="eventEndTime"
                 />
             </UFormField>
 
@@ -132,6 +191,9 @@ function submitData(payload: FormSubmitEvent<Schema>) {
             >
                 <InputDateTime
                     v-model="state.end_time"
+                    :disabled="!state.start_time"
+                    :min-value="eventStartTime"
+                    :max-value="eventEndTime"
                 />
             </UFormField>
 

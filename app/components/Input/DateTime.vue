@@ -1,8 +1,18 @@
 <script setup lang="ts">
-import { DateFormatter, parseAbsolute, getLocalTimeZone, CalendarDate, CalendarDateTime } from '@internationalized/date'
+import {
+    DateFormatter,
+    parseAbsolute,
+    getLocalTimeZone,
+    CalendarDate,
+    CalendarDateTime,
+    parseDate,
+    toZoned,
+} from '@internationalized/date'
 
-defineProps<{
+const props = defineProps<{
     disabled?: boolean
+    maxValue?: ISOString
+    minValue?: ISOString
 }>()
 
 const model = defineModel<ISOString | undefined>({ default: undefined })
@@ -26,6 +36,25 @@ watch([dateModel, hourModel], ([newDate, newHour]) => {
 
 const df = new DateFormatter('en-US', {
     dateStyle: 'long',
+})
+
+const maxDate = computed(() => props.maxValue ? parseDate(props.maxValue.slice(0, 10)) : undefined)
+const minDate = computed(() => props.minValue ? parseDate(props.minValue.slice(0, 10)) : undefined)
+const maxTime = computed(() => {
+    if (dateModel.value && props.maxValue) {
+        const date = new CalendarDateTime(dateModel.value.year, dateModel.value.month, dateModel.value.day)
+        const iso = toZoned(date, getLocalTimeZone()).toString().replace(/\[.*\]$/, '')
+        return iso.slice(0, 10) === props.maxValue.slice(0, 10) ? props.maxValue : undefined
+    }
+    return undefined
+})
+const minTime = computed(() => {
+    if (dateModel.value && props.minValue) {
+        const date = new CalendarDateTime(dateModel.value.year, dateModel.value.month, dateModel.value.day)
+        const iso = toZoned(date, getLocalTimeZone()).toString().replace(/\[.*\]$/, '')
+        return iso.slice(0, 10) === props.minValue.slice(0, 10) ? props.minValue : undefined
+    }
+    return undefined
 })
 </script>
 
@@ -62,11 +91,15 @@ const df = new DateFormatter('en-US', {
                     />
                     <InputTimePicker
                         v-model="hourModel"
+                        :min-value="minTime"
+                        :max-value="maxTime"
                     />
                 </div>
                 <UCalendar
                     v-model="dateModel"
                     class="p-2"
+                    :min-value="minDate"
+                    :max-value="maxDate"
                 />
             </div>
         </template>
