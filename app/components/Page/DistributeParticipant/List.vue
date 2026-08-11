@@ -8,6 +8,7 @@ interface DistributeParticipant {
     reference_type: string
     reference: {
         event_name: string
+        invoice: string
         reference_id: number
     }
     status: string
@@ -22,6 +23,7 @@ const search = ref('')
 const query = ref('')
 const page = ref(1)
 const limit = ref(5)
+const filterReferenceType = ref<string>('events')
 const filterDocumentType = ref<string>('')
 const filterStatus = ref<string[]>([])
 const filterChannel = ref<string[]>([])
@@ -92,9 +94,10 @@ const list = ref<DistributeParticipant[]>([
         recipient_name: 'Dummy 1',
         channel: 'EMAIL',
         type: 1,
-        reference_type: '',
+        reference_type: 'stores',
         reference: {
             event_name: 'Dummy Event',
+            invoice: 'Dummy Invoice',
             reference_id: 0,
         },
         status: 'success',
@@ -106,9 +109,10 @@ const list = ref<DistributeParticipant[]>([
         recipient_name: 'Dummy 2',
         channel: 'WHATSAPP',
         type: 2,
-        reference_type: '',
+        reference_type: 'events',
         reference: {
             event_name: 'Dummy Event',
+            invoice: 'Dummy Invoice',
             reference_id: 0,
         },
         status: 'pending',
@@ -120,9 +124,10 @@ const list = ref<DistributeParticipant[]>([
         recipient_name: 'Dummy 2',
         channel: 'WHATSAPP',
         type: 3,
-        reference_type: '',
+        reference_type: 'events',
         reference: {
             event_name: 'Dummy Event',
+            invoice: 'Dummy Invoice',
             reference_id: 0,
         },
         status: 'failed',
@@ -147,6 +152,13 @@ function clearSearch() {
 
 function applyFilter() {
     filterSlideover.value = false
+
+    if (filterDocumentType.value === '3') {
+      filterReferenceType.value = 'stores'
+    } else {
+      filterReferenceType.value = 'events'
+    }
+
     // refresh()
 }
 
@@ -244,6 +256,7 @@ function closeHistoryDialog(close: () => void) {
                             color="primary"
                             icon="lucide:plus"
                             class="cursor-pointer"
+                            to="/distribute/add"
                         >
                             Create Distribution
                         </UButton>
@@ -254,6 +267,7 @@ function closeHistoryDialog(close: () => void) {
             <PageDistributeParticipantTable
                 v-model:limit="limit"
                 v-model:page="page"
+                v-model:reference-type="filterReferenceType"
                 :tenant-id="tenantId"
                 :data="list"
                 :total="total"

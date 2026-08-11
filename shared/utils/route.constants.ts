@@ -235,6 +235,14 @@ export const APP_ROUTES: AppRoute[] = [
         icon: 'lucide:send-horizontal',
         to: '/distribute',
         render: true,
+        child: [
+            {
+                title: 'Distribute Notification',
+                description: 'Send notification to specific event',
+                label: 'Add',
+                to: '/distribute/add',
+            },
+        ],
     },
 
     {

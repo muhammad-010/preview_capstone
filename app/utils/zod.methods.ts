@@ -4,9 +4,9 @@ export function zodEnum(enums: string[]) {
     return z.enum(enums)
 }
 
-export function zodNumberRequired() {
+export function zodNumberRequired(msg?: string) {
     return z
-        .number()
+        .number(msg)
 }
 
 export function zodNumberOptional() {

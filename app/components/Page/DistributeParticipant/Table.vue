@@ -11,6 +11,7 @@ interface DistributeParticipant {
     reference_type: string
     reference: {
         event_name: string
+        invoice: string
         reference_id: number
     }
     status: string
@@ -26,6 +27,7 @@ const props = defineProps<{
 }>()
 const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
+const referenceType = defineModel<string>('reference-type', { default: 'events' })
 const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_DISTRIBUTE, EMIT_OPEN_DISTRIBUTE_HISTORY])
 
 /*
@@ -53,14 +55,14 @@ function triggerRefresh(skipResetPage?: boolean) {
 }
 */
 
-function useColumns() {
+const columns = computed(() => {
     const UButton = resolveComponent('UButton')
     const UTooltip = resolveComponent('UTooltip')
 
-    return [
+    const columns: TableColumn<DistributeParticipant>[] = [
         {
             accessorKey: 'recipient_name',
-            header: 'Participant',
+            header: referenceType.value === 'order' ? 'Buyer' : 'Participant',
             meta: {
                 class: {
                     td: `max-w-50`,
@@ -69,20 +71,6 @@ function useColumns() {
             cell: ({ row }) => {
                 return h('div', {}, [
                     h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
-                ])
-            },
-        },
-        {
-            accessorKey: 'reference.event_name',
-            header: 'Event',
-            meta: {
-                class: {
-                    td: 'max-w-50',
-                },
-            },
-            cell: ({ row }) => {
-                return h('div', {}, [
-                    h('div', { class: 'truncate' }, row.original.reference.event_name || ''),
                 ])
             },
         },
@@ -157,10 +145,87 @@ function useColumns() {
                 ])
             },
         },
-    ] as TableColumn<DistributeParticipant>[]
-}
+    ]
 
-const columns = useColumns()
+    if (referenceType.value === 'stores') {
+      columns.unshift({
+          accessorKey: 'recipient_name',
+          header: 'Buyer',
+          meta: {
+              class: {
+                  td: `max-w-50`,
+              },
+          },
+          cell: ({ row }) => {
+              return h('div', {}, [
+                  h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
+              ])
+          },
+      })
+      columns.unshift({
+          accessorKey: 'reference.invoice',
+          header: 'Invoice',
+          meta: {
+              class: {
+                  td: `max-w-50`,
+              },
+          },
+          cell: ({ row }) => {
+              return h('div', {}, [
+                  h('div', { class: 'truncate font-semibold' }, row.original.reference.invoice),
+              ])
+          },
+      })
+    }
+    else if (referenceType.value === 'events') {
+      columns.unshift({
+          accessorKey: 'reference.event_name',
+          header: 'Event',
+          meta: {
+              class: {
+                  td: 'max-w-50',
+              },
+          },
+          cell: ({ row }) => {
+              return h('div', {}, [
+                  h('div', { class: 'truncate' }, row.original.reference.event_name || ''),
+              ])
+          },
+      })
+      columns.unshift({
+          accessorKey: 'recipient_name',
+          header: 'Participant',
+          meta: {
+              class: {
+                  td: `max-w-50`,
+              },
+          },
+          cell: ({ row }) => {
+              return h('div', {}, [
+                  h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
+              ])
+          },
+      })
+    }
+    else {
+      columns.unshift({
+          accessorKey: 'recipient_name',
+          header: 'Recipient',
+          meta: {
+              class: {
+                  td: `max-w-50`,
+              },
+          },
+          cell: ({ row }) => {
+              return h('div', {}, [
+                  h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
+              ])
+          },
+      })
+    }
+
+    return columns
+})
 </script>
 
 <template>
