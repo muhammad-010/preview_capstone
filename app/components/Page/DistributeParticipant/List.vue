@@ -83,7 +83,7 @@ const channels = [
 const validChannels = computed(() => filterDocumentType.value === '1' || !filterDocumentType.value ? channels : channels.filter(e => e.value === 'email'))
 watch(filterDocumentType, (newValue) => {
     if (newValue && newValue !== '1') {
-      filterChannel.value = filterChannel.value.filter(e => e === 'email')
+        filterChannel.value = filterChannel.value.filter(e => e === 'email')
     }
 })
 
@@ -154,9 +154,10 @@ function applyFilter() {
     filterSlideover.value = false
 
     if (filterDocumentType.value === '3') {
-      filterReferenceType.value = 'stores'
-    } else {
-      filterReferenceType.value = 'events'
+        filterReferenceType.value = 'stores'
+    }
+    else {
+        filterReferenceType.value = 'events'
     }
 
     // refresh()
@@ -297,7 +298,9 @@ function closeHistoryDialog(close: () => void) {
 
             <template #body>
                 <div class="flex flex-col gap-2">
-                    <div class="mb-2"><b>3</b> total distribution attempt for this participant</div>
+                    <div class="mb-2">
+                        <b>3</b> total distribution attempt for this participant
+                    </div>
 
                     <div class="py-2 px-4 flex items-center justify-between rounded-lg bg-primary-50 dark:bg-primary-950 not-last:mb-2">
                         <div class="flex items-center gap-4">
@@ -335,10 +338,14 @@ function closeHistoryDialog(close: () => void) {
         >
             <template #body>
                 <div class="flex flex-col gap-4">
-                    <div class="mb-2">Are you sure you want to redistribute notification to {{ distributeTarget ? distributeTarget.recipient_name : '-' }}?</div>
+                    <div class="mb-2">
+                        Are you sure you want to redistribute notification to {{ distributeTarget ? distributeTarget.recipient_name : '-' }}?
+                    </div>
 
                     <template v-if="distributeTarget">
-                        <p class="font-semibold">Detail Notification</p>
+                        <p class="font-semibold">
+                            Detail Notification
+                        </p>
 
                         <div class="flex items center justify-between text-sm">
                             <span>Recipient Name</span>
@@ -370,7 +377,7 @@ function closeHistoryDialog(close: () => void) {
             :ui="{ content: 'max-w-xl' }"
         >
             <template #body>
-              <div class="flex flex-col gap-6">
+                <div class="flex flex-col gap-6">
                     <UFormField
                         label="Document Type"
                     >
@@ -406,7 +413,7 @@ function closeHistoryDialog(close: () => void) {
                             :ui="{ fieldset: 'gap-y-2' }"
                         />
                     </UFormField>
-              </div>
+                </div>
             </template>
 
             <template #footer>

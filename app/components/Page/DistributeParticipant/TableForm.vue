@@ -24,7 +24,7 @@ const limit = defineModel<number>('limit', { default: 0 })
 const page = defineModel<number>('page', { default: 0 })
 const selected = defineModel<number[]>('selected', { default: () => [] })
 const selectAll = defineModel<boolean>('select-all', { default: false })
-const emit = defineEmits([EMIT_TABLE_REFRESH])
+// const emit = defineEmits([EMIT_TABLE_REFRESH])
 
 // TABLE
 const rowSelection = ref<Record<string, boolean>>({})
@@ -211,12 +211,11 @@ const { columns, tableRef } = useColumns()
 
         <UAlert
             v-if="selected.length || selectAll"
-            :title="`Selected Participant: ${ selectAll ? 'All' : selected.length }`"
+            :title="`Selected Participant: ${selectAll ? 'All' : selected.length}`"
             color="info"
             variant="subtle"
             class="mt-4"
         />
-            
 
         <ModalConfirmNegativeAction
             v-model:open="resetSelectionConfirmation"

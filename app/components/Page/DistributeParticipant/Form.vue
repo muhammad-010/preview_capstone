@@ -14,7 +14,7 @@ interface DistributeTarget {
 const { $api } = useNuxtApp()
 const { successToast } = useSuccessToast()
 const { errorToast } = useErrorToast()
-const props = defineProps<{
+defineProps<{
     tenantId: number
     isModal?: boolean
 }>()
@@ -130,7 +130,7 @@ const targetsPending = ref(false)
 const selectedTargets = ref([])
 const selectAll = ref(false)
 watch(selectedTargets, (newValue) => {
-  submitDisabled.value = newValue.length === 0
+    submitDisabled.value = newValue.length === 0
 }, { deep: true })
 
 async function create(payload: FormSubmitEvent<Schema>) {

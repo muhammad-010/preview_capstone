@@ -18,7 +18,7 @@ interface DistributeParticipant {
     status_updated_at: ISOString
 }
 
-const props = defineProps<{
+defineProps<{
     tenantId: number
     data: DistributeParticipant[]
     total: number
@@ -148,80 +148,80 @@ const columns = computed(() => {
     ]
 
     if (referenceType.value === 'stores') {
-      columns.unshift({
-          accessorKey: 'recipient_name',
-          header: 'Buyer',
-          meta: {
-              class: {
-                  td: `max-w-50`,
-              },
-          },
-          cell: ({ row }) => {
-              return h('div', {}, [
-                  h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
-              ])
-          },
-      })
-      columns.unshift({
-          accessorKey: 'reference.invoice',
-          header: 'Invoice',
-          meta: {
-              class: {
-                  td: `max-w-50`,
-              },
-          },
-          cell: ({ row }) => {
-              return h('div', {}, [
-                  h('div', { class: 'truncate font-semibold' }, row.original.reference.invoice),
-              ])
-          },
-      })
+        columns.unshift({
+            accessorKey: 'recipient_name',
+            header: 'Buyer',
+            meta: {
+                class: {
+                    td: `max-w-50`,
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', {}, [
+                    h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
+                ])
+            },
+        })
+        columns.unshift({
+            accessorKey: 'reference.invoice',
+            header: 'Invoice',
+            meta: {
+                class: {
+                    td: `max-w-50`,
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', {}, [
+                    h('div', { class: 'truncate font-semibold' }, row.original.reference.invoice),
+                ])
+            },
+        })
     }
     else if (referenceType.value === 'events') {
-      columns.unshift({
-          accessorKey: 'reference.event_name',
-          header: 'Event',
-          meta: {
-              class: {
-                  td: 'max-w-50',
-              },
-          },
-          cell: ({ row }) => {
-              return h('div', {}, [
-                  h('div', { class: 'truncate' }, row.original.reference.event_name || ''),
-              ])
-          },
-      })
-      columns.unshift({
-          accessorKey: 'recipient_name',
-          header: 'Participant',
-          meta: {
-              class: {
-                  td: `max-w-50`,
-              },
-          },
-          cell: ({ row }) => {
-              return h('div', {}, [
-                  h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
-              ])
-          },
-      })
+        columns.unshift({
+            accessorKey: 'reference.event_name',
+            header: 'Event',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', {}, [
+                    h('div', { class: 'truncate' }, row.original.reference.event_name || ''),
+                ])
+            },
+        })
+        columns.unshift({
+            accessorKey: 'recipient_name',
+            header: 'Participant',
+            meta: {
+                class: {
+                    td: `max-w-50`,
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', {}, [
+                    h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
+                ])
+            },
+        })
     }
     else {
-      columns.unshift({
-          accessorKey: 'recipient_name',
-          header: 'Recipient',
-          meta: {
-              class: {
-                  td: `max-w-50`,
-              },
-          },
-          cell: ({ row }) => {
-              return h('div', {}, [
-                  h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
-              ])
-          },
-      })
+        columns.unshift({
+            accessorKey: 'recipient_name',
+            header: 'Recipient',
+            meta: {
+                class: {
+                    td: `max-w-50`,
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', {}, [
+                    h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
+                ])
+            },
+        })
     }
 
     return columns
