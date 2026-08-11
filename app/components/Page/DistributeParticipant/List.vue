@@ -1,4 +1,19 @@
 <script setup lang="ts">
+interface DistributeParticipant {
+    notification_recipient_id: number
+    recipient_id: number
+    recipient_name: string
+    channel: string
+    type: number
+    reference_type: string
+    reference: {
+        event_name: string
+        reference_id: number
+    }
+    status: string
+    status_updated_at: ISOString
+}
+
 defineProps<{
     tenantId: number
 }>()
@@ -7,57 +22,114 @@ const search = ref('')
 const query = ref('')
 const page = ref(1)
 const limit = ref(5)
-const selectedIds = ref<number[]>([])
-const filterDocumentType = ref<string[]>([])
+const filterDocumentType = ref<string>('')
 const filterStatus = ref<string[]>([])
+const filterChannel = ref<string[]>([])
+const filterSlideover = ref(false)
+const activeFilterCount = computed(() => {
+    let n = 0
 
-const list = ref([
+    if (filterDocumentType.value) n++
+    if (filterStatus.value.length) n++
+    if (filterChannel.value.length) n++
+
+    return n
+})
+
+const documentTypes = [
     {
-        ticket_id: 1,
-        code: '',
-        name: 'Dummy',
-        email: 'dummy@mail.com',
-        phone_number: '080880808800',
-        event_name: 'Dummy Event',
-        latest_invitation_log: {
-            email: {
-                status: 'queue' as InvitationStatus,
-            },
-            whatsapp: {
-                status: 'failed' as InvitationStatus,
-            },
-        },
-
-        latest_certificate_log: {
-            email: {
-                status: 'success' as InvitationStatus,
-            },
-        },
+        label: 'All',
+        value: '',
     },
     {
-        ticket_id: 2,
-        code: '',
-        name: 'Dummy 2',
-        email: 'dummy@mail.com',
-        phone_number: '080880808800',
-        event_name: 'Dummy Event',
-        latest_invitation_log: {
-            email: {
-                status: 'queue' as InvitationStatus,
-            },
-            whatsapp: {
-                status: 'failed' as InvitationStatus,
-            },
-        },
+        label: 'Invitation',
+        value: '1',
+    },
+    {
+        label: 'Certificate',
+        value: '2',
+    },
+    {
+        label: 'Invoice',
+        value: '3',
+    },
+]
+const statuses = [
+    {
+        label: 'Pending',
+        value: 'pending',
+    },
+    {
+        label: 'Failed',
+        value: 'failed',
+    },
+    {
+        label: 'Success',
+        value: 'success',
+    },
+]
+const channels = [
+    {
+        label: 'EMAIL',
+        value: 'email',
+    },
+    {
+        label: 'WHATSAPP',
+        value: 'whatsapp',
+    },
+]
+const validChannels = computed(() => filterDocumentType.value === '1' || !filterDocumentType.value ? channels : channels.filter(e => e.value === 'email'))
+watch(filterDocumentType, (newValue) => {
+    if (newValue && newValue !== '1') {
+      filterChannel.value = filterChannel.value.filter(e => e === 'email')
+    }
+})
 
-        latest_certificate_log: {
-            email: {
-                status: 'success' as InvitationStatus,
-            },
+const list = ref<DistributeParticipant[]>([
+    {
+        notification_recipient_id: 0,
+        recipient_id: 0,
+        recipient_name: 'Dummy 1',
+        channel: 'EMAIL',
+        type: 1,
+        reference_type: '',
+        reference: {
+            event_name: 'Dummy Event',
+            reference_id: 0,
         },
+        status: 'success',
+        status_updated_at: '2026-01-01T00:00:00+07:00',
+    },
+    {
+        notification_recipient_id: 1,
+        recipient_id: 1,
+        recipient_name: 'Dummy 2',
+        channel: 'WHATSAPP',
+        type: 2,
+        reference_type: '',
+        reference: {
+            event_name: 'Dummy Event',
+            reference_id: 0,
+        },
+        status: 'pending',
+        status_updated_at: '2026-01-01T00:00:00+07:00',
+    },
+    {
+        notification_recipient_id: 2,
+        recipient_id: 1,
+        recipient_name: 'Dummy 2',
+        channel: 'WHATSAPP',
+        type: 3,
+        reference_type: '',
+        reference: {
+            event_name: 'Dummy Event',
+            reference_id: 0,
+        },
+        status: 'failed',
+        status_updated_at: '2026-01-01T00:00:00+07:00',
     },
 ])
-const total = ref(2)
+const total = ref(3)
 const pending = ref(false)
 
 function searchData() {
@@ -73,85 +145,47 @@ function clearSearch() {
     // refresh()
 }
 
-// DISTRIBUTION
-const distributeDocumentTypeItems = [
-    {
-        label: 'QR Invitation',
-        value: 'qr-invitation',
-    },
-    {
-        label: 'Certificate',
-        value: 'certificate',
-    },
-]
-const distributeDocumentType = ref('qr-invitation')
-
-const distributeMethodItems = [
-    {
-        label: 'Email',
-        value: 'email',
-    },
-    {
-        label: 'Whatsapp',
-        value: 'whatsapp',
-    },
-]
-const validDistributeMethodItems = computed(() => {
-    if (distributeDocumentType.value === 'certificate') {
-        return distributeMethodItems.filter(e => e.value === 'email')
-    }
-    return distributeMethodItems
-})
-const distributeMethod = ref([])
-
-watch(distributeDocumentType, (newValue, oldValue) => {
-    if (newValue !== oldValue) {
-        distributeMethod.value = []
-    }
-})
-
-const distributeConfirmation = ref(false)
-const distributeTarget = ref('')
-
-function closeDistributeDialog(close: () => void) {
-    selectedIds.value = []
-    distributeTarget.value = ''
-    distributeDocumentType.value = 'qr-invitation'
-    close()
+function applyFilter() {
+    filterSlideover.value = false
+    // refresh()
 }
 
-function applyDistributeDialog(close: () => void) {
-    selectedIds.value = []
-    distributeTarget.value = ''
-    distributeDocumentType.value = 'qr-invitation'
-    close()
+function resetFilter() {
+    filterDocumentType.value = ''
+    filterStatus.value = []
+    filterChannel.value = []
+    // refresh()
+}
+
+const distributeTarget = ref<DistributeParticipant | undefined>()
+
+// REDISTRIBUTION
+const redistributeConfirmation = ref(false)
+
+function openRedistributeDialog(data: DistributeParticipant) {
+    distributeTarget.value = data
+    redistributeConfirmation.value = true
+}
+
+function confirmRedistributeDialog() {
+    distributeTarget.value = undefined
+}
+
+function closeRedistributeDialog() {
+    distributeTarget.value = undefined
+    redistributeConfirmation.value = false
 }
 
 // HISTORION
 const historyDialog = ref(false)
-const filterHistoryItems = [
-    {
-        label: 'QR - Email',
-        value: 'qr-email',
-    },
-    {
-        label: 'QR - Whatsapp',
-        value: 'qr-whatsapp',
-    },
-    {
-        label: 'Certificate - Email',
-        value: 'certificate-email',
-    },
-]
-const filterHistory = ref([])
 
-function openHistoryDialog(id: number) {
-    console.log(id)
+function openHistoryDialog(data: DistributeParticipant) {
+    distributeTarget.value = data
     historyDialog.value = true
 }
 
 function closeHistoryDialog(close: () => void) {
-    distributeTarget.value = ''
+    distributeTarget.value = undefined
     close()
 }
 </script>
@@ -197,104 +231,45 @@ function closeHistoryDialog(close: () => void) {
                         @search="searchData"
                         @clear="clearSearch"
                     />
-                    <UButton
-                        color="primary"
-                        icon="lucide:plus"
-                        class="cursor-pointer"
-                    >
-                        Create Distribution
-                    </UButton>
+
+                    <div class="card-toolbar-actions">
+                        <UButton
+                            :label="`Advanced Filter${activeFilterCount ? ` (${activeFilterCount})` : ''}`"
+                            icon="lucide:filter"
+                            color="neutral"
+                            variant="subtle"
+                            @click="filterSlideover = true"
+                        />
+                        <UButton
+                            color="primary"
+                            icon="lucide:plus"
+                            class="cursor-pointer"
+                        >
+                            Create Distribution
+                        </UButton>
+                    </div>
                 </div>
             </template>
 
             <PageDistributeParticipantTable
                 v-model:limit="limit"
                 v-model:page="page"
-                v-model:selected="selectedIds"
-                v-model:filter-document-type="filterDocumentType"
-                v-model:filter-status="filterStatus"
-                v-model:distribute-target="distributeTarget"
                 :tenant-id="tenantId"
                 :data="list"
                 :total="total"
                 :pending="pending"
                 with-pagination
-                @distribute="distributeConfirmation = true"
+                @distribute="openRedistributeDialog"
                 @open-distribute-history="openHistoryDialog"
             />
         </UCard>
-
-        <UModal v-model:open="distributeConfirmation">
-            <template #header="{ close }">
-                <div class="flex justify-between items-center w-full">
-                    <h5>Distribute to {{ selectedIds.length > 1 ? `${selectedIds.length} Participants` : distributeTarget }}</h5>
-
-                    <UButton
-                        color="neutral"
-                        variant="ghost"
-                        icon="lucide:x"
-                        @click="() => closeDistributeDialog(close)"
-                    />
-                </div>
-            </template>
-
-            <template #body>
-                <div class="flex flex-col gap-4">
-                    <UFormField
-                        label="Document Type"
-                    >
-                        <URadioGroup
-                            v-model="distributeDocumentType"
-                            variant="card"
-                            :items="distributeDocumentTypeItems"
-                            value-key="value"
-                            label-key="label"
-                        />
-                    </UFormField>
-
-                    <UFormField
-                        label="Distribute Method"
-                    >
-                        <UCheckboxGroup
-                            v-model="distributeMethod"
-                            variant="card"
-                            :items="validDistributeMethodItems"
-                            value-key="value"
-                            label-key="label"
-                        />
-                    </UFormField>
-                </div>
-            </template>
-
-            <template #footer="{ close }">
-                <div class="flex justify-end items-center w-full">
-                    <div class="flex gap-2">
-                        <UButton
-                            color="neutral"
-                            variant="outline"
-                            icon="lucide:x"
-                            class="cursor-pointer"
-                            label="Cancel"
-                            @click="() => closeDistributeDialog(close)"
-                        />
-                        <UButton
-                            color="primary"
-                            icon="lucide:save"
-                            class="cursor-pointer"
-                            label="Apply Filter"
-                            @click="() => applyDistributeDialog(close)"
-                        />
-                    </div>
-                </div>
-            </template>
-        </UModal>
 
         <UModal v-model:open="historyDialog">
             <template #header="{ close }">
                 <div class="flex justify-between items-center w-full">
                     <div>
                         <h5>Distribution History</h5>
-                        <span class="text-toned">{{ distributeTarget }}</span>
+                        <span class="text-toned">{{ distributeTarget ? distributeTarget.recipient_name : '-' }}</span>
                     </div>
 
                     <UButton
@@ -307,21 +282,10 @@ function closeHistoryDialog(close: () => void) {
             </template>
 
             <template #body>
-                <div class="flex flex-col gap-4">
-                    <span><b>3</b> total distribution attempt for this participant</span>
+                <div class="flex flex-col gap-2">
+                    <div class="mb-2"><b>3</b> total distribution attempt for this participant</div>
 
-                    <UCheckboxGroup
-                        v-model="filterHistory"
-                        variant="card"
-                        orientation="horizontal"
-                        :items="filterHistoryItems"
-                        value-key="value"
-                        label-key="label"
-                    />
-
-                    <div class="border-b border-default" />
-
-                    <div class="py-2 flex items-center justify-between">
+                    <div class="py-2 px-4 flex items-center justify-between rounded-lg bg-primary-50 dark:bg-primary-950 not-last:mb-2">
                         <div class="flex items-center gap-4">
                             <UAvatar
                                 icon="lucide:mail"
@@ -347,5 +311,106 @@ function closeHistoryDialog(close: () => void) {
                 </div>
             </template>
         </UModal>
+
+        <ModalConfirmPositiveAction
+            v-model:open="redistributeConfirmation"
+            title="Redistribute Notification"
+            confirm-label="Yes, Resend Notification"
+            @confirm="confirmRedistributeDialog"
+            @cancel="closeRedistributeDialog"
+        >
+            <template #body>
+                <div class="flex flex-col gap-4">
+                    <div class="mb-2">Are you sure you want to redistribute notification to {{ distributeTarget ? distributeTarget.recipient_name : '-' }}?</div>
+
+                    <template v-if="distributeTarget">
+                        <p class="font-semibold">Detail Notification</p>
+
+                        <div class="flex items center justify-between text-sm">
+                            <span>Recipient Name</span>
+                            <span class="font-semibold">{{ distributeTarget.recipient_name }}</span>
+                        </div>
+
+                        <div class="flex items center justify-between text-sm">
+                            <span>Event Name</span>
+                            <span class="font-semibold">{{ distributeTarget.reference.event_name }}</span>
+                        </div>
+
+                        <div class="flex items center justify-between text-sm">
+                            <span>Channel</span>
+                            <span class="font-semibold">{{ distributeTarget.channel }}</span>
+                        </div>
+
+                        <div class="flex items center justify-between text-sm">
+                            <span>Document Type</span>
+                            <span class="font-semibold">{{ distributeTarget.type }}</span>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </ModalConfirmPositiveAction>
+
+        <USlideover
+            v-model:open="filterSlideover"
+            title="Advanced Filter"
+            :ui="{ content: 'max-w-xl' }"
+        >
+            <template #body>
+              <div class="flex flex-col gap-6">
+                    <UFormField
+                        label="Document Type"
+                    >
+                        <URadioGroup
+                            v-model="filterDocumentType"
+                            indicator="end"
+                            variant="card"
+                            :items="documentTypes"
+                            :ui="{ fieldset: 'gap-y-2' }"
+                        />
+                    </UFormField>
+
+                    <UFormField
+                        label="Channel"
+                    >
+                        <UCheckboxGroup
+                            v-model="filterChannel"
+                            indicator="end"
+                            variant="card"
+                            :items="validChannels"
+                            :ui="{ fieldset: 'gap-y-2' }"
+                        />
+                    </UFormField>
+
+                    <UFormField
+                        label="Status"
+                    >
+                        <UCheckboxGroup
+                            v-model="filterStatus"
+                            indicator="end"
+                            variant="card"
+                            :items="statuses"
+                            :ui="{ fieldset: 'gap-y-2' }"
+                        />
+                    </UFormField>
+              </div>
+            </template>
+
+            <template #footer>
+                <div class="flex items-center justify-center w-full gap-4">
+                    <UButton
+                        color="neutral"
+                        variant="soft"
+                        label="Reset Filter"
+                        class="text-lg font-semibold py-3 w-full"
+                        @click="resetFilter()"
+                    />
+                    <UButton
+                        label="Apply Filter"
+                        class="text-lg font-semibold py-3 w-full"
+                        @click="applyFilter()"
+                    />
+                </div>
+            </template>
+        </USlideover>
     </div>
 </template>

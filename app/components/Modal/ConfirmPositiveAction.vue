@@ -24,7 +24,9 @@ const overlay = ref(null)
         </template>
 
         <template #body>
-            {{ body }}
+            <slot name="body">
+                {{ body }}
+            </slot>
         </template>
 
         <template #footer="{ close }">
