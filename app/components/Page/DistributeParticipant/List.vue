@@ -8,14 +8,16 @@ const query = ref('')
 const page = ref(1)
 const limit = ref(5)
 const filterReferenceType = ref<DistributeRefType>('events')
-const filterDocumentType = ref<DistributeType | undefined>()
+const filterType = ref<DistributeType | undefined>()
 const filterStatus = ref<string>('')
 const filterChannel = ref<DistributeChannel | undefined>()
+const filterEvent = ref<number | undefined>()
+const filterStore = ref<number | undefined>()
 const filterSlideover = ref(false)
 const activeFilterCount = computed(() => {
     let n = 0
 
-    if (filterDocumentType.value) n++
+    if (filterType.value) n++
     if (filterChannel.value) n++
     if (filterStatus.value) n++
 
@@ -23,34 +25,51 @@ const activeFilterCount = computed(() => {
 })
 
 const documentTypes = computed(() => [
+    {
+        label: 'All',
+        value: undefined,
+    },
     ...Object.entries(DISTRIBUTE_TYPE_ENUM).map(([key, value]) => ({
         label: key.charAt(0).toUpperCase() + key.slice(1),
         value: String(value),
     })),
 ])
 const statuses = computed(() => [
+    {
+        label: 'All',
+        value: '',
+    },
     ...Object.entries(DISTRIBUTE_STATUS_ENUM).map(([key, value]) => ({
         label: formatCapitalize(key),
         value: String(value),
     }))
 ])
 const channels = computed(() => {
-    if (!filterDocumentType.value || filterDocumentType.value === String(DISTRIBUTE_TYPE_ENUM[DISTRIBUTE_TYPE_INVITATION])) {
-        return DISTRIBUTE_CHANNEL_DROPDOWN.map(e => ({
+    let res = []
+    if (!filterType.value || filterType.value === String(DISTRIBUTE_TYPE_ENUM[DISTRIBUTE_TYPE_INVITATION])) {
+        res = DISTRIBUTE_CHANNEL_DROPDOWN.map(e => ({
             label: e.toUpperCase(),
             value: e,
         }))
     }
     else {
-        return DISTRIBUTE_CHANNEL_DROPDOWN.filter(e => e === DISTRIBUTE_CHANNEL_EMAIL).map(e => ({
+        res = DISTRIBUTE_CHANNEL_DROPDOWN.filter(e => e === DISTRIBUTE_CHANNEL_EMAIL).map(e => ({
             label: e.toUpperCase(),
             value: e,
         }))
     }
+    return [{ label: 'ALL', value: undefined }, ...res]
 })
-watch(filterDocumentType, (newValue) => {
-    if (newValue) {
-        filterChannel.value = undefined
+watch(filterType, (newValue) => {
+    filterChannel.value = undefined
+
+    if (newValue === String(DISTRIBUTE_TYPE_ENUM[DISTRIBUTE_TYPE_INVOICE])) {
+        filterReferenceType.value = DISTRIBUTE_REF_TYPE_ORDERS
+        filterEvent.value = undefined
+    }
+    else {
+        filterReferenceType.value = DISTRIBUTE_REF_TYPE_EVENTS
+        filterStore.value = undefined
     }
 })
 
@@ -63,8 +82,10 @@ const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/d
             limit: limit.value,
             reference_type: filterReferenceType.value,
             ...(filterChannel.value ? { channel: filterChannel.value } : {}),
-            ...(filterDocumentType.value ? { type: filterDocumentType.value } : {}),
+            ...(filterType.value ? { type: filterType.value } : {}),
             ...(filterStatus.value ? { status: filterStatus.value } : {}),
+            ...(filterReferenceType.value === DISTRIBUTE_REF_TYPE_EVENTS && filterEvent.value ? { reference_id: filterEvent.value } : {}),
+            ...(filterReferenceType.value === DISTRIBUTE_REF_TYPE_ORDERS && filterStore.value ? { reference_id: filterStore.value } : {}),
         }
     }),
     watch: false,
@@ -91,20 +112,14 @@ function clearSearch() {
 function applyFilter() {
     filterSlideover.value = false
 
-    if (filterDocumentType.value === String(DISTRIBUTE_TYPE_ENUM[DISTRIBUTE_TYPE_INVOICE])) {
-        filterReferenceType.value = DISTRIBUTE_REF_TYPE_ORDERS
-    }
-    else {
-        filterReferenceType.value = DISTRIBUTE_REF_TYPE_EVENTS
-    }
-
     refresh()
 }
 
 function resetFilter() {
-    filterDocumentType.value = undefined
+    filterType.value = undefined
     filterStatus.value = ''
     filterChannel.value = undefined
+    filterReferenceType.value = DISTRIBUTE_REF_TYPE_EVENTS
     refresh()
 }
 
@@ -317,10 +332,20 @@ function closeHistoryDialog(close: () => void) {
             <template #body>
                 <div class="flex flex-col gap-6">
                     <UFormField
+                        v-if="filterReferenceType === DISTRIBUTE_REF_TYPE_EVENTS"
+                        label="Event"
+                    >
+                        <InputSelectMenuEventLazy
+                            v-model="filterEvent"
+                            :tenant-id="tenantId"
+                        />
+                    </UFormField>
+
+                    <UFormField
                         label="Document Type"
                     >
                         <URadioGroup
-                            v-model="filterDocumentType"
+                            v-model="filterType"
                             indicator="end"
                             variant="card"
                             :items="documentTypes"

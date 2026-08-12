@@ -462,6 +462,8 @@ export interface PaymentMethod {
     max_amount: number
 }
 
+// DISTRIBUTE
+
 export type DistributeChannel = 'email' | 'whatsapp'
 export type DistributeType = 'invitation' | 'certificate' | 'invoice'
 export type DistributeStatus = 'in queue' | 'success' | 'failed' | 'sent'
