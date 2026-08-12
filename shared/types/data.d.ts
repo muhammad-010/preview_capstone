@@ -483,6 +483,7 @@ export interface Distribute {
     }
     status: DistributeStatus
     status_updated_at: ISOString
+    created_at?: ISOString
 }
 
 // BELOW ARE DEPRECATED

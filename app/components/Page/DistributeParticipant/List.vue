@@ -3,6 +3,10 @@ const props = defineProps<{
     tenantId: number
 }>()
 
+const { $api } = useNuxtApp()
+const { successToast } = useSuccessToast()
+const { errorToast } = useErrorToast()
+
 const search = ref('')
 const query = ref('')
 const page = ref(1)
@@ -133,8 +137,28 @@ function openRedistributeDialog(data: Distribute) {
     redistributeConfirmation.value = true
 }
 
-function confirmRedistributeDialog() {
-    distributeTarget.value = undefined
+async function confirmRedistributeDialog() {
+    if (!distributeTarget.value) return
+    const typeChan = `${formatCapitalize(Object.entries(DISTRIBUTE_TYPE_ENUM).find(([, value]) => value === distributeTarget.value!.type)?.[0] ?? '-')} - ${formatCapitalize(distributeTarget.value.channel)}`
+
+    try {
+        const data = await $api(`/api/tenant/${props.tenantId}/distribute/resend`, {
+            method: 'POST',
+            body: { notification_recipient_id: [distributeTarget.value.notification_recipient_id] },
+        })
+        if (data.success) {
+            successToast({ description: `${typeChan} for ${distributeTarget.value.recipient_name} successfully redistributed` })
+        }
+        else {
+            errorToast({ description: data.message })
+        }
+    }
+    catch (error) {
+        errorToast({ error, description: `Failed to redistribute ${typeChan} for ${distributeTarget.value.recipient_name}` })
+    }
+    finally {
+        closeRedistributeDialog()
+    }
 }
 
 function closeRedistributeDialog() {
@@ -150,9 +174,8 @@ function openHistoryDialog(data: Distribute) {
     historyDialog.value = true
 }
 
-function closeHistoryDialog(close: () => void) {
+function closeHistoryDialog() {
     distributeTarget.value = undefined
-    close()
 }
 </script>
 
@@ -232,55 +255,12 @@ function closeHistoryDialog(close: () => void) {
             />
         </UCard>
 
-        <UModal v-model:open="historyDialog">
-            <template #header="{ close }">
-                <div class="flex justify-between items-center w-full">
-                    <div>
-                        <h5>Distribution History</h5>
-                        <span class="text-toned">{{ distributeTarget ? distributeTarget.recipient_name : '-' }}</span>
-                    </div>
-
-                    <UButton
-                        color="neutral"
-                        variant="ghost"
-                        icon="lucide:x"
-                        @click="() => closeHistoryDialog(close)"
-                    />
-                </div>
-            </template>
-
-            <template #body>
-                <div class="flex flex-col gap-2">
-                    <div class="mb-2">
-                        <b>3</b> total distribution attempt for this participant
-                    </div>
-
-                    <div class="py-2 px-4 flex items-center justify-between rounded-lg bg-primary-50 dark:bg-primary-950 not-last:mb-2">
-                        <div class="flex items-center gap-4">
-                            <UAvatar
-                                icon="lucide:mail"
-                                size="lg"
-                                color="info"
-                            />
-
-                            <div>
-                                <p class="text-sm font-semibold">
-                                    QR Invitation - Email
-                                </p>
-                                <span class="text-xs text-toned">21 Jul 2026 at 09:12</span>
-                            </div>
-                        </div>
-
-                        <UBadge
-                            color="success"
-                            variant="subtle"
-                            size="sm"
-                            label="Sent"
-                        />
-                    </div>
-                </div>
-            </template>
-        </UModal>
+        <PageDistributeParticipantHistoryModal
+            v-model:open="historyDialog"
+            :tenant-id="tenantId"
+            :distribute-target="distributeTarget"
+            @close="closeHistoryDialog"
+        />
 
         <ModalConfirmPositiveAction
             v-model:open="redistributeConfirmation"
@@ -297,7 +277,7 @@ function closeHistoryDialog(close: () => void) {
 
                     <template v-if="distributeTarget">
                         <p class="font-semibold">
-                            Detail Notification
+                            Information
                         </p>
 
                         <div class="flex items center justify-between text-sm">
@@ -312,12 +292,12 @@ function closeHistoryDialog(close: () => void) {
 
                         <div class="flex items center justify-between text-sm">
                             <span>Channel</span>
-                            <span class="font-semibold">{{ distributeTarget.channel }}</span>
+                            <span class="font-semibold">{{ distributeTarget.channel.toUpperCase() }}</span>
                         </div>
 
                         <div class="flex items center justify-between text-sm">
                             <span>Document Type</span>
-                            <span class="font-semibold">{{ distributeTarget.type }}</span>
+                            <span class="font-semibold">{{ formatCapitalize(Object.entries(DISTRIBUTE_TYPE_ENUM).find(([, value]) => value === distributeTarget!.type)?.[0] ?? '-') }}</span>
                         </div>
                     </template>
                 </div>
