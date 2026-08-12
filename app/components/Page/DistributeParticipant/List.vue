@@ -46,7 +46,7 @@ const statuses = computed(() => [
     ...Object.entries(DISTRIBUTE_STATUS_ENUM).map(([key, value]) => ({
         label: formatCapitalize(key),
         value: String(value),
-    }))
+    })),
 ])
 const channels = computed(() => {
     let res = []

@@ -26,10 +26,10 @@ watch(search, (newVal, oldVal) => {
     if (status.value === 'pending') return
 
     const q = newVal.length >= 3
-      ? newVal
-      : oldVal.length > newVal.length && query.value !== ''
-        ? ''
-        : null
+        ? newVal
+        : oldVal.length > newVal.length && query.value !== ''
+            ? ''
+            : null
 
     if (q === null) return
 

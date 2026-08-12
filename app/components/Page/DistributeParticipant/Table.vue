@@ -43,8 +43,8 @@ const columns = computed(() => {
                     h('div', { class: 'truncate font-semibold' },
                         formatCapitalize(
                             Object.entries(DISTRIBUTE_TYPE_ENUM)
-                                .find(([, value]) => value === row.original.type)?.[0] ?? '-'
-                        )
+                                .find(([, value]) => value === row.original.type)?.[0] ?? '-',
+                        ),
                     ),
                 ])
             },

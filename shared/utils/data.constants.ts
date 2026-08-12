@@ -200,9 +200,9 @@ export const DISTRIBUTE_TYPE_CERTIFICATE: DistributeType = 'certificate'
 export const DISTRIBUTE_TYPE_INVOICE: DistributeType = 'invoice'
 
 export const DISTRIBUTE_TYPE_ENUM = {
-    'invitation': 1,
-    'certificate': 2,
-    'invoice': 3,
+    invitation: 1,
+    certificate: 2,
+    invoice: 3,
 } as const
 
 export const DISTRIBUTE_TYPE_VALID_CHANNEL_DROPDOWN: Record<DistributeType, DistributeChannel[]> = {

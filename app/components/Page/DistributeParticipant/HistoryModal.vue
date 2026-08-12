@@ -15,17 +15,17 @@ const page = ref(1)
 const hasMore = ref(true)
 
 const { data, status, execute } = await useLazyApi(
-() => `/api/tenant/${props.tenantId}/distribute/recipient/${props.distributeTarget?.notification_recipient_id}/history`,
-{
-    transform: res => res.data,
-    query: computed(() => ({
-        page: page.value,
-        limit: 10,
-        type: props.distributeTarget?.type,
-        channel: props.distributeTarget?.channel,
-    })),
-    immediate: false,
-})
+    () => `/api/tenant/${props.tenantId}/distribute/recipient/${props.distributeTarget?.notification_recipient_id}/history`,
+    {
+        transform: res => res.data,
+        query: computed(() => ({
+            page: page.value,
+            limit: 10,
+            type: props.distributeTarget?.type,
+            channel: props.distributeTarget?.channel,
+        })),
+        immediate: false,
+    })
 const list = ref<Distribute[]>([])
 const total = computed(() => data.value?.total_data ?? 0)
 watch(data, (newVal) => {

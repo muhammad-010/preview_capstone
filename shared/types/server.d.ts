@@ -222,7 +222,7 @@ export type PaymentMethodListResult = Result<{
 
 // DISTRIBUTE
 export type DistributeListResult = Result<
-   PaginatedData<Distribute, 'recipients'>
+    PaginatedData<Distribute, 'recipients'>
 >
 
 // BELOW ARE DEPRECATED
