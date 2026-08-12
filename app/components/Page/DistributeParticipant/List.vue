@@ -1,21 +1,5 @@
 <script setup lang="ts">
-interface DistributeParticipant {
-    notification_recipient_id: number
-    recipient_id: number
-    recipient_name: string
-    channel: string
-    type: number
-    reference_type: string
-    reference: {
-        event_name: string
-        invoice: string
-        reference_id: number
-    }
-    status: string
-    status_updated_at: ISOString
-}
-
-defineProps<{
+const props = defineProps<{
     tenantId: number
 }>()
 
@@ -23,159 +7,113 @@ const search = ref('')
 const query = ref('')
 const page = ref(1)
 const limit = ref(5)
-const filterReferenceType = ref<string>('events')
-const filterDocumentType = ref<string>('')
-const filterStatus = ref<string[]>([])
-const filterChannel = ref<string[]>([])
+const filterReferenceType = ref<DistributeRefType>('events')
+const filterDocumentType = ref<DistributeType | undefined>()
+const filterStatus = ref<string>('')
+const filterChannel = ref<DistributeChannel | undefined>()
 const filterSlideover = ref(false)
 const activeFilterCount = computed(() => {
     let n = 0
 
     if (filterDocumentType.value) n++
-    if (filterStatus.value.length) n++
-    if (filterChannel.value.length) n++
+    if (filterChannel.value) n++
+    if (filterStatus.value) n++
 
     return n
 })
 
-const documentTypes = [
-    {
-        label: 'All',
-        value: '',
-    },
-    {
-        label: 'Invitation',
-        value: '1',
-    },
-    {
-        label: 'Certificate',
-        value: '2',
-    },
-    {
-        label: 'Invoice',
-        value: '3',
-    },
-]
-const statuses = [
-    {
-        label: 'Pending',
-        value: 'pending',
-    },
-    {
-        label: 'Failed',
-        value: 'failed',
-    },
-    {
-        label: 'Success',
-        value: 'success',
-    },
-]
-const channels = [
-    {
-        label: 'EMAIL',
-        value: 'email',
-    },
-    {
-        label: 'WHATSAPP',
-        value: 'whatsapp',
-    },
-]
-const validChannels = computed(() => filterDocumentType.value === '1' || !filterDocumentType.value ? channels : channels.filter(e => e.value === 'email'))
+const documentTypes = computed(() => [
+    ...Object.entries(DISTRIBUTE_TYPE_ENUM).map(([key, value]) => ({
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        value: String(value),
+    })),
+])
+const statuses = computed(() => [
+    ...Object.entries(DISTRIBUTE_STATUS_ENUM).map(([key, value]) => ({
+        label: formatCapitalize(key),
+        value: String(value),
+    }))
+])
+const channels = computed(() => {
+    if (!filterDocumentType.value || filterDocumentType.value === String(DISTRIBUTE_TYPE_ENUM[DISTRIBUTE_TYPE_INVITATION])) {
+        return DISTRIBUTE_CHANNEL_DROPDOWN.map(e => ({
+            label: e.toUpperCase(),
+            value: e,
+        }))
+    }
+    else {
+        return DISTRIBUTE_CHANNEL_DROPDOWN.filter(e => e === DISTRIBUTE_CHANNEL_EMAIL).map(e => ({
+            label: e.toUpperCase(),
+            value: e,
+        }))
+    }
+})
 watch(filterDocumentType, (newValue) => {
-    if (newValue && newValue !== '1') {
-        filterChannel.value = filterChannel.value.filter(e => e === 'email')
+    if (newValue) {
+        filterChannel.value = undefined
     }
 })
 
-const list = ref<DistributeParticipant[]>([
-    {
-        notification_recipient_id: 0,
-        recipient_id: 0,
-        recipient_name: 'Dummy 1',
-        channel: 'EMAIL',
-        type: 1,
-        reference_type: 'stores',
-        reference: {
-            event_name: 'Dummy Event',
-            invoice: 'Dummy Invoice',
-            reference_id: 0,
-        },
-        status: 'success',
-        status_updated_at: '2026-01-01T00:00:00+07:00',
-    },
-    {
-        notification_recipient_id: 1,
-        recipient_id: 1,
-        recipient_name: 'Dummy 2',
-        channel: 'WHATSAPP',
-        type: 2,
-        reference_type: 'events',
-        reference: {
-            event_name: 'Dummy Event',
-            invoice: 'Dummy Invoice',
-            reference_id: 0,
-        },
-        status: 'pending',
-        status_updated_at: '2026-01-01T00:00:00+07:00',
-    },
-    {
-        notification_recipient_id: 2,
-        recipient_id: 1,
-        recipient_name: 'Dummy 2',
-        channel: 'WHATSAPP',
-        type: 3,
-        reference_type: 'events',
-        reference: {
-            event_name: 'Dummy Event',
-            invoice: 'Dummy Invoice',
-            reference_id: 0,
-        },
-        status: 'failed',
-        status_updated_at: '2026-01-01T00:00:00+07:00',
-    },
-])
-const total = ref(3)
-const pending = ref(false)
+const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/distribute`, {
+    transform: res => res.data,
+    query: computed(() => {
+        return {
+            query: query.value,
+            page: page.value,
+            limit: limit.value,
+            reference_type: filterReferenceType.value,
+            ...(filterChannel.value ? { channel: filterChannel.value } : {}),
+            ...(filterDocumentType.value ? { type: filterDocumentType.value } : {}),
+            ...(filterStatus.value ? { status: filterStatus.value } : {}),
+        }
+    }),
+    watch: false,
+})
+
+const list = computed<Distribute[]>(() => data.value?.recipients ?? [])
+const total = computed(() => data.value?.total_data ?? 0)
+watch(page, () => refresh())
+watch(limit, () => refresh())
 
 function searchData() {
     page.value = 1
     query.value = search.value
-    // refresh()
+    refresh()
 }
 
 function clearSearch() {
     page.value = 1
     search.value = ''
     query.value = ''
-    // refresh()
+    refresh()
 }
 
 function applyFilter() {
     filterSlideover.value = false
 
-    if (filterDocumentType.value === '3') {
-        filterReferenceType.value = 'stores'
+    if (filterDocumentType.value === String(DISTRIBUTE_TYPE_ENUM[DISTRIBUTE_TYPE_INVOICE])) {
+        filterReferenceType.value = DISTRIBUTE_REF_TYPE_ORDERS
     }
     else {
-        filterReferenceType.value = 'events'
+        filterReferenceType.value = DISTRIBUTE_REF_TYPE_EVENTS
     }
 
-    // refresh()
+    refresh()
 }
 
 function resetFilter() {
-    filterDocumentType.value = ''
-    filterStatus.value = []
-    filterChannel.value = []
-    // refresh()
+    filterDocumentType.value = undefined
+    filterStatus.value = ''
+    filterChannel.value = undefined
+    refresh()
 }
 
-const distributeTarget = ref<DistributeParticipant | undefined>()
+const distributeTarget = ref<Distribute | undefined>()
 
 // REDISTRIBUTION
 const redistributeConfirmation = ref(false)
 
-function openRedistributeDialog(data: DistributeParticipant) {
+function openRedistributeDialog(data: Distribute) {
     distributeTarget.value = data
     redistributeConfirmation.value = true
 }
@@ -192,7 +130,7 @@ function closeRedistributeDialog() {
 // HISTORION
 const historyDialog = ref(false)
 
-function openHistoryDialog(data: DistributeParticipant) {
+function openHistoryDialog(data: Distribute) {
     distributeTarget.value = data
     historyDialog.value = true
 }
@@ -393,11 +331,11 @@ function closeHistoryDialog(close: () => void) {
                     <UFormField
                         label="Channel"
                     >
-                        <UCheckboxGroup
+                        <URadioGroup
                             v-model="filterChannel"
                             indicator="end"
                             variant="card"
-                            :items="validChannels"
+                            :items="channels"
                             :ui="{ fieldset: 'gap-y-2' }"
                         />
                     </UFormField>
@@ -405,7 +343,7 @@ function closeHistoryDialog(close: () => void) {
                     <UFormField
                         label="Status"
                     >
-                        <UCheckboxGroup
+                        <URadioGroup
                             v-model="filterStatus"
                             indicator="end"
                             variant="card"

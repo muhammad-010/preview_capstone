@@ -462,6 +462,27 @@ export interface PaymentMethod {
     max_amount: number
 }
 
+export type DistributeChannel = 'email' | 'whatsapp'
+export type DistributeType = 'invitation' | 'certificate' | 'invoice'
+export type DistributeStatus = 'in queue' | 'success' | 'failed' | 'sent'
+export type DistributeRefType = 'events' | 'orders'
+export interface Distribute {
+    notification_recipient_id: number
+    recipient_id: number
+    recipient_name: string
+    contact_value: string
+    channel: DistributeChannel
+    type: number
+    reference_type: DistributeRefType
+    reference: {
+        event_name?: string
+        invoice?: string
+        reference_id: number
+    }
+    status: DistributeStatus
+    status_updated_at: ISOString
+}
+
 // BELOW ARE DEPRECATED
 
 // PARTICIPANT

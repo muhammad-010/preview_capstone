@@ -2,25 +2,9 @@
 import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 
-interface DistributeParticipant {
-    notification_recipient_id: number
-    recipient_id: number
-    recipient_name: string
-    channel: string
-    type: number
-    reference_type: string
-    reference: {
-        event_name: string
-        invoice: string
-        reference_id: number
-    }
-    status: string
-    status_updated_at: ISOString
-}
-
 defineProps<{
     tenantId: number
-    data: DistributeParticipant[]
+    data: Distribute[]
     total: number
     pending?: boolean
     withPagination?: boolean
@@ -30,50 +14,22 @@ const page = defineModel<number>('page', { default: 0 })
 const referenceType = defineModel<string>('reference-type', { default: 'events' })
 const emit = defineEmits([EMIT_TABLE_REFRESH, EMIT_TABLE_DISTRIBUTE, EMIT_OPEN_DISTRIBUTE_HISTORY])
 
-/*
-const { $api } = useNuxtApp()
-const { errorToast } = useErrorToast()
-*/
-
 // HISTORION
-function openHistoryDialog(data: DistributeParticipant) {
+function openHistoryDialog(data: Distribute) {
     emit(EMIT_OPEN_DISTRIBUTE_HISTORY, data)
 }
 
 // DISTRIBUTION
-function openDistributeConfirmation(data: DistributeParticipant) {
+function openDistributeConfirmation(data: Distribute) {
     emit(EMIT_TABLE_DISTRIBUTE, data)
 }
 
-/*
-function triggerRefresh(skipResetPage?: boolean) {
-    if (!skipResetPage) {
-        page.value = 1
-    }
-    clearSelection(false)
-    emit(EMIT_TABLE_REFRESH)
-}
-*/
-
 const columns = computed(() => {
+    const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
     const UTooltip = resolveComponent('UTooltip')
 
-    const columns: TableColumn<DistributeParticipant>[] = [
-        {
-            accessorKey: 'recipient_name',
-            header: referenceType.value === 'order' ? 'Buyer' : 'Participant',
-            meta: {
-                class: {
-                    td: `max-w-50`,
-                },
-            },
-            cell: ({ row }) => {
-                return h('div', {}, [
-                    h('div', { class: 'truncate font-semibold' }, row.original.recipient_name),
-                ])
-            },
-        },
+    const columns: TableColumn<Distribute>[] = [
         {
             accessorKey: 'type',
             header: 'Document Type',
@@ -84,7 +40,12 @@ const columns = computed(() => {
             },
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('div', { class: 'truncate font-semibold' }, row.original.type),
+                    h('div', { class: 'truncate font-semibold' },
+                        formatCapitalize(
+                            Object.entries(DISTRIBUTE_TYPE_ENUM)
+                                .find(([, value]) => value === row.original.type)?.[0] ?? '-'
+                        )
+                    ),
                 ])
             },
         },
@@ -98,7 +59,7 @@ const columns = computed(() => {
             },
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('div', { class: 'truncate font-semibold' }, row.original.channel),
+                    h('div', { class: 'truncate font-semibold' }, row.original.channel.toUpperCase()),
                 ])
             },
         },
@@ -112,7 +73,12 @@ const columns = computed(() => {
             },
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('div', { class: 'truncate font-semibold' }, row.original.status),
+                    h(UBadge, {
+                        class: 'w-max',
+                        color: DISTRIBUTE_STATUS_COLORS[row.original.status],
+                        variant: 'subtle',
+                        label: row.original.status,
+                    }),
                 ])
             },
         },
@@ -147,7 +113,7 @@ const columns = computed(() => {
         },
     ]
 
-    if (referenceType.value === 'stores') {
+    if (referenceType.value === DISTRIBUTE_REF_TYPE_ORDERS) {
         columns.unshift({
             accessorKey: 'recipient_name',
             header: 'Buyer',
@@ -177,7 +143,7 @@ const columns = computed(() => {
             },
         })
     }
-    else if (referenceType.value === 'events') {
+    else if (referenceType.value === DISTRIBUTE_REF_TYPE_EVENTS) {
         columns.unshift({
             accessorKey: 'reference.event_name',
             header: 'Event',

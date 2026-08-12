@@ -220,6 +220,11 @@ export type PaymentMethodListResult = Result<{
     payment_methods: PaymentMethod[]
 }>
 
+// DISTRIBUTE
+export type DistributeListResult = Result<
+   PaginatedData<Distribute, 'recipients'>
+>
+
 // BELOW ARE DEPRECATED
 
 // PARTICIPANTS

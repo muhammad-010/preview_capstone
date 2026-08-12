@@ -13,6 +13,10 @@ import type {
     TenantPaymentStatus,
     TenantEventTicketStatus,
     TenantEventTicketSessionStatus,
+    DistributeChannel,
+    DistributeType,
+    DistributeStatus,
+    DistributeRefType,
 } from '../types/data'
 
 // STATUS
@@ -176,6 +180,58 @@ export const TENANT_PAYMENT_STATUS_COLORS: Record<
     ['Pending']: 'warning',
     ['Expired']: 'neutral',
 } as const
+
+// DISTRIBUTE
+export const DISTRIBUTE_CHANNEL_EMAIL: DistributeChannel = 'email'
+export const DISTRIBUTE_CHANNEL_WHATSAPP: DistributeChannel = 'whatsapp'
+
+export const DISTRIBUTE_CHANNEL_DROPDOWN: DistributeChannel[] = [
+    DISTRIBUTE_CHANNEL_EMAIL,
+    DISTRIBUTE_CHANNEL_WHATSAPP,
+]
+
+export const DISTRIBUTE_CHANNEL_COLORS: Record<DistributeChannel, 'success' | 'info'> = {
+    [DISTRIBUTE_CHANNEL_WHATSAPP]: 'success',
+    [DISTRIBUTE_CHANNEL_EMAIL]: 'info',
+} as const
+
+export const DISTRIBUTE_TYPE_INVITATION: DistributeType = 'invitation'
+export const DISTRIBUTE_TYPE_CERTIFICATE: DistributeType = 'certificate'
+export const DISTRIBUTE_TYPE_INVOICE: DistributeType = 'invoice'
+
+export const DISTRIBUTE_TYPE_ENUM = {
+    'invitation': 1,
+    'certificate': 2,
+    'invoice': 3,
+} as const
+
+export const DISTRIBUTE_TYPE_VALID_CHANNEL_DROPDOWN: Record<DistributeType, DistributeChannel[]> = {
+    [DISTRIBUTE_TYPE_INVITATION]: [DISTRIBUTE_CHANNEL_EMAIL, DISTRIBUTE_CHANNEL_WHATSAPP],
+    [DISTRIBUTE_TYPE_CERTIFICATE]: [DISTRIBUTE_CHANNEL_EMAIL],
+    [DISTRIBUTE_TYPE_INVOICE]: [DISTRIBUTE_CHANNEL_EMAIL],
+}
+
+export const DISTRIBUTE_STATUS_IN_QUEUE: DistributeStatus = 'in queue'
+export const DISTRIBUTE_STATUS_SUCCESS: DistributeStatus = 'success'
+export const DISTRIBUTE_STATUS_FAILED: DistributeStatus = 'failed'
+export const DISTRIBUTE_STATUS_SENT: DistributeStatus = 'sent'
+
+export const DISTRIBUTE_STATUS_ENUM = {
+    'in queue': 1,
+    'success': 2,
+    'failed': 3,
+    'sent': 5,
+} as const
+
+export const DISTRIBUTE_STATUS_COLORS: Record<DistributeStatus, 'neutral' | 'info' | 'success' | 'error'> = {
+    [DISTRIBUTE_STATUS_IN_QUEUE]: 'neutral',
+    [DISTRIBUTE_STATUS_SENT]: 'info',
+    [DISTRIBUTE_STATUS_SUCCESS]: 'success',
+    [DISTRIBUTE_STATUS_FAILED]: 'error',
+} as const
+
+export const DISTRIBUTE_REF_TYPE_EVENTS: DistributeRefType = 'events'
+export const DISTRIBUTE_REF_TYPE_ORDERS: DistributeRefType = 'orders'
 
 // BELOW ARE DEPRECATED
 
