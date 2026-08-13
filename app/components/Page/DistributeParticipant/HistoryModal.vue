@@ -129,7 +129,7 @@ onBeforeUnmount(() => removeSelectListener?.())
                         <UBadge
                             :color="DISTRIBUTE_STATUS_COLORS[item.status]"
                             variant="subtle"
-                            :label="formatCapitalize(item.status.replaceAll('_' , ' '))"
+                            :label="formatCapitalize(item.status.replaceAll('_', ' '))"
                         />
                     </div>
                 </div>

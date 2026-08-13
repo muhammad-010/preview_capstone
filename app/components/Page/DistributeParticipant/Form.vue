@@ -43,11 +43,11 @@ const state = reactive<{
 
 const documentTypes = computed(() => [
     ...Object.entries(DISTRIBUTE_TYPE_ENUM)
-      .filter(([key]) => key !== DISTRIBUTE_TYPE_INVOICE)
-      .map(([key, value]) => ({
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-        value: String(value),
-    })),
+        .filter(([key]) => key !== DISTRIBUTE_TYPE_INVOICE)
+        .map(([key, value]) => ({
+            label: key.charAt(0).toUpperCase() + key.slice(1),
+            value: String(value),
+        })),
 ])
 const channels = computed(() => {
     let res = []
@@ -69,14 +69,14 @@ const checkInStatuses = computed(() => [
     ...TICKET_SESSION_STATUS_DROPDOWN.map(e => ({
         label: formatCapitalize(e),
         value: e,
-    }))
+    })),
 ])
 const targetStatuses = computed(() => [
-  ...DISTRIBUTE_STATUS_DROPDOWN.filter(e => e !== DISTRIBUTE_STATUS_IN_QUEUE && e !== DISTRIBUTE_STATUS_SENT)
-  .map(e => ({
-      label: formatCapitalize(e.replaceAll('_', ' ')),
-      value: e,
-  }))
+    ...DISTRIBUTE_STATUS_DROPDOWN.filter(e => e !== DISTRIBUTE_STATUS_IN_QUEUE && e !== DISTRIBUTE_STATUS_SENT)
+        .map(e => ({
+            label: formatCapitalize(e.replaceAll('_', ' ')),
+            value: e,
+        })),
 ])
 
 const filterTargetCheckInStatus = ref<TenantEventTicketSessionStatus | undefined>()
@@ -85,26 +85,24 @@ const page = ref(1)
 const limit = ref(5)
 
 const { data, pending, execute } = await useLazyApi(
-() => `/api/tenant/${props.tenantId}/event/${state.event_id}/ticket`,
-{
-    transform: res => res.data,
-    query: computed(() => {
-        const docType = Object.entries(DISTRIBUTE_TYPE_ENUM).find(([, value]) => value === Number(state.raw_document_type))?.[0]
-        if (docType === DISTRIBUTE_TYPE_CERTIFICATE) {
-            state.channel = DISTRIBUTE_CHANNEL_EMAIL
-        }
+    () => `/api/tenant/${props.tenantId}/event/${state.event_id}/ticket`,
+    {
+        transform: res => res.data,
+        query: computed(() => {
+            const docType = Object.entries(DISTRIBUTE_TYPE_ENUM).find(([, value]) => value === Number(state.raw_document_type))?.[0]
+            const channel = docType === DISTRIBUTE_TYPE_CERTIFICATE ? DISTRIBUTE_CHANNEL_EMAIL : state.channel
 
-        return {
-            page: page.value,
-            limit: limit.value,
-            notification_channel: state.channel,
-            notification_type: `event-${docType}`,
-            ...(filterTargetCheckInStatus.value ? { check_in_session: filterTargetCheckInStatus.value } : {}),
-            ...(filterTargetStatus.value ? { notification_status: filterTargetStatus.value } : {}),
-        }
-    }),
-    immediate: false,
-})
+            return {
+                page: page.value,
+                limit: limit.value,
+                notification_channel: channel,
+                notification_type: `event-${docType}`,
+                ...(filterTargetCheckInStatus.value ? { check_in_session: filterTargetCheckInStatus.value } : {}),
+                ...(filterTargetStatus.value ? { notification_status: filterTargetStatus.value } : {}),
+            }
+        }),
+        immediate: false,
+    })
 const list = computed(() => data.value?.ticket ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
 watch(() => state.raw_document_type, (newVal) => {
@@ -118,7 +116,7 @@ watch(() => state.event_id, (newVal) => {
         if (state.channel && state.raw_document_type) execute()
     }
     else {
-      data.value = undefined
+        data.value = undefined
     }
 })
 
@@ -208,7 +206,6 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                 readonly
                 :class="`${isModal ? '' : 'my-2'} w-full`"
             >
-
                 <InputSelectMenuEventLazy
                     v-model="state.event_id"
                     :tenant-id="tenantId"

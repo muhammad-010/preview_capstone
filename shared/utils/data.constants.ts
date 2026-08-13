@@ -218,11 +218,11 @@ export const DISTRIBUTE_STATUS_SENT: DistributeStatus = 'sent'
 export const DISTRIBUTE_STATUS_NOT_SENT: DistributeStatus = 'not_sent'
 
 export const DISTRIBUTE_STATUS_ENUM = {
-    'in_queue': 1,
-    'success': 2,
-    'failed': 3,
-    'not_sent': 4,
-    'sent': 5,
+    in_queue: 1,
+    success: 2,
+    failed: 3,
+    not_sent: 4,
+    sent: 5,
 } as const
 
 export const DISTRIBUTE_STATUS_DROPDOWN: DistributeStatus[] = [

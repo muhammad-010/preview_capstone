@@ -13,9 +13,9 @@ const hasMore = ref(true)
 const { data, status, execute } = await useLazyApi(`/api/tenant/${props.tenantId}/event`, {
     transform: res => res.data,
     query: computed(() => ({
-      ...(query.value ? { query: query.value } : {}),
-      page: page.value,
-      limit: 10,
+        ...(query.value ? { query: query.value } : {}),
+        page: page.value,
+        limit: 10,
     })),
 })
 const list = ref<TenantEvent[]>([])
