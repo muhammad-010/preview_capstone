@@ -67,6 +67,10 @@ export type TenantEventUserFound = Result<{
 }>
 
 // EVENT STORE
+export type TenantStoreListResult = Result<
+    PaginatedData<TenantEventStore, 'store'>
+>
+
 export type TenantEventStoreDetailResult = Result<TenantEventStore>
 
 export type TenantEventStoreFormResult = Result<TenantEventStoreForm>

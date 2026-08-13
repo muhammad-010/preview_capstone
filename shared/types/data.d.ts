@@ -134,6 +134,8 @@ export interface TenantEventStore {
     slug: string
     image_url: string
     is_open: boolean
+
+    event_id?: number
 }
 
 export interface TenantEventStoreForm {

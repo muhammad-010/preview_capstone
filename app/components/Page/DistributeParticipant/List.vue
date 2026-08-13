@@ -320,6 +320,15 @@ function closeHistoryDialog() {
                             :tenant-id="tenantId"
                         />
                     </UFormField>
+                    <UFormField
+                        v-else-if="filterReferenceType === DISTRIBUTE_REF_TYPE_ORDERS"
+                        label="Store"
+                    >
+                        <InputSelectMenuStoreLazy
+                            v-model="filterStore"
+                            :tenant-id="tenantId"
+                        />
+                    </UFormField>
 
                     <UFormField
                         label="Document Type"

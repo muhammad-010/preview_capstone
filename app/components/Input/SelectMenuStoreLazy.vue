@@ -10,7 +10,7 @@ const search = ref('')
 const query = ref('')
 const hasMore = ref(true)
 
-const { data, status, execute } = await useLazyApi(`/api/tenant/${props.tenantId}/event`, {
+const { data, status, execute } = await useLazyApi(`/api/tenant/${props.tenantId}/store`, {
     transform: res => res.data,
     query: computed(() => ({
       ...(query.value ? { query: query.value } : {}),
@@ -18,10 +18,10 @@ const { data, status, execute } = await useLazyApi(`/api/tenant/${props.tenantId
       limit: 10,
     })),
 })
-const list = ref<TenantEvent[]>([])
+const list = ref<TenantEventStore[]>([])
 watch(data, (newVal) => {
     if (newVal) {
-        list.value.push(...newVal.event)
+        list.value.push(...newVal.store)
         hasMore.value = list.value.length < newVal.total_data
     }
 })
@@ -97,8 +97,8 @@ onBeforeUnmount(() => removeSelectListener?.())
         :multiple="multiple"
         clear
         class="w-full"
-        label-key="name"
-        value-key="event_id"
+        label-key="title"
+        value-key="store_id"
         :items="list"
         placeholder="No Event Selected"
         @update:open="onOpen"
