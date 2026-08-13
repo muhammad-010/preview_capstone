@@ -5,10 +5,12 @@ const props = defineProps<{
     loading?: boolean
     cancelLabel?: string
     saveLabel?: string
+    saveIcon?: string
     withStepper?: boolean
     totalStep?: number
     activeStepIndex?: number
 }>()
+const submitDisabled = defineModel<boolean>('submit-disabled', { default: false })
 const emit = defineEmits([EMIT_FORM_CANCEL, EMIT_FORM_SAVE, EMIT_FORM_NEXT_STEP, EMIT_FORM_PREV_STEP])
 
 const showStepSubmit = computed(() => {
@@ -50,8 +52,9 @@ const disableStepPrev = computed(() => {
                         </UButton>
                         <UButton
                             color="primary"
-                            icon="lucide:save"
+                            :icon="saveIcon ?? 'lucide:save'"
                             class="cursor-pointer"
+                            :disabled="submitDisabled"
                             @click="emit(EMIT_FORM_SAVE)"
                         >
                             {{ saveLabel ?? 'Save' }}
@@ -90,8 +93,9 @@ const disableStepPrev = computed(() => {
                         <UButton
                             v-if="showStepSubmit"
                             color="primary"
-                            icon="lucide:save"
+                            :icon="saveIcon ?? 'lucide:save'"
                             class="cursor-pointer"
+                            :disabled="submitDisabled"
                             @click="emit(EMIT_FORM_SAVE)"
                         >
                             {{ saveLabel ?? 'Save' }}

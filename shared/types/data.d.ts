@@ -134,6 +134,8 @@ export interface TenantEventStore {
     slug: string
     image_url: string
     is_open: boolean
+
+    event_id?: number
 }
 
 export interface TenantEventStoreForm {
@@ -327,7 +329,7 @@ export interface TenantEventTicket {
     custom_attribute: CustomAttribute[] | null
     latest_invitation_log?: TenantEventTicketInvitationLog | null
     latest_certificate_log?: TenantEventTicketInvitationLog | null
-    check_in_progress?: TenantEventTicketInProgress
+    check_in_progress?: TenantEventTicketCheckInProgress
 
     phone?: Phone
     ticket_path?: string
@@ -460,6 +462,30 @@ export interface PaymentMethod {
     is_active: boolean
     min_amount: number
     max_amount: number
+}
+
+// DISTRIBUTE
+
+export type DistributeChannel = 'email' | 'whatsapp'
+export type DistributeType = 'invitation' | 'certificate' | 'invoice'
+export type DistributeStatus = 'in_queue' | 'success' | 'failed' | 'not_sent' | 'sent'
+export type DistributeRefType = 'events' | 'orders'
+export interface Distribute {
+    notification_recipient_id: number
+    recipient_id: number
+    recipient_name: string
+    contact_value: string
+    channel: DistributeChannel
+    type: number
+    reference_type: DistributeRefType
+    reference: {
+        event_name?: string
+        invoice?: string
+        reference_id: number
+    }
+    status: DistributeStatus
+    status_updated_at: ISOString
+    created_at?: ISOString
 }
 
 // BELOW ARE DEPRECATED

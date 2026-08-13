@@ -67,6 +67,10 @@ export type TenantEventUserFound = Result<{
 }>
 
 // EVENT STORE
+export type TenantStoreListResult = Result<
+    PaginatedData<TenantEventStore, 'store'>
+>
+
 export type TenantEventStoreDetailResult = Result<TenantEventStore>
 
 export type TenantEventStoreFormResult = Result<TenantEventStoreForm>
@@ -219,6 +223,11 @@ export type TenantOrderDetailResult = Result<TenantOrder>
 export type PaymentMethodListResult = Result<{
     payment_methods: PaymentMethod[]
 }>
+
+// DISTRIBUTE
+export type DistributeListResult = Result<
+    PaginatedData<Distribute, 'recipients'>
+>
 
 // BELOW ARE DEPRECATED
 
