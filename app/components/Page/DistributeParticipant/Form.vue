@@ -2,19 +2,10 @@
 import type { Form, FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 
-interface DistributeTarget {
-    ticket_id: number
-    name: string
-    email: string
-    phone_number: string
-    check_in_status: TenantEventTicketSessionStatus
-    is_sent: boolean
-}
-
 const { $api } = useNuxtApp()
 const { successToast } = useSuccessToast()
 const { errorToast } = useErrorToast()
-defineProps<{
+const props = defineProps<{
     tenantId: number
     isModal?: boolean
 }>()
@@ -28,105 +19,109 @@ async function saveData() {
 defineExpose({ saveData })
 
 const schema = z.object({
-    raw_event_id: zodStringRequired('Event is required'),
+    event_id: zodNumberRequired('Event is required'),
     raw_document_type: zodStringRequired('Document Type is required'),
     channel: zodStringRequired('Channel is required'),
 
-    event_id: zodNumberOptional(),
     document_type: zodNumberOptional(),
 })
 type Schema = z.output<typeof schema>
 
-const state = reactive({
-    raw_event_id: '',
+const state = reactive<{
+    event_id?: number
+    raw_document_type: string
+    channel?: DistributeChannel
+
+    document_type: number
+}>({
+    event_id: undefined,
     raw_document_type: '1',
-    channel: 'email',
-    event_id: 0,
+    channel: DISTRIBUTE_CHANNEL_EMAIL,
+
     document_type: 0,
 })
 
-const events = [
-    {
-        label: 'Dummy Event 1',
-        value: '1',
-    },
-    {
-        label: 'Dummy Event 2',
-        value: '2',
-    },
-]
-const documentTypes = [
-    {
-        label: 'Invitation',
-        value: '1',
-    },
-    {
-        label: 'Certificate',
-        value: '2',
-    },
-]
-const channels = [
-    {
-        label: 'EMAIL',
-        value: 'email',
-    },
-    {
-        label: 'WHATSAPP',
-        value: 'whatsapp',
-    },
-]
-const validChannels = computed(() => state.raw_document_type === '1' || !state.raw_document_type ? channels : channels.filter(e => e.value === 'email'))
-const checkInStatuses = [
-    {
-        label: 'All',
-        value: 'all',
-    },
-    {
-        label: 'None',
-        value: 'none',
-    },
-    {
-        label: 'Partial',
-        value: 'partial',
-    },
-    {
-        label: 'Completed',
-        value: 'completed',
-    },
-]
-
-const filterTargetCheckInStatus = ref<string>('all')
-const filterTargetNotSentOnly = ref<boolean>(false)
-const targets = ref<DistributeTarget[]>([
-    {
-        ticket_id: 1,
-        name: 'Dummy 1',
-        email: 'dummy@mail.com',
-        phone_number: '080880808800',
-        check_in_status: 'none' as TenantEventTicketSessionStatus,
-        is_sent: false,
-    },
-    {
-        ticket_id: 2,
-        name: 'Dummy 2',
-        email: 'dummy@mail.com',
-        phone_number: '080880808800',
-        check_in_status: 'partial' as TenantEventTicketSessionStatus,
-        is_sent: false,
-    },
-    {
-        ticket_id: 3,
-        name: 'Dummy 3',
-        email: 'dummy@mail.com',
-        phone_number: '080880808800',
-        check_in_status: 'completed' as TenantEventTicketSessionStatus,
-        is_sent: false,
-    },
+const documentTypes = computed(() => [
+    ...Object.entries(DISTRIBUTE_TYPE_ENUM)
+      .filter(([key]) => key !== DISTRIBUTE_TYPE_INVOICE)
+      .map(([key, value]) => ({
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        value: String(value),
+    })),
 ])
-const targetsLimit = ref(5)
-const targetsPage = ref(1)
-const targetsTotal = computed(() => targets.value.length)
-const targetsPending = ref(false)
+const channels = computed(() => {
+    let res = []
+    if (!state.raw_document_type || state.raw_document_type === String(DISTRIBUTE_TYPE_ENUM[DISTRIBUTE_TYPE_INVITATION])) {
+        res = DISTRIBUTE_CHANNEL_DROPDOWN.map(e => ({
+            label: e.toUpperCase(),
+            value: e,
+        }))
+    }
+    else {
+        res = DISTRIBUTE_CHANNEL_DROPDOWN.filter(e => e === DISTRIBUTE_CHANNEL_EMAIL).map(e => ({
+            label: e.toUpperCase(),
+            value: e,
+        }))
+    }
+    return res
+})
+const checkInStatuses = computed(() => [
+    ...TICKET_SESSION_STATUS_DROPDOWN.map(e => ({
+        label: formatCapitalize(e),
+        value: e,
+    }))
+])
+const targetStatuses = computed(() => [
+  ...DISTRIBUTE_STATUS_DROPDOWN.filter(e => e !== DISTRIBUTE_STATUS_IN_QUEUE && e !== DISTRIBUTE_STATUS_SENT)
+  .map(e => ({
+      label: formatCapitalize(e.replaceAll('_', ' ')),
+      value: e,
+  }))
+])
+
+const filterTargetCheckInStatus = ref<TenantEventTicketSessionStatus | undefined>()
+const filterTargetStatus = ref<DistributeStatus | undefined>()
+const page = ref(1)
+const limit = ref(5)
+
+const { data, pending, execute } = await useLazyApi(
+() => `/api/tenant/${props.tenantId}/event/${state.event_id}/ticket`,
+{
+    transform: res => res.data,
+    query: computed(() => {
+        const docType = Object.entries(DISTRIBUTE_TYPE_ENUM).find(([, value]) => value === Number(state.raw_document_type))?.[0]
+        if (docType === DISTRIBUTE_TYPE_CERTIFICATE) {
+            state.channel = DISTRIBUTE_CHANNEL_EMAIL
+        }
+
+        return {
+            page: page.value,
+            limit: limit.value,
+            notification_channel: state.channel,
+            notification_type: `event-${docType}`,
+            ...(filterTargetCheckInStatus.value ? { check_in_session: filterTargetCheckInStatus.value } : {}),
+            ...(filterTargetStatus.value ? { notification_status: filterTargetStatus.value } : {}),
+        }
+    }),
+    immediate: false,
+})
+const list = computed(() => data.value?.ticket ?? [])
+const total = computed(() => data.value?.total_data ?? 0)
+watch(() => state.raw_document_type, (newVal) => {
+    const docType = Object.entries(DISTRIBUTE_TYPE_ENUM).find(([, value]) => value === Number(newVal))?.[0]
+    if (docType === DISTRIBUTE_TYPE_CERTIFICATE) {
+        state.channel = DISTRIBUTE_CHANNEL_EMAIL
+    }
+})
+watch(() => state.event_id, (newVal) => {
+    if (newVal) {
+        if (state.channel && state.raw_document_type) execute()
+    }
+    else {
+      data.value = undefined
+    }
+})
+
 const selectedTargets = ref([])
 const selectAll = ref(false)
 watch(selectedTargets, (newValue) => {
@@ -134,16 +129,19 @@ watch(selectedTargets, (newValue) => {
 }, { deep: true })
 
 async function create(payload: FormSubmitEvent<Schema>) {
+    const docType = Object.entries(DISTRIBUTE_TYPE_ENUM).find(([, value]) => value === Number(state.raw_document_type))?.[0] ?? '-'
+
     try {
-        const data = await $api('/api/tenant', {
+        const data = await $api(`/api/tenant/${props.tenantId}/event/${payload.data.event_id}/ticket/send`, {
             method: 'POST',
             body: {
-                channel: payload.data.channel,
-                document_type: Number(payload.data.raw_document_type),
+                channel: [payload.data.channel],
+                document_type: docType,
+                participant_ids: selectedTargets.value,
             },
         })
         if (data.success) {
-            successToast({ description: 'A tenant has been created' })
+            successToast({ description: `${formatCapitalize(docType)} successfully sent` })
             success.value = true
         }
         else {
@@ -151,7 +149,7 @@ async function create(payload: FormSubmitEvent<Schema>) {
         }
     }
     catch (error) {
-        errorToast({ error, description: 'Failed to create new tenant' })
+        errorToast({ error, description: `Failed to send ${docType}` })
     }
 }
 
@@ -173,21 +171,6 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
             :class="isModal ? '' : 'md:grid-cols-3'"
         >
             <UFormField
-                label="Event"
-                name="raw_event_id"
-                required
-                readonly
-                :class="`${isModal ? '' : 'my-2'} w-full`"
-            >
-                <UInputMenu
-                    v-model="state.raw_event_id"
-                    :items="events"
-                    value-key="value"
-                    class="w-full"
-                />
-            </UFormField>
-
-            <UFormField
                 label="Document Type"
                 name="raw_document_type"
                 required
@@ -196,7 +179,7 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
             >
                 <UInputMenu
                     v-model="state.raw_document_type"
-                    :disabled="!state.raw_event_id"
+                    :disabled="!state.event_id"
                     :items="documentTypes"
                     value-key="value"
                     class="w-full"
@@ -211,10 +194,24 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
             >
                 <UInputMenu
                     v-model="state.channel"
-                    :disabled="!state.raw_event_id || !state.raw_document_type"
-                    :items="validChannels"
+                    :disabled="!state.event_id || !state.raw_document_type"
+                    :items="channels"
                     value-key="value"
                     class="w-full"
+                />
+            </UFormField>
+
+            <UFormField
+                label="Event"
+                name="event_id"
+                required
+                readonly
+                :class="`${isModal ? '' : 'my-2'} w-full`"
+            >
+
+                <InputSelectMenuEventLazy
+                    v-model="state.event_id"
+                    :tenant-id="tenantId"
                 />
             </UFormField>
         </div>
@@ -227,17 +224,22 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                             v-model="filterTargetCheckInStatus"
                             :items="checkInStatuses"
                             value-key="value"
+                            :disabled="!list.length"
                             class="w-full"
+                            placeholder="Check-in status unfiltered"
                         />
                     </UFormField>
 
                     <UFormField
-                        label="Last Sent"
+                        label="Status"
                     >
-                        <USwitch
-                            v-model="filterTargetNotSentOnly"
+                        <UInputMenu
+                            v-model="filterTargetStatus"
+                            :items="targetStatuses"
+                            value-key="value"
+                            :disabled="!list.length"
                             class="w-full"
-                            :label="filterTargetNotSentOnly ? 'Only not sent' : 'All'"
+                            placeholder="Status unfiltered"
                         />
                     </UFormField>
                 </div>
@@ -251,14 +253,14 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
             </div>
 
             <PageDistributeParticipantTableForm
-                v-model:limit="targetsLimit"
-                v-model:page="targetsPage"
+                v-model:limit="limit"
+                v-model:page="page"
                 v-model:selected="selectedTargets"
                 v-model:select-all="selectAll"
                 :tenant-id="tenantId"
-                :data="targets"
-                :total="targetsTotal"
-                :pending="targetsPending"
+                :data="list"
+                :total="total"
+                :pending="pending"
                 with-pagination
             />
         </div>

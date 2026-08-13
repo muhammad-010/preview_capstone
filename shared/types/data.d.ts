@@ -327,7 +327,7 @@ export interface TenantEventTicket {
     custom_attribute: CustomAttribute[] | null
     latest_invitation_log?: TenantEventTicketInvitationLog | null
     latest_certificate_log?: TenantEventTicketInvitationLog | null
-    check_in_progress?: TenantEventTicketInProgress
+    check_in_progress?: TenantEventTicketCheckInProgress
 
     phone?: Phone
     ticket_path?: string
@@ -466,7 +466,7 @@ export interface PaymentMethod {
 
 export type DistributeChannel = 'email' | 'whatsapp'
 export type DistributeType = 'invitation' | 'certificate' | 'invoice'
-export type DistributeStatus = 'in queue' | 'success' | 'failed' | 'sent'
+export type DistributeStatus = 'in_queue' | 'success' | 'failed' | 'not_sent' | 'sent'
 export type DistributeRefType = 'events' | 'orders'
 export interface Distribute {
     notification_recipient_id: number

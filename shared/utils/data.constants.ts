@@ -211,21 +211,32 @@ export const DISTRIBUTE_TYPE_VALID_CHANNEL_DROPDOWN: Record<DistributeType, Dist
     [DISTRIBUTE_TYPE_INVOICE]: [DISTRIBUTE_CHANNEL_EMAIL],
 }
 
-export const DISTRIBUTE_STATUS_IN_QUEUE: DistributeStatus = 'in queue'
+export const DISTRIBUTE_STATUS_IN_QUEUE: DistributeStatus = 'in_queue'
 export const DISTRIBUTE_STATUS_SUCCESS: DistributeStatus = 'success'
 export const DISTRIBUTE_STATUS_FAILED: DistributeStatus = 'failed'
 export const DISTRIBUTE_STATUS_SENT: DistributeStatus = 'sent'
+export const DISTRIBUTE_STATUS_NOT_SENT: DistributeStatus = 'not_sent'
 
 export const DISTRIBUTE_STATUS_ENUM = {
-    'in queue': 1,
+    'in_queue': 1,
     'success': 2,
     'failed': 3,
+    'not_sent': 4,
     'sent': 5,
 } as const
 
-export const DISTRIBUTE_STATUS_COLORS: Record<DistributeStatus, 'neutral' | 'info' | 'success' | 'error'> = {
+export const DISTRIBUTE_STATUS_DROPDOWN: DistributeStatus[] = [
+    DISTRIBUTE_STATUS_IN_QUEUE,
+    DISTRIBUTE_STATUS_SUCCESS,
+    DISTRIBUTE_STATUS_FAILED,
+    DISTRIBUTE_STATUS_SENT,
+    DISTRIBUTE_STATUS_NOT_SENT,
+]
+
+export const DISTRIBUTE_STATUS_COLORS: Record<DistributeStatus, 'neutral' | 'info' | 'success' | 'warning' | 'error'> = {
     [DISTRIBUTE_STATUS_IN_QUEUE]: 'neutral',
     [DISTRIBUTE_STATUS_SENT]: 'info',
+    [DISTRIBUTE_STATUS_NOT_SENT]: 'warning',
     [DISTRIBUTE_STATUS_SUCCESS]: 'success',
     [DISTRIBUTE_STATUS_FAILED]: 'error',
 } as const

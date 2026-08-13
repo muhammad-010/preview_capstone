@@ -49,7 +49,7 @@ async function sendQr() {
         }
     }
     catch (error) {
-        errorToast({ error, description: 'Failed to send QR' })
+        errorToast({ error, description: 'Failed to send certificate' })
     }
     finally {
         sendConfirmation.value = false

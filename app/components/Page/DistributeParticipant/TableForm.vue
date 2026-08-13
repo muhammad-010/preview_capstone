@@ -2,20 +2,11 @@
 import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 
-interface DistributeTarget {
-    ticket_id: number
-    name: string
-    email: string
-    phone_number: string
-    check_in_status: TenantEventTicketSessionStatus
-    is_sent: boolean
-}
-
 type ToggleAllPageRowsSelected = (value?: boolean | undefined) => void
 
 const props = defineProps<{
     tenantId: number
-    data: DistributeTarget[]
+    data: TenantEventTicket[]
     total: number
     pending?: boolean
     withPagination?: boolean
@@ -99,6 +90,20 @@ function useColumns() {
     const UCheckbox = resolveComponent('UCheckbox')
     const tableRef = useTemplateRef('tableRef')
 
+    function checkInStatus(progress?: TenantEventTicketCheckInProgress) {
+        if (!progress) return '-'
+
+        if (progress.count === 0) {
+            return 'None'
+        }
+        else if (progress.count < progress.total) {
+            return 'Partial'
+        }
+        else {
+            return 'Completed'
+        }
+    }
+
     const columns = [
         {
             id: 'select',
@@ -112,6 +117,7 @@ function useColumns() {
                         table.toggleAllPageRowsSelected(!!value)
                     },
                     'aria-label': 'Select all',
+                    'disabled': !props.total,
                 }),
             cell: ({ table, row }) =>
                 h(UCheckbox, {
@@ -166,25 +172,11 @@ function useColumns() {
             },
             cell: ({ row }) => {
                 return h('div', {}, [
-                    h('div', { class: 'truncate' }, row.original.check_in_status),
+                    h('div', { class: 'truncate' }, checkInStatus(row.original.check_in_progress)),
                 ])
             },
         },
-        {
-            accessorKey: 'is_sent',
-            header: 'Last Sent',
-            meta: {
-                class: {
-                    td: 'max-w-50',
-                },
-            },
-            cell: ({ row }) => {
-                return h('div', {}, [
-                    h('div', { class: 'truncate' }, row.original.is_sent ? 'Sent' : 'Not sent yet'),
-                ])
-            },
-        },
-    ] as TableColumn<DistributeTarget>[]
+    ] as TableColumn<TenantEventTicket>[]
 
     return { columns, tableRef }
 }

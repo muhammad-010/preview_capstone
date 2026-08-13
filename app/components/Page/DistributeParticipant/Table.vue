@@ -77,7 +77,7 @@ const columns = computed(() => {
                         class: 'w-max',
                         color: DISTRIBUTE_STATUS_COLORS[row.original.status],
                         variant: 'subtle',
-                        label: row.original.status,
+                        label: formatCapitalize(row.original.status.replaceAll('_', ' ')),
                     }),
                 ])
             },
