@@ -221,7 +221,6 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                             v-model="filterTargetCheckInStatus"
                             :items="checkInStatuses"
                             value-key="value"
-                            :disabled="!list.length"
                             class="w-full"
                             placeholder="Check-in status unfiltered"
                         />
@@ -234,19 +233,11 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                             v-model="filterTargetStatus"
                             :items="targetStatuses"
                             value-key="value"
-                            :disabled="!list.length"
                             class="w-full"
                             placeholder="Status unfiltered"
                         />
                     </UFormField>
                 </div>
-
-                <UButton
-                    color="neutral"
-                    variant="subtle"
-                    icon="lucide:filter"
-                    label="Apply Filter"
-                />
             </div>
 
             <PageDistributeParticipantTableForm
