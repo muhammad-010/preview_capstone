@@ -117,9 +117,9 @@ function refreshData() {
 }
 
 const printQrConfirmation = ref(false)
-const sendQrConfirmation = ref(false)
 const printCertificateConfirmation = ref(false)
-const sendCertificateConfirmation = ref(false)
+// const sendQrConfirmation = ref(false)
+// const sendCertificateConfirmation = ref(false)
 const bulkDeleteConfirmation = ref(false)
 </script>
 
@@ -150,17 +150,6 @@ const bulkDeleteConfirmation = ref(false)
                             hide
                             @refresh="refreshData"
                         />
-                        <PageEventSendQr
-                            v-model:open="sendQrConfirmation"
-                            :tenant-id="tenantId"
-                            :event-id="eventId"
-                            :selected-ids="selectedIds"
-                            :query="query"
-                            :filter-custom-attribute="filterCustomAttribute"
-                            :filter-session-status="filterSessionStatus"
-                            hide
-                            @refresh="refreshData"
-                        />
                         <PageEventPrintCertificate
                             v-model:open="printCertificateConfirmation"
                             :tenant-id="tenantId"
@@ -172,17 +161,28 @@ const bulkDeleteConfirmation = ref(false)
                             hide
                             @refresh="refreshData"
                         />
-                        <PageEventSendCertificate
-                            v-model:open="sendCertificateConfirmation"
-                            :tenant-id="tenantId"
-                            :event-id="eventId"
-                            :selected-ids="selectedIds"
-                            :query="query"
-                            :filter-custom-attribute="filterCustomAttribute"
-                            :filter-session-status="filterSessionStatus"
-                            hide
-                            @refresh="refreshData"
-                        />
+                        <!-- <PageEventSendQr -->
+                        <!--     v-model:open="sendQrConfirmation" -->
+                        <!--     :tenant-id="tenantId" -->
+                        <!--     :event-id="eventId" -->
+                        <!--     :selected-ids="selectedIds" -->
+                        <!--     :query="query" -->
+                        <!--     :filter-custom-attribute="filterCustomAttribute" -->
+                        <!--     :filter-session-status="filterSessionStatus" -->
+                        <!--     hide -->
+                        <!--     @refresh="refreshData" -->
+                        <!-- /> -->
+                        <!-- <PageEventSendCertificate -->
+                        <!--     v-model:open="sendCertificateConfirmation" -->
+                        <!--     :tenant-id="tenantId" -->
+                        <!--     :event-id="eventId" -->
+                        <!--     :selected-ids="selectedIds" -->
+                        <!--     :query="query" -->
+                        <!--     :filter-custom-attribute="filterCustomAttribute" -->
+                        <!--     :filter-session-status="filterSessionStatus" -->
+                        <!--     hide -->
+                        <!--     @refresh="refreshData" -->
+                        <!-- /> -->
                         <PageEventBulkDeleteParticipant
                             v-model:open="bulkDeleteConfirmation"
                             :tenant-id="tenantId"
@@ -224,9 +224,7 @@ const bulkDeleteConfirmation = ref(false)
                 @refresh="refreshData"
                 @export="exportData"
                 @print-qr="printQrConfirmation = true"
-                @send-qr="sendQrConfirmation = true"
                 @print-certificate="printCertificateConfirmation = true"
-                @send-certificate="sendCertificateConfirmation = true"
                 @bulk-delete="bulkDeleteConfirmation = true"
             />
         </UCard>

@@ -229,6 +229,8 @@ export type DistributeListResult = Result<
     PaginatedData<Distribute, 'recipients'>
 >
 
+export type DistributeWidgetResult = Result<DistributeWidget>
+
 // BELOW ARE DEPRECATED
 
 // PARTICIPANTS

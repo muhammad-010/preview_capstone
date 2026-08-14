@@ -17,6 +17,7 @@ import type {
     DistributeType,
     DistributeStatus,
     DistributeRefType,
+    TenantEventTicketNotification,
 } from '../types/data'
 
 // STATUS
@@ -211,6 +212,16 @@ export const DISTRIBUTE_TYPE_VALID_CHANNEL_DROPDOWN: Record<DistributeType, Dist
     [DISTRIBUTE_TYPE_INVOICE]: [DISTRIBUTE_CHANNEL_EMAIL],
 }
 
+export const DISTRIBUTE_PARTICIPANT_NOTIFICATION_INVITATION: TenantEventTicketNotification = `event-${DISTRIBUTE_TYPE_INVITATION}`
+export const DISTRIBUTE_PARTICIPANT_NOTIFICATION_CERTIFICATE: TenantEventTicketNotification = `event-${DISTRIBUTE_TYPE_CERTIFICATE}`
+export const DISTRIBUTE_PARTICIPANT_NOTIFICATION_INVOICE: TenantEventTicketNotification = `order-${DISTRIBUTE_TYPE_INVOICE}`
+
+export const DISTRIBUTE_PARTICIPANT_NOTIFICATION_LABEL = {
+    [DISTRIBUTE_PARTICIPANT_NOTIFICATION_INVITATION]: formatCapitalize(DISTRIBUTE_TYPE_INVITATION),
+    [DISTRIBUTE_PARTICIPANT_NOTIFICATION_CERTIFICATE]: formatCapitalize(DISTRIBUTE_TYPE_CERTIFICATE),
+    [DISTRIBUTE_PARTICIPANT_NOTIFICATION_INVOICE]: formatCapitalize(DISTRIBUTE_TYPE_INVOICE),
+}
+
 export const DISTRIBUTE_STATUS_IN_QUEUE: DistributeStatus = 'in_queue'
 export const DISTRIBUTE_STATUS_SUCCESS: DistributeStatus = 'success'
 export const DISTRIBUTE_STATUS_FAILED: DistributeStatus = 'failed'
@@ -243,6 +254,11 @@ export const DISTRIBUTE_STATUS_COLORS: Record<DistributeStatus, 'neutral' | 'inf
 
 export const DISTRIBUTE_REF_TYPE_EVENTS: DistributeRefType = 'events'
 export const DISTRIBUTE_REF_TYPE_ORDERS: DistributeRefType = 'orders'
+
+export const DISTRIBUTE_REF_TYPE_DROPDOWN: DistributeRefType[] = [
+    DISTRIBUTE_REF_TYPE_EVENTS,
+    DISTRIBUTE_REF_TYPE_ORDERS,
+]
 
 // BELOW ARE DEPRECATED
 

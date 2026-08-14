@@ -301,6 +301,14 @@ export type TenantEventTicketStatus = 'Pending' | 'Checked In'
 export type TenantEventTicketSessionStatus = 'none' | 'partial' | 'completed'
 export type SendChannel = 'email' | 'whatsapp'
 export type InvitationStatus = 'queue' | 'success' | 'failed'
+export type TenantEventTicketNotification = 'event-invitation' | 'event-certificate' | 'order-invoice'
+
+export interface TenantEventTicketChannelStatus {
+    email?: InvitationStatus
+    whatsapp?: InvitationStatus
+}
+
+export type TenantEventTicketLatestNotification = Partial<Record<TenantEventTicketNotification, TenantEventTicketChannelStatus>>
 
 export interface TenantEventTicketInvitationLog {
     email?: {
@@ -334,6 +342,7 @@ export interface TenantEventTicket {
     phone?: Phone
     ticket_path?: string
     abilities?: TenantEventTicketAbility[]
+    latest_notification?: TenantEventTicketLatestNotification
 }
 
 export interface TenantEventTicketForm {
@@ -486,6 +495,13 @@ export interface Distribute {
     status: DistributeStatus
     status_updated_at: ISOString
     created_at?: ISOString
+}
+
+export interface DistributeWidget {
+    total: number
+    distributed: number
+    pending: number
+    failed: number
 }
 
 // BELOW ARE DEPRECATED
