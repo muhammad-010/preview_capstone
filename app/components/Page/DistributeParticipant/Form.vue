@@ -175,6 +175,8 @@ async function create(payload: FormSubmitEvent<Schema>) {
             body: {
                 channel: [payload.data.channel],
                 document_type: docType,
+                notification_channel: payload.data.channel,
+                notification_type: `event-${docType}`,
                 ticket_ids: selectedTargets.value,
             },
         })
