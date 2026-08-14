@@ -310,13 +310,14 @@ function triggerRefresh(skipResetPage?: boolean) {
 defineExpose({ clearSelection })
 
 function useColumns() {
-    const UBadge = resolveComponent('UBadge')
+    // const UBadge = resolveComponent('UBadge')
     const UButton = resolveComponent('UButton')
     const UCheckbox = resolveComponent('UCheckbox')
     const UProgress = resolveComponent('UProgress')
     const UTooltip = resolveComponent('UTooltip')
     const tableRef = useTemplateRef('tableRef')
 
+    /*
     function qrSent(participant: TenantEventTicket) {
         if (!participant.latest_invitation_log) {
             return h('span', { class: 'text-dimmed' }, 'Not Sent')
@@ -364,6 +365,7 @@ function useColumns() {
         }
         return certificateSent
     }
+    */
 
     const columns = [
         {
@@ -462,6 +464,7 @@ function useColumns() {
                 ])
             },
         },
+        /*
         {
             accessorKey: 'latest_invitation_log',
             header: 'QR Sent',
@@ -472,6 +475,7 @@ function useColumns() {
             header: 'Certificate Sent',
             cell: ({ row }) => h('div', { class: 'flex flex-col gap-2' }, certificateSent(row.original)),
         },
+        */
         {
             accessorKey: 'ticket_id',
             header: 'Action',

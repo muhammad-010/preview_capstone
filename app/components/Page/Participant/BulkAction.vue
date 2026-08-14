@@ -24,26 +24,10 @@ const bulkActionList: DropdownMenuItem[][] = [
             },
         },
         {
-            label: 'Send QR',
-            icon: 'lucide:send',
-            onSelect() {
-                emit(EMIT_TABLE_SEND_QR)
-            },
-        },
-    ],
-    [
-        {
             label: 'Print Certificate',
             icon: 'lucide:scroll-text',
             onSelect() {
                 emit(EMIT_TABLE_PRINT_CERTIFICATE)
-            },
-        },
-        {
-            label: 'Send Certificate',
-            icon: 'lucide:send',
-            onSelect() {
-                emit(EMIT_TABLE_SEND_CERTIFICATE)
             },
         },
     ],

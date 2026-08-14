@@ -105,7 +105,7 @@ function useColumns() {
         }
     }
 
-     function latestStatus(notifications?: TenantEventTicketLatestNotification) {
+    function latestStatus(notifications?: TenantEventTicketLatestNotification) {
         if (!notifications) return h('span', { class: 'text-dimmed' }, 'Not Sent')
 
         return Object.entries(notifications).map(([notification, channels]) => {

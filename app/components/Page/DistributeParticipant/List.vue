@@ -29,7 +29,7 @@ const activeFilterCount = computed(() => {
 })
 
 const refTypes = computed(() => [
-    ...DISTRIBUTE_REF_TYPE_DROPDOWN.map((e) => ({
+    ...DISTRIBUTE_REF_TYPE_DROPDOWN.map(e => ({
         label: formatCapitalize(e),
         value: String(e),
     })),
@@ -40,18 +40,18 @@ const documentTypes = computed(() => [
         value: undefined,
     },
     ...Object.entries(DISTRIBUTE_TYPE_ENUM)
-    .filter(([key]) => {
-        if (filterReferenceType.value === DISTRIBUTE_REF_TYPE_EVENTS) {
-            return key !== DISTRIBUTE_TYPE_INVOICE
-        }
-        else if (filterReferenceType.value === DISTRIBUTE_REF_TYPE_ORDERS) {
-            return key === DISTRIBUTE_TYPE_INVOICE
-        }
-    })
-    .map(([key, value]) => ({
-        label: formatCapitalize(key),
-        value: String(value),
-    })),
+        .filter(([key]) => {
+            if (filterReferenceType.value === DISTRIBUTE_REF_TYPE_EVENTS) {
+                return key !== DISTRIBUTE_TYPE_INVOICE
+            }
+            else if (filterReferenceType.value === DISTRIBUTE_REF_TYPE_ORDERS) {
+                return key === DISTRIBUTE_TYPE_INVOICE
+            }
+        })
+        .map(([key, value]) => ({
+            label: formatCapitalize(key),
+            value: String(value),
+        })),
 ])
 const channels = computed(() => {
     let res = []
