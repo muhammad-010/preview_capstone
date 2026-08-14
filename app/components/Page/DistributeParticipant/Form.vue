@@ -79,12 +79,16 @@ const targetStatuses = computed(() => [
         })),
 ])
 
-const filterTargetCheckInStatus = ref<TenantEventTicketSessionStatus | undefined>()
-const filterTargetStatus = ref<DistributeStatus | undefined>()
+const search = ref('')
+const query = ref('')
 const page = ref(1)
 const limit = ref(5)
+const filterCheckInStatus = ref<TenantEventTicketSessionStatus | undefined>()
+const filterStatus = ref<DistributeStatus | undefined>()
+const rawFilterCheckInStatus = ref<TenantEventTicketSessionStatus | undefined>()
+const rawFilterStatus = ref<DistributeStatus | undefined>()
 
-const { data, pending, execute } = await useLazyApi(
+const { data, pending, execute, refresh } = await useLazyApi(
     () => `/api/tenant/${props.tenantId}/event/${state.event_id}/ticket`,
     {
         transform: res => res.data,
@@ -93,12 +97,13 @@ const { data, pending, execute } = await useLazyApi(
             const channel = docType === DISTRIBUTE_TYPE_CERTIFICATE ? DISTRIBUTE_CHANNEL_EMAIL : state.channel
 
             return {
+                query: query.value,
                 page: page.value,
                 limit: limit.value,
                 notification_channel: channel,
                 notification_type: `event-${docType}`,
-                ...(filterTargetCheckInStatus.value ? { check_in_session: filterTargetCheckInStatus.value } : {}),
-                ...(filterTargetStatus.value ? { notification_status: filterTargetStatus.value } : {}),
+                ...(filterCheckInStatus.value ? { check_in_session: filterCheckInStatus.value } : {}),
+                ...(filterStatus.value ? { notification_status: filterStatus.value } : {}),
             }
         }),
         immediate: false,
@@ -119,12 +124,47 @@ watch(() => state.event_id, (newVal) => {
         data.value = undefined
     }
 })
+watch(page, () => refresh())
+watch(limit, () => refresh())
 
 const selectedTargets = ref([])
 const selectAll = ref(false)
-watch(selectedTargets, (newValue) => {
-    submitDisabled.value = newValue.length === 0
-}, { deep: true })
+watch(
+    [selectedTargets, selectAll],
+    ([newSelectedTargets, newSelectAll]) => {
+        submitDisabled.value = newSelectedTargets.length === 0 && !newSelectAll
+    },
+    { deep: true },
+)
+
+function applyFilter() {
+    page.value = 1
+    query.value = search.value
+    filterCheckInStatus.value = rawFilterCheckInStatus.value
+    filterStatus.value = rawFilterStatus.value
+    refresh()
+}
+
+function clearSearch() {
+    page.value = 1
+    search.value = ''
+    query.value = search.value
+    refresh()
+}
+
+function clearFilterCheckInStatus() {
+    page.value = 1
+    rawFilterCheckInStatus.value = undefined
+    filterCheckInStatus.value = rawFilterCheckInStatus.value
+    refresh()
+}
+
+function clearFilterStatus() {
+    page.value = 1
+    rawFilterStatus.value = undefined
+    filterStatus.value = rawFilterStatus.value
+    refresh()
+}
 
 async function create(payload: FormSubmitEvent<Schema>) {
     const docType = Object.entries(DISTRIBUTE_TYPE_ENUM).find(([, value]) => value === Number(state.raw_document_type))?.[0] ?? '-'
@@ -135,7 +175,7 @@ async function create(payload: FormSubmitEvent<Schema>) {
             body: {
                 channel: [payload.data.channel],
                 document_type: docType,
-                participant_ids: selectedTargets.value,
+                ticket_ids: selectedTargets.value,
             },
         })
         if (data.success) {
@@ -169,6 +209,19 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
             :class="isModal ? '' : 'md:grid-cols-3'"
         >
             <UFormField
+                label="Event"
+                name="event_id"
+                required
+                readonly
+                :class="`${isModal ? '' : 'my-2'} w-full`"
+            >
+                <InputSelectMenuEventLazy
+                    v-model="state.event_id"
+                    :tenant-id="tenantId"
+                />
+            </UFormField>
+
+            <UFormField
                 label="Document Type"
                 name="raw_document_type"
                 required
@@ -198,50 +251,54 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                     class="w-full"
                 />
             </UFormField>
-
-            <UFormField
-                label="Event"
-                name="event_id"
-                required
-                readonly
-                :class="`${isModal ? '' : 'my-2'} w-full`"
-            >
-                <InputSelectMenuEventLazy
-                    v-model="state.event_id"
-                    :tenant-id="tenantId"
-                />
-            </UFormField>
         </div>
 
         <div class="flex flex-col gap-4 border-t border-default pt-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-end justify-between">
                 <div class="flex items-center gap-6">
+                    <UFormField label="Search Participant">
+                        <DataTableSearch
+                            v-model="search"
+                            placeholder="Enter name, email, or phone"
+                            no-search-button
+                            @clear="clearSearch"
+                        />
+                    </UFormField>
+
                     <UFormField label="Filter Check-In Status">
                         <UInputMenu
-                            v-model="filterTargetCheckInStatus"
+                            v-model="rawFilterCheckInStatus"
                             :items="checkInStatuses"
                             value-key="value"
                             class="w-full"
                             clear
                             :disabled="!state.raw_document_type || !state.channel || !state.event_id"
                             placeholder="Check-in status unfiltered"
+                            @clear="clearFilterCheckInStatus"
                         />
                     </UFormField>
 
-                    <UFormField
-                        label="Status"
-                    >
+                    <UFormField label="Filter Status">
                         <UInputMenu
-                            v-model="filterTargetStatus"
+                            v-model="rawFilterStatus"
                             :items="targetStatuses"
                             value-key="value"
                             class="w-full"
                             clear
                             :disabled="!state.raw_document_type || !state.channel || !state.event_id"
                             placeholder="Status unfiltered"
+                            @clear="clearFilterStatus"
                         />
                     </UFormField>
                 </div>
+
+                <UButton
+                    color="neutral"
+                    variant="subtle"
+                    icon="lucide:filter"
+                    label="Apply Search and Filter"
+                    @click="applyFilter"
+                />
             </div>
 
             <PageDistributeParticipantTableForm

@@ -87,6 +87,7 @@ function triggerRefresh(skipResetPage?: boolean) {
 defineExpose({ clearSelection })
 
 function useColumns() {
+    const UBadge = resolveComponent('UBadge')
     const UCheckbox = resolveComponent('UCheckbox')
     const tableRef = useTemplateRef('tableRef')
 
@@ -102,6 +103,24 @@ function useColumns() {
         else {
             return 'Completed'
         }
+    }
+
+     function latestStatus(notifications?: TenantEventTicketLatestNotification) {
+        if (!notifications) return h('span', { class: 'text-dimmed' }, 'Not Sent')
+
+        return Object.entries(notifications).map(([notification, channels]) => {
+            const statuses = Object.values(channels ?? {})
+
+            const status: InvitationStatus = statuses[0]!
+            const docType = DISTRIBUTE_PARTICIPANT_NOTIFICATION_LABEL[notification as TenantEventTicketNotification]
+
+            return h(UBadge, {
+                class: 'w-max',
+                color: INVITATION_STATUS_COLORS[status],
+                variant: 'subtle',
+                label: `${docType}: ${formatCapitalize(status ?? '-')}`,
+            })
+        })
     }
 
     const columns = [
@@ -160,6 +179,18 @@ function useColumns() {
                     h('div', { class: 'truncate' }, row.original.email || ''),
                     h('div', { class: 'truncate' }, row.original.phone_number || ''),
                 ])
+            },
+        },
+        {
+            accessorKey: 'latest_notification',
+            header: 'Status',
+            meta: {
+                class: {
+                    td: 'max-w-50',
+                },
+            },
+            cell: ({ row }) => {
+                return h('div', {}, latestStatus(row.original.latest_notification))
             },
         },
         {

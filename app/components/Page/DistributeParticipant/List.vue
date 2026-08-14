@@ -11,7 +11,7 @@ const search = ref('')
 const query = ref('')
 const page = ref(1)
 const limit = ref(5)
-const filterReferenceType = ref<DistributeRefType>('events')
+const filterReferenceType = ref<string>('events')
 const filterType = ref<DistributeType | undefined>()
 const filterStatus = ref<string>('')
 const filterChannel = ref<DistributeChannel | undefined>()
@@ -28,22 +28,27 @@ const activeFilterCount = computed(() => {
     return n
 })
 
+const refTypes = computed(() => [
+    ...DISTRIBUTE_REF_TYPE_DROPDOWN.map((e) => ({
+        label: formatCapitalize(e),
+        value: String(e),
+    })),
+])
 const documentTypes = computed(() => [
     {
         label: 'All',
         value: undefined,
     },
-    ...Object.entries(DISTRIBUTE_TYPE_ENUM).map(([key, value]) => ({
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-        value: String(value),
-    })),
-])
-const statuses = computed(() => [
-    {
-        label: 'All',
-        value: '',
-    },
-    ...Object.entries(DISTRIBUTE_STATUS_ENUM).map(([key, value]) => ({
+    ...Object.entries(DISTRIBUTE_TYPE_ENUM)
+    .filter(([key]) => {
+        if (filterReferenceType.value === DISTRIBUTE_REF_TYPE_EVENTS) {
+            return key !== DISTRIBUTE_TYPE_INVOICE
+        }
+        else if (filterReferenceType.value === DISTRIBUTE_REF_TYPE_ORDERS) {
+            return key === DISTRIBUTE_TYPE_INVOICE
+        }
+    })
+    .map(([key, value]) => ({
         label: formatCapitalize(key),
         value: String(value),
     })),
@@ -64,18 +69,41 @@ const channels = computed(() => {
     }
     return [{ label: 'ALL', value: undefined }, ...res]
 })
-watch(filterType, (newValue) => {
-    filterChannel.value = undefined
-
-    if (newValue === String(DISTRIBUTE_TYPE_ENUM[DISTRIBUTE_TYPE_INVOICE])) {
-        filterReferenceType.value = DISTRIBUTE_REF_TYPE_ORDERS
+const statuses = computed(() => [
+    {
+        label: 'All',
+        value: '',
+    },
+    ...Object.entries(DISTRIBUTE_STATUS_ENUM).map(([key, value]) => ({
+        label: formatCapitalize(key),
+        value: String(value),
+    })),
+])
+watch(filterType, () => filterChannel.value = undefined)
+watch(filterReferenceType, (newValue) => {
+    if (newValue === DISTRIBUTE_REF_TYPE_ORDERS) {
         filterEvent.value = undefined
     }
-    else {
-        filterReferenceType.value = DISTRIBUTE_REF_TYPE_EVENTS
+    else if (newValue === DISTRIBUTE_REF_TYPE_EVENTS) {
         filterStore.value = undefined
     }
 })
+
+const { data: widgetData, refresh: widgetRefresh } = await useApi(`/api/tenant/${props.tenantId}/distribute/widget`, {
+    transform: res => res.data,
+    query: computed(() => {
+        return {
+            reference_type: filterReferenceType.value,
+            ...(filterChannel.value ? { channel: filterChannel.value } : {}),
+            ...(filterType.value ? { type: filterType.value } : {}),
+            ...(filterStatus.value ? { status: filterStatus.value } : {}),
+            ...(filterReferenceType.value === DISTRIBUTE_REF_TYPE_EVENTS && filterEvent.value ? { reference_id: filterEvent.value } : {}),
+            ...(filterReferenceType.value === DISTRIBUTE_REF_TYPE_ORDERS && filterStore.value ? { reference_id: filterStore.value } : {}),
+        }
+    }),
+    watch: false,
+})
+const widget = computed<DistributeWidget | undefined>(() => widgetData.value)
 
 const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/distribute`, {
     transform: res => res.data,
@@ -94,29 +122,34 @@ const { data, pending, refresh } = await useApi(`/api/tenant/${props.tenantId}/d
     }),
     watch: false,
 })
-
 const list = computed<Distribute[]>(() => data.value?.recipients ?? [])
 const total = computed(() => data.value?.total_data ?? 0)
-watch(page, () => refresh())
-watch(limit, () => refresh())
+
+function refreshData() {
+    refresh()
+    widgetRefresh()
+}
+
+watch(page, () => refreshData())
+watch(limit, () => refreshData())
 
 function searchData() {
     page.value = 1
     query.value = search.value
-    refresh()
+    refreshData()
 }
 
 function clearSearch() {
     page.value = 1
     search.value = ''
     query.value = ''
-    refresh()
+    refreshData()
 }
 
 function applyFilter() {
     filterSlideover.value = false
 
-    refresh()
+    refreshData()
 }
 
 function resetFilter() {
@@ -124,7 +157,7 @@ function resetFilter() {
     filterStatus.value = ''
     filterChannel.value = undefined
     filterReferenceType.value = DISTRIBUTE_REF_TYPE_EVENTS
-    refresh()
+    refreshData()
 }
 
 const distributeTarget = ref<Distribute | undefined>()
@@ -181,31 +214,34 @@ function closeHistoryDialog() {
 
 <template>
     <div class="mt-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 mb-8">
+        <div
+            v-if="widget"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 mb-8"
+        >
             <CardTotal
                 title="Total Participant"
-                :total="7"
+                :total="widget.total"
                 icon="lucide:users"
                 icon-color="info"
             />
 
             <CardTotal
                 title="Fully Distributed"
-                :total="2"
+                :total="widget.distributed"
                 icon="lucide:circle-check"
                 icon-color="success"
             />
 
             <CardTotal
                 title="Pending Items"
-                :total="4"
+                :total="widget.pending"
                 icon="lucide:clock-alert"
                 icon-color="warning"
             />
 
             <CardTotal
                 title="Failed Items"
-                :total="1"
+                :total="widget.failed"
                 icon="lucide:triangle-alert"
                 icon-color="error"
             />
@@ -311,6 +347,15 @@ function closeHistoryDialog() {
         >
             <template #body>
                 <div class="flex flex-col gap-6">
+                    <UFormField label="Reference Type">
+                        <USelectMenu
+                            v-model="filterReferenceType"
+                            :items="refTypes"
+                            value-key="value"
+                            class="w-full"
+                        />
+                    </UFormField>
+
                     <UFormField
                         v-if="filterReferenceType === DISTRIBUTE_REF_TYPE_EVENTS"
                         label="Event"
@@ -320,6 +365,7 @@ function closeHistoryDialog() {
                             :tenant-id="tenantId"
                         />
                     </UFormField>
+
                     <UFormField
                         v-else-if="filterReferenceType === DISTRIBUTE_REF_TYPE_ORDERS"
                         label="Store"
@@ -330,9 +376,7 @@ function closeHistoryDialog() {
                         />
                     </UFormField>
 
-                    <UFormField
-                        label="Document Type"
-                    >
+                    <UFormField label="Document Type">
                         <URadioGroup
                             v-model="filterType"
                             indicator="end"
@@ -342,9 +386,7 @@ function closeHistoryDialog() {
                         />
                     </UFormField>
 
-                    <UFormField
-                        label="Channel"
-                    >
+                    <UFormField label="Channel">
                         <URadioGroup
                             v-model="filterChannel"
                             indicator="end"
@@ -354,9 +396,7 @@ function closeHistoryDialog() {
                         />
                     </UFormField>
 
-                    <UFormField
-                        label="Status"
-                    >
+                    <UFormField label="Status">
                         <URadioGroup
                             v-model="filterStatus"
                             indicator="end"

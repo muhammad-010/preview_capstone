@@ -226,3 +226,15 @@ export function formatIsAfterDate(date?: ISOString): boolean {
 export function formatThousandNumber(value: number) {
     return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 }
+
+export function formatNotificationStatus(
+    notifications: TenantEventTicketLatestNotification,
+): string[] {
+    return Object.entries(notifications).map(([notification, channels]) => {
+        const status = channels.email ?? channels.whatsapp
+
+        return `${DISTRIBUTE_PARTICIPANT_NOTIFICATION_LABEL[
+            notification as TenantEventTicketNotification
+        ]}: ${formatCapitalize(status ?? '')}`
+    })
+}
