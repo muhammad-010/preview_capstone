@@ -222,6 +222,8 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                             :items="checkInStatuses"
                             value-key="value"
                             class="w-full"
+                            clear
+                            :disabled="!state.raw_document_type || !state.channel || !state.event_id"
                             placeholder="Check-in status unfiltered"
                         />
                     </UFormField>
@@ -234,6 +236,8 @@ async function submitData(payload: FormSubmitEvent<Schema>) {
                             :items="targetStatuses"
                             value-key="value"
                             class="w-full"
+                            clear
+                            :disabled="!state.raw_document_type || !state.channel || !state.event_id"
                             placeholder="Status unfiltered"
                         />
                     </UFormField>
