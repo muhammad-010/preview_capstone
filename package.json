@@ -30,6 +30,7 @@
     "@iconify-json/lucide": "^1.2.89",
     "@stylistic/eslint-plugin": "^5.7.1",
     "@types/node": "^25.2.3",
-    "nuxt-qrcode": "^0.4.8"
+    "nuxt-qrcode": "^0.4.8",
+    "vue-tsc": "^3.3.11"
   }
 }

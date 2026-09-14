@@ -38,6 +38,20 @@ export const APP_ROUTES: AppRoute[] = [
         to: '/dashboard',
         isDefault: true,
         render: true,
+        child: [
+            {
+                title: 'Tren Pertumbuhan',
+                description: 'Tren pertumbuhan tenant dan event dalam periode tertentu',
+                label: 'Growth Trend',
+                to: '/dashboard/growth-trend',
+            },
+            {
+                title: 'Laporan Lintas Tenant',
+                description: 'Perbandingan performa antar tenant',
+                label: 'Reports',
+                to: '/dashboard/reports',
+            },
+        ],
     },
     {
         title: 'Event Dashboard',
@@ -92,6 +106,18 @@ export const APP_ROUTES: AppRoute[] = [
                         to: '/tenants/:tenant_id/edit',
                     },
                 ],
+            },
+            {
+                title: 'Kuota Resource',
+                description: 'Kelola kuota resource per tenant berdasarkan tier plan',
+                label: 'Quota',
+                to: '/tenants/quota',
+            },
+            {
+                title: 'Akun Tenant Admin',
+                description: 'Kelola dan nonaktifkan akun tenant.admin per tenant',
+                label: 'Admin Accounts',
+                to: '/tenants/admin-accounts',
             },
         ],
     },
@@ -254,9 +280,42 @@ export const APP_ROUTES: AppRoute[] = [
     },
     {
         title: 'Settings',
+        description: 'Platform settings, security, and staff management',
         label: 'Settings',
         icon: 'lucide:settings',
         to: '/settings',
         render: true,
+        child: [
+            {
+                title: 'Batas Seat',
+                description: 'Konfigurasi batas seat tenant.admin dan member per tier',
+                label: 'Seat Limit',
+                to: '/settings/seat-limit',
+            },
+            {
+                title: 'Kebijakan Keamanan',
+                description: 'Aturan password dan sesi login platform',
+                label: 'Security',
+                to: '/settings/security',
+            },
+            {
+                title: 'Template Email',
+                description: 'Kelola template email dan notifikasi default platform',
+                label: 'Email Templates',
+                to: '/settings/email-templates',
+            },
+            {
+                title: 'Audit Trail',
+                description: 'Riwayat perubahan tenant dan log aktivitas platform',
+                label: 'Audit Trail',
+                to: '/settings/audit-trail',
+            },
+            {
+                title: 'Staf Platform',
+                description: 'Undang dan kelola staf platform superadmin',
+                label: 'Platform Staff',
+                to: '/settings/platform-staff',
+            },
+        ],
     },
 ]

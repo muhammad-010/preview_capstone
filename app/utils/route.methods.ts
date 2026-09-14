@@ -5,11 +5,28 @@ export function shallowNavigationPerRole(role: RoleSlug | null): NavigationMenuI
         ? [
                 ...routePerRole(role)
                     .filter((route: AppRoute) => route.render)
-                    .map((route: AppRoute): NavigationMenuItem => ({
-                        label: route.label,
-                        icon: route.icon,
-                        to: route.to,
-                    })),
+                    .map((route: AppRoute): NavigationMenuItem => {
+                        const item: NavigationMenuItem = {
+                            label: route.label,
+                            icon: route.icon,
+                            to: route.to,
+                        }
+                        
+                        if (route.child && route.child.length > 0) {
+                            const children = route.child
+                                .filter(c => c.render !== false && !c.disabled && !c.to.includes(':'))
+                                .map(c => ({
+                                    label: c.label || c.title,
+                                    to: c.to,
+                                }))
+                            
+                            if (children.length > 0) {
+                                item.children = children
+                            }
+                        }
+
+                        return item
+                    }),
             ]
         : []
 }
