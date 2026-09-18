@@ -2,8 +2,17 @@
 const route = useRoute()
 
 const selectedTenant = ref('Loka Festival')
-const tenantOptions = ['Loka Festival', 'Kopi Darat ID', 'Studio Panggung', 'Nada Malam']
+const tenantOptions = [
+    { label: 'Loka Festival', value: 'Loka Festival' },
+    { label: 'Kopi Darat ID', value: 'Kopi Darat ID' },
+    { label: 'Studio Panggung', value: 'Studio Panggung' },
+    { label: 'Nada Malam', value: 'Nada Malam' },
+]
 
+const searchTenant = (q: string) => {
+    if (!q) return tenantOptions
+    return tenantOptions.filter(tenant => tenant.label.toLowerCase().includes(q.toLowerCase()))
+}
 const adminAccounts = ref<Record<string, Array<{ name: string, email: string, role: string, status: 'active' | 'inactive' }>>>({
     'Loka Festival': [
         { name: 'Dewi Anjani', email: 'dewi@lokafestival.id', role: 'tenant.admin', status: 'active' },
@@ -22,8 +31,30 @@ const adminAccounts = ref<Record<string, Array<{ name: string, email: string, ro
     ],
 })
 
-const currentAccounts = computed(() => adminAccounts.value[selectedTenant.value] || [])
+const searchQuery = ref('')
+const page = ref(1)
+const limit = ref(5)
 
+const filteredAccounts = computed(() => {
+    const raw = adminAccounts.value[selectedTenant.value] || []
+    if (!searchQuery.value) return raw
+    const q = searchQuery.value.toLowerCase()
+    return raw.filter(a => a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q))
+})
+
+const paginatedAccounts = computed(() => {
+    const start = (page.value - 1) * limit.value
+    return filteredAccounts.value.slice(start, start + limit.value)
+})
+
+watch(selectedTenant, () => {
+    searchQuery.value = ''
+    page.value = 1
+})
+
+watch(searchQuery, () => {
+    page.value = 1
+})
 const deactivateTarget = ref<{ name: string, email: string } | null>(null)
 const showDeactivateModal = ref(false)
 const reactivateTarget = ref<{ name: string, email: string } | null>(null)
@@ -73,24 +104,31 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
     <div class="my-8">
         <!-- Tenant Selector -->
         <div class="flex items-center gap-4 mb-6">
-            <USelect
+            <USelectMenu
                 v-model="selectedTenant"
-                :items="tenantOptions.map(t => ({ label: t, value: t }))"
+                :searchable="searchTenant"
+                value-attribute="value"
+                option-attribute="label"
+                searchable-placeholder="Cari tenant..."
                 placeholder="Pilih tenant"
                 class="w-64"
-            />
-            <UBadge
-                color="success"
-                variant="subtle"
             >
-                Tenant tetap aktif
-            </UBadge>
+                <template #label>
+                    {{ selectedTenant || 'Pilih tenant' }}
+                </template>
+            </USelectMenu>
         </div>
 
         <!-- Admin Accounts Table -->
         <UCard>
             <template #header>
-                <h3>{{ selectedTenant }} — Akun Tenant.admin</h3>
+                <div class="flex items-center justify-between">
+                    <h3>{{ selectedTenant }} — Akun Tenant.admin</h3>
+                    <DataTableSearch
+                        v-model="searchQuery"
+                        class="w-64"
+                    />
+                </div>
             </template>
 
             <div class="overflow-x-auto">
@@ -114,7 +152,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     </thead>
                     <tbody>
                         <tr
-                            v-for="account in currentAccounts"
+                            v-for="account in paginatedAccounts"
                             :key="account.email"
                             class="border-b border-neutral-100 hover:bg-neutral-50 transition-colors"
                         >
@@ -165,6 +203,15 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     </tbody>
                 </table>
             </div>
+
+            <template v-if="filteredAccounts.length > 0">
+                <DataTablePagination
+                    v-model:page="page"
+                    v-model:limit="limit"
+                    :total="filteredAccounts.length"
+                    class="pb-4"
+                />
+            </template>
         </UCard>
 
         <!-- Deactivation Info -->

@@ -32,6 +32,12 @@ const settingsMenus = [
         icon: 'lucide:user-plus',
         to: '/settings/platform-staff',
     },
+    {
+        title: 'Konfigurasi Package',
+        description: 'Atur fitur dan limit per package (Basic, Pro, Enterprise)',
+        icon: 'lucide:package',
+        to: '/settings/package',
+    },
 ]
 
 useHead({

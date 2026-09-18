@@ -2,20 +2,20 @@
 const route = useRoute()
 
 const seatLimits = ref([
-    { tier: 'Basic', maxAdmin: 2, maxMember: 10, since: 'Release 1' },
-    { tier: 'Pro', maxAdmin: 5, maxMember: 30, since: 'Release 1' },
-    { tier: 'Enterprise', maxAdmin: -1, maxMember: -1, since: 'Release 1' },
+    { tier: 'Basic', maxAdmin: 2, maxMember: 10, since: 'Default' },
+    { tier: 'Pro', maxAdmin: 5, maxMember: 30, since: 'Default' },
+    { tier: 'Enterprise', maxAdmin: -1, maxMember: -1, since: 'Default' },
 ])
 
-// Example enforcement
-const exampleTenant = ref({
-    name: 'Kopi Darat ID',
-    tier: 'Basic',
-    memberUsed: 10,
-    memberLimit: 10,
-})
-
 const editingDefaults = ref(false)
+
+function getTodayStr() {
+    const today = new Date()
+    const dd = String(today.getDate()).padStart(2, '0')
+    const mm = String(today.getMonth() + 1).padStart(2, '0')
+    const yy = String(today.getFullYear()).slice(-2)
+    return `${dd}/${mm}/${yy}`
+}
 
 function displayLimit(val: number) {
     return val <= 0 ? 'Tanpa batas' : String(val)
@@ -76,7 +76,11 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                             <td class="py-3 px-4 tabular-nums">
                                 <UInput
                                     v-if="editingDefaults && limit.maxAdmin > 0"
-                                    v-model.number="limit.maxAdmin"
+                                    :model-value="limit.maxAdmin"
+                                    @update:model-value="(val) => {
+                                        limit.maxAdmin = Number(val)
+                                        limit.since = getTodayStr()
+                                    }"
                                     type="number"
                                     class="w-24"
                                     size="sm"
@@ -86,7 +90,11 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                             <td class="py-3 px-4 tabular-nums">
                                 <UInput
                                     v-if="editingDefaults && limit.maxMember > 0"
-                                    v-model.number="limit.maxMember"
+                                    :model-value="limit.maxMember"
+                                    @update:model-value="(val) => {
+                                        limit.maxMember = Number(val)
+                                        limit.since = getTodayStr()
+                                    }"
                                     type="number"
                                     class="w-24"
                                     size="sm"
@@ -113,48 +121,5 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
             </template>
         </UCard>
 
-        <USeparator class="my-6" />
-
-        <!-- Enforcement Example -->
-        <UCard>
-            <template #header>
-                <h3>Contoh enforcement — {{ exampleTenant.name }} ({{ exampleTenant.tier }})</h3>
-            </template>
-
-            <div>
-                <div class="flex justify-between text-sm mb-2">
-                    <span>Seat tenant.member terpakai</span>
-                    <span class="tabular-nums font-medium">
-                        {{ exampleTenant.memberUsed }} / {{ exampleTenant.memberLimit }}
-                    </span>
-                </div>
-
-                <UProgress
-                    :model-value="(exampleTenant.memberUsed / exampleTenant.memberLimit) * 100"
-                    color="error"
-                    class="mb-4"
-                />
-
-                <div class="rounded-lg border border-error bg-error/5 p-4">
-                    <div class="flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <p class="text-sm font-semibold text-error">
-                                Gagal mengundang user baru.
-                            </p>
-                            <small class="text-error/75">
-                                Kuota seat tenant.member plan {{ exampleTenant.tier }}
-                                ({{ exampleTenant.memberLimit }}) sudah tercapai.
-                            </small>
-                        </div>
-                        <UButton
-                            color="warning"
-                            size="sm"
-                        >
-                            Upgrade ke Pro
-                        </UButton>
-                    </div>
-                </div>
-            </div>
-        </UCard>
     </div>
 </template>

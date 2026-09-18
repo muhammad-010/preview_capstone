@@ -90,6 +90,18 @@ const filteredLog = computed(() => {
     })
 })
 
+const page = ref(1)
+const limit = ref(5)
+
+const paginatedLog = computed(() => {
+    const start = (page.value - 1) * limit.value
+    return filteredLog.value.slice(start, start + limit.value)
+})
+
+watch([filterTenant, filterType, filterDateRange], () => {
+    page.value = 1
+})
+
 function dotColor(type: string) {
     switch (type) {
         case 'status': return 'bg-warning'
@@ -162,7 +174,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                 class="divide-y divide-neutral-100"
             >
                 <div
-                    v-for="entry in filteredLog"
+                    v-for="entry in paginatedLog"
                     :key="entry.id"
                     class="flex gap-4 py-4 px-2"
                 >
@@ -201,6 +213,15 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     </div>
                 </div>
             </div>
+
+            <template v-if="filteredLog.length > 0">
+                <DataTablePagination
+                    v-model:page="page"
+                    v-model:limit="limit"
+                    :total="filteredLog.length"
+                    class="pb-4"
+                />
+            </template>
         </UCard>
 
         <!-- Info Callout -->

@@ -31,7 +31,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
             <UTabs
                 :items="periods.map(p => ({ label: p, value: p }))"
                 :model-value="activePeriod"
-                @update:model-value="activePeriod = $event"
+                @update:model-value="activePeriod = String($event)"
             />
             <UButton
                 icon="lucide:download"

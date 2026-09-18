@@ -5,78 +5,76 @@ interface StaffMember {
     name: string
     email: string
     role: string
-    status: 'active' | 'invited' | 'revoked'
+    status: 'active' | 'inactive'
     isOwner: boolean
 }
 
 const staffList = ref<StaffMember[]>([
     { name: 'Rayendra Ogya Naga', email: 'rayendra@rawooh.id', role: 'Superadmin (pemilik)', status: 'active', isOwner: true },
     { name: 'Alya Kirana', email: 'alya@rawooh.id', role: 'Staf platform', status: 'active', isOwner: false },
-    { name: 'Farhan Ilham', email: 'farhan@rawooh.id', role: 'Staf platform', status: 'invited', isOwner: false },
+    { name: 'Farhan Ilham', email: 'farhan@rawooh.id', role: 'Staf platform', status: 'inactive', isOwner: false },
 ])
 
-const inviteEmail = ref('')
-const inviteRole = ref('staff')
-const showRevokeModal = ref(false)
-const revokeTarget = ref<StaffMember | null>(null)
-const inviting = ref(false)
+const staffName = ref('')
+const staffEmail = ref('')
+const staffRole = ref('staff')
+
+const page = ref(1)
+const limit = ref(5)
+
+const paginatedStaffList = computed(() => {
+    const start = (page.value - 1) * limit.value
+    return staffList.value.slice(start, start + limit.value)
+})
+const showAddModal = ref(false)
+const adding = ref(false)
+const showStatusModal = ref(false)
+const statusTarget = ref<StaffMember | null>(null)
 
 const roleOptions = [
     { label: 'Staf platform (akses penuh)', value: 'staff' },
 ]
 
 function statusLabel(status: string) {
-    switch (status) {
-        case 'active': return 'Aktif'
-        case 'invited': return 'Diundang · belum verifikasi'
-        case 'revoked': return 'Dicabut'
-        default: return status
-    }
+    return status === 'active' ? 'Aktif' : 'Nonaktif'
 }
 
 function statusColor(status: string) {
-    switch (status) {
-        case 'active': return 'success' as const
-        case 'invited': return 'neutral' as const
-        case 'revoked': return 'error' as const
-        default: return 'neutral' as const
+    return status === 'active' ? 'success' : 'neutral'
+}
+
+function openToggleStatus(staff: StaffMember) {
+    statusTarget.value = staff
+    showStatusModal.value = true
+}
+
+function confirmToggleStatus() {
+    if (statusTarget.value) {
+        statusTarget.value.status = statusTarget.value.status === 'active' ? 'inactive' : 'active'
     }
+    showStatusModal.value = false
+    statusTarget.value = null
 }
 
-function openRevoke(staff: StaffMember) {
-    revokeTarget.value = staff
-    showRevokeModal.value = true
-}
-
-function confirmRevoke() {
-    if (revokeTarget.value) {
-        revokeTarget.value.status = 'revoked'
-    }
-    showRevokeModal.value = false
-    revokeTarget.value = null
-}
-
-async function sendInvite() {
-    if (!inviteEmail.value) return
-    inviting.value = true
+async function addStaff() {
+    if (!staffName.value || !staffEmail.value) return
+    adding.value = true
     await new Promise(resolve => setTimeout(resolve, 1000))
     staffList.value.push({
-        name: inviteEmail.value.split('@')[0] || 'New Staff',
-        email: inviteEmail.value,
+        name: staffName.value,
+        email: staffEmail.value,
         role: 'Staf platform',
-        status: 'invited',
+        status: 'active',
         isOwner: false,
     })
-    inviteEmail.value = ''
-    inviting.value = false
-}
-
-function resendInvite(staff: StaffMember) {
-    // Mock resend
+    staffName.value = ''
+    staffEmail.value = ''
+    adding.value = false
+    showAddModal.value = false
+    
     const toast = useToast()
     toast.add({
-        title: 'Undangan terkirim ulang',
-        description: `Undangan dikirim ke ${staff.email}`,
+        title: 'Staf berhasil ditambahkan',
         color: 'success',
     })
 }
@@ -92,11 +90,11 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
         <!-- Add button -->
         <div class="flex justify-end mb-4">
             <UButton
-                color="warning"
-                icon="lucide:user-plus"
-                @click="$refs.inviteSection?.scrollIntoView({ behavior: 'smooth' })"
+                color="primary"
+                icon="lucide:plus"
+                @click="showAddModal = true"
             >
-                Undang staf baru
+                Tambah staf
             </UButton>
         </div>
 
@@ -123,7 +121,7 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                     </thead>
                     <tbody>
                         <tr
-                            v-for="staff in staffList"
+                            v-for="staff in paginatedStaffList"
                             :key="staff.email"
                             class="border-b border-neutral-100 hover:bg-neutral-50 transition-colors"
                         >
@@ -152,80 +150,96 @@ setLayoutPropState(buildLayoutProp(APP_ROUTES, route.path, {}))
                                     —
                                 </span>
                                 <UButton
-                                    v-else-if="staff.status === 'active'"
-                                    color="error"
+                                    v-else
+                                    :color="staff.status === 'active' ? 'error' : 'success'"
                                     variant="outline"
                                     size="xs"
-                                    @click="openRevoke(staff)"
+                                    @click="openToggleStatus(staff)"
                                 >
-                                    Cabut akses
-                                </UButton>
-                                <UButton
-                                    v-else-if="staff.status === 'invited'"
-                                    color="neutral"
-                                    variant="ghost"
-                                    size="xs"
-                                    @click="resendInvite(staff)"
-                                >
-                                    Kirim ulang undangan
+                                    {{ staff.status === 'active' ? 'Nonaktifkan' : 'Aktifkan' }}
                                 </UButton>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
+            <template v-if="staffList.length > 0">
+                <DataTablePagination
+                    v-model:page="page"
+                    v-model:limit="limit"
+                    :total="staffList.length"
+                    class="pb-4"
+                />
+            </template>
         </UCard>
 
-        <USeparator class="my-6" />
-
-        <!-- Invite Form -->
-        <UCard
-            ref="inviteSection"
-            class="max-w-lg"
+        <!-- Add Modal -->
+        <UModal
+            v-model:open="showAddModal"
+            title="Tambah Staf Baru"
+            :ui="{ footer: 'justify-end' }"
         >
-            <template #header>
-                <h3>Undang staf baru</h3>
+            <template #body>
+                <div class="space-y-4">
+                    <UFormField label="Nama Lengkap">
+                        <UInput
+                            v-model="staffName"
+                            placeholder="John Doe"
+                        />
+                    </UFormField>
+                    
+                    <UFormField label="Email">
+                        <UInput
+                            v-model="staffEmail"
+                            type="email"
+                            placeholder="nama@rawooh.id"
+                        />
+                    </UFormField>
+
+                    <UFormField label="Role">
+                        <USelect
+                            v-model="staffRole"
+                            :items="roleOptions"
+                        />
+                    </UFormField>
+                </div>
             </template>
-
-            <div class="space-y-4">
-                <UFormField label="Email">
-                    <UInput
-                        v-model="inviteEmail"
-                        type="email"
-                        placeholder="nama@rawooh.id"
-                    />
-                </UFormField>
-
-                <UFormField label="Role">
-                    <USelect
-                        v-model="inviteRole"
-                        :items="roleOptions"
-                    />
-                    <template #hint>
-                        <span class="text-xs text-neutral-400">
-                            MVP: satu level akses; role granular dipertimbangkan berikutnya.
-                        </span>
-                    </template>
-                </UFormField>
-
+            <template #footer>
+                <UButton
+                    color="neutral"
+                    variant="ghost"
+                    @click="showAddModal = false"
+                >
+                    Batal
+                </UButton>
                 <UButton
                     color="primary"
-                    :loading="inviting"
-                    :disabled="!inviteEmail"
-                    @click="sendInvite"
+                    :loading="adding"
+                    :disabled="!staffEmail || !staffName"
+                    @click="addStaff"
                 >
-                    Kirim undangan
+                    Tambah
                 </UButton>
-            </div>
-        </UCard>
+            </template>
+        </UModal>
 
-        <!-- Revoke Modal -->
+        <!-- Status Toggle Modal -->
         <ModalConfirmNegativeAction
-            v-model:open="showRevokeModal"
-            :title="`Cabut akses ${revokeTarget?.name || ''}`"
-            :body="`Anda akan mencabut akses staf ${revokeTarget?.name} (${revokeTarget?.email}). Staf ini tidak akan bisa mengakses panel superadmin lagi.`"
-            confirm-label="Ya, cabut akses"
-            @confirm="confirmRevoke"
+            v-if="statusTarget?.status === 'active'"
+            v-model:open="showStatusModal"
+            :title="`Nonaktifkan ${statusTarget?.name || ''}`"
+            :body="`Anda akan menonaktifkan akses staf ${statusTarget?.name} (${statusTarget?.email}). Staf ini tidak akan bisa mengakses panel superadmin lagi.`"
+            confirm-label="Ya, nonaktifkan"
+            @confirm="confirmToggleStatus"
+        />
+        <ModalConfirmPositiveAction
+            v-else
+            v-model:open="showStatusModal"
+            :title="`Aktifkan ${statusTarget?.name || ''}`"
+            :body="`Anda akan mengaktifkan kembali akses staf ${statusTarget?.name} (${statusTarget?.email}).`"
+            confirm-label="Ya, aktifkan"
+            @confirm="confirmToggleStatus"
         />
     </div>
 </template>

@@ -316,6 +316,12 @@ export const APP_ROUTES: AppRoute[] = [
                 label: 'Platform Staff',
                 to: '/settings/platform-staff',
             },
+            {
+                title: 'Konfigurasi Package',
+                description: 'Atur fitur dan limit per package (Basic, Pro, Enterprise)',
+                label: 'Package',
+                to: '/settings/package',
+            },
         ],
     },
 ]

@@ -7,13 +7,107 @@ async function useList() {
     const page = ref(1)
     const limit = ref(5)
 
-    const { data, pending, refresh } = await useApi('/api/tenant', {
-        transform: res => res.data,
-        query: { query, page, limit },
-        watch: [page, limit],
+    const DUMMY_TENANTS: Tenant[] = [
+        {
+            tenant_id: 1,
+            name: 'Kopi Darat ID',
+            status: 'Active',
+            owner: { name: 'Ahmad Faisal', email: 'ahmad@kopidarat.id', phone: { number: '8123456789' } },
+            total_event: 12,
+            total_registered_user: 1250,
+            plan: 'Pro',
+            joined_at: '2025-01-15T10:00:00Z'
+        },
+        {
+            tenant_id: 2,
+            name: 'Studio Panggung',
+            status: 'Active',
+            owner: { name: 'Budi Santoso', email: 'budi@studiopanggung.com', phone: { number: '8129876543' } },
+            total_event: 5,
+            total_registered_user: 300,
+            plan: 'Basic',
+            joined_at: '2025-03-20T14:30:00Z'
+        },
+        {
+            tenant_id: 3,
+            name: 'Nada Malam',
+            status: 'Inactive',
+            owner: { name: 'Citra Dewi', email: 'citra@nadamalam.id', phone: { number: '8134567890' } },
+            total_event: 48,
+            total_registered_user: 15400,
+            plan: 'Enterprise',
+            joined_at: '2024-11-05T09:15:00Z'
+        },
+        {
+            tenant_id: 4,
+            name: 'Loka Festival',
+            status: 'Active',
+            owner: { name: 'Deni Pratama', email: 'deni@lokafest.id', phone: { number: '8112233445' } },
+            total_event: 2,
+            total_registered_user: 150,
+            plan: 'Trial',
+            joined_at: '2025-08-10T16:45:00Z'
+        },
+        {
+            tenant_id: 5,
+            name: 'Panggung Rakyat',
+            status: 'Inactive',
+            owner: { name: 'Eka Saputra', email: 'eka@panggungrakyat.com', phone: { number: '8198765432' } },
+            total_event: 0,
+            total_registered_user: 0,
+            plan: 'Trial',
+            joined_at: '2025-09-01T08:00:00Z'
+        },
+        {
+            tenant_id: 6,
+            name: 'Senandung Riang',
+            status: 'Active',
+            owner: { name: 'Fikri Rahman', email: 'fikri@senandung.id', phone: { number: '8122334455' } },
+            total_event: 15,
+            total_registered_user: 4200,
+            plan: 'Pro',
+            joined_at: '2024-05-12T11:20:00Z'
+        },
+        {
+            tenant_id: 7,
+            name: 'Konser Kita',
+            status: 'Active',
+            owner: { name: 'Gita Pertiwi', email: 'gita@konserkita.com', phone: { number: '8156789012' } },
+            total_event: 22,
+            total_registered_user: 8900,
+            plan: 'Enterprise',
+            joined_at: '2024-01-25T13:40:00Z'
+        },
+    ]
+
+    const pending = ref(false)
+    const list = ref<Tenant[]>([])
+    const total = ref(0)
+
+    async function refresh() {
+        pending.value = true
+        await new Promise(r => setTimeout(r, 500))
+        
+        let filtered = DUMMY_TENANTS
+        if (query.value) {
+            const q = query.value.toLowerCase()
+            filtered = filtered.filter(t => t.name.toLowerCase().includes(q) || t.owner.name.toLowerCase().includes(q))
+        }
+        
+        total.value = filtered.length
+        const start = (page.value - 1) * limit.value
+        list.value = filtered.slice(start, start + limit.value)
+        
+        pending.value = false
+    }
+
+    onMounted(() => {
+        refresh()
     })
-    const list = computed<Tenant[]>(() => data.value?.tenants ?? [])
-    const total = computed(() => data.value?.total_data ?? 0)
+
+    watch([page, limit], () => {
+        refresh()
+    })
 
     function searchData() {
         page.value = 1
