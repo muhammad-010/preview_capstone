@@ -85,6 +85,32 @@ export interface TenantForm {
     plan_id?: number
 }
 
+// BILLING
+export type BillingStatus = 'Menunggak' | 'Menunggu Verifikasi' | 'Lunas'
+
+export interface BillingTenant {
+    tenant_id: number
+    tenant: string
+    plan: string
+    status: BillingStatus
+    amount: number
+    due_date: string
+    overdue_days?: number
+    payment_note?: string
+}
+
+export interface BillingHistory {
+    id: number
+    invoice: string
+    period: string
+    amount: number
+    status: BillingStatus
+    due_date: string
+    grace_period: string
+    overdue_days?: number
+    can_confirm?: boolean
+}
+
 // EVENTS
 export type TenantEventStatus = 'Active' | 'Upcoming' | 'Live' | 'Completed'
 

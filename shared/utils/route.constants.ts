@@ -11,6 +11,7 @@ export const APP_PUBLIC_ROUTE: string[] = [
 export const APP_SUPER_ADMIN_ROUTES: string[] = [
     '/dashboard',
     '/tenants',
+    '/billing',
     '/settings',
 ]
 
@@ -24,10 +25,7 @@ export const APP_TENANT_ADMIN_ROUTES: string[] = [
     '/distribute',
 ]
 
-export const APP_POC_ADMIN_ROUTES: string[] = [
-    '/my-events',
-    '/check-in',
-]
+export const APP_POC_ADMIN_ROUTES: string[] = ['/my-events', '/check-in']
 
 export const APP_ROUTES: AppRoute[] = [
     {
@@ -267,6 +265,22 @@ export const APP_ROUTES: AppRoute[] = [
                 description: 'Send notification to specific event',
                 label: 'Add',
                 to: '/distribute/add',
+            },
+        ],
+    },
+    {
+        title: 'Billing',
+        description: 'Monitor status pembayaran dan riwayat tagihan tenant',
+        label: 'Billing',
+        icon: 'lucide:credit-card',
+        to: '/billing',
+        render: true,
+        child: [
+            {
+                title: 'Riwayat Billing Tenant',
+                description: 'Lihat riwayat tagihan dan pembayaran tenant',
+                label: 'Riwayat',
+                to: '/billing/:tenant_id',
             },
         ],
     },
